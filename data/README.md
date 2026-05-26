@@ -2,7 +2,7 @@
 
 Skill definitions and test cases.
 
-**Owner:** Person 2 (data quality)
+**Owner:** Trisha and Aayusha
 
 ## Subfolders
 
