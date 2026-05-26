@@ -2,8 +2,7 @@
 
 Python backend that maps a user's input to relevant skills.
 
-**Owner:** Person 1 (core logic)
-
+**Owner:** Erk
 ## Responsibility
 
 - Load skills from `../data/skills/`
