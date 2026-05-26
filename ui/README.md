@@ -2,7 +2,7 @@
 
 React frontend for The Lore.
 
-**Owner:** Trisha and Aayusha (interaction & navigation)
+**Owner:** Aayusha (interaction & navigation)
 
 ## Responsibility
 
