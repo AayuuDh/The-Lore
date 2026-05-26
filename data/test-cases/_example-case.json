@@ -1,0 +1,4 @@
+{
+  "query": "example user need",
+  "expected_skill_ids": ["example-skill"]
+}

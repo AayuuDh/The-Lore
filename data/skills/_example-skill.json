@@ -1,0 +1,12 @@
+{
+  "id": "example-skill",
+  "name": "Example Skill",
+  "description": "Placeholder skill showing the expected file format. Delete or replace.",
+  "tags": ["example"],
+  "use_cases": [
+    "Reference for how to author a new skill file."
+  ],
+  "prompt": "TODO: the actual prompt / workflow / agent config goes here.",
+  "example_input": "TODO",
+  "example_output": "TODO"
+}
