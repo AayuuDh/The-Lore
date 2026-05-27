@@ -1,0 +1,12 @@
+{
+  "id": "string",
+  "name": "string",
+  "problem": "string",
+  "when_to_use": "string",
+  "use_cases": ["string"],
+  "instructions": "string",
+  "example": {
+    "input": "string",
+    "output": "string"
+  }
+}

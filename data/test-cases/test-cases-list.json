@@ -1,0 +1,14 @@
+[
+  {
+    "query": "summarize messy notes",
+    "expected_skill_ids": ["summarize-meeting-notes"]
+  },
+  {
+    "query": "make email more professional",
+    "expected_skill_ids": ["rewrite-email-professional"]
+  },
+  {
+    "query": "ideas for new product",
+    "expected_skill_ids": ["brainstorm-product-ideas"]
+  }
+]

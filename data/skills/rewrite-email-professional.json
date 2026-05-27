@@ -1,0 +1,16 @@
+{
+  "id": "rewrite-email-professional",
+  "name": "Rewrite an email to be more professional",
+  "problem": "Turning informal or unprofessional email content into a more formal and appropriate tone.",
+  "when_to_use": "Use when you have an informal or unprofessional email and want to make it more formal and appropriate.",
+  "use_cases": [
+    "rewrite informal email content",
+    "turn informal email into formal email",
+    "create professional email from draft"
+  ],
+  "instructions": "Rewrite the email content to be more formal and appropriate, ensuring it is suitable for professional communication.",
+  "example": {
+    "input": "Hey, I wanted to follow up on our meeting yesterday. We need to get this project done by next week.",
+    "output": "Good morning [Name], I wanted to follow up on our meeting yesterday. We need to ensure this project is completed by next week."
+  }
+}

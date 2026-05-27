@@ -1,0 +1,16 @@
+{
+  "id": "brainstorm-product-ideas",
+  "name": "Brainstorm Product Ideas",
+  "problem": "Generating new product ideas can be challenging and time-consuming.",
+  "when_to_use": "Use when you need to come up with new product concepts or improvements.",
+  "use_cases": [
+    "generate new product ideas",
+    "think of innovative features",
+    "create a list of potential products"
+  ],
+  "instructions": "Provide a list of potential product ideas based on the input criteria.",
+  "example": {
+    "input": "We need a new app for managing personal finances.",
+    "output": "- A budgeting app with spending tracking\n- A savings goal tracker\n- A debt management tool"
+  }
+}
