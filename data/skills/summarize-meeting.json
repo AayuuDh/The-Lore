@@ -1,16 +1,19 @@
 {
   "id": "summarize-meeting-notes",
   "name": "Summarize Meeting Notes",
-  "problem": "Turning messy meeting notes into a clear summary is time consuming.",
-  "when_to_use": "Use when you have raw, unstructured meeting notes and need a quick summary.",
+  "problem": "I need to quickly turn messy, unstructured meeting notes into a clear summary with key points and decisions.",
+  "when_to_use": "Use when you have raw or disorganized meeting notes and want a concise summary with main takeaways and action items.",
+  "tags": ["summarization", "meetings", "notes", "writing"],
   "use_cases": [
-    "summarize messy meeting notes",
-    "turn notes into bullet points",
-    "create executive summary from notes"
+    "summarize messy meeting notes into key points",
+    "turn meeting notes into bullet point summary",
+    "create executive summary from raw meeting notes",
+    "extract main takeaways from meeting notes"
   ],
-  "instructions": "Take the input notes and generate a concise summary with key points and action items.",
+  "instructions": "Take the provided meeting notes and generate a concise summary. Highlight key points, decisions, and action items. Format the output as clear bullet points, keeping each point short and easy to scan.",
   "example": {
     "input": "We discussed Q3 goals. Marketing needs a new campaign. Follow up next week.",
-    "output": "- Q3 goals discussed\n- Marketing to launch new campaign\n- Follow-up scheduled for next week"
-  }
+    "output": "- Q3 goals discussed\n- Marketing to launch a new campaign\n- Follow-up scheduled for next week"
+  },
+  "owner": ""
 }
