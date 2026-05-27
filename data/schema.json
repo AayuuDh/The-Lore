@@ -1,12 +1,28 @@
 {
-  "id": "string",
-  "name": "string",
-  "problem": "string",
-  "when_to_use": "string",
-  "use_cases": ["string"],
-  "instructions": "string",
+  "$comment": "Schema for a single skill JSON file. Fields marked (embedded) are concatenated into the text that gets embedded for cosine-similarity matching. Fields marked (display) are shown in the UI. Fields marked (agent) are passed to the LLM reranker on top-k candidates.",
+
+  "id": "string — kebab-case unique identifier, must match the filename without .json. (display, agent)",
+
+  "name": "string — short human title, 2 to 6 words. Shown as the card headline. (embedded, display, agent)",
+
+  "problem": "string — one sentence describing the pain this skill solves, phrased from the user's perspective. 10 to 25 words. (embedded, display, agent)",
+
+  "when_to_use": "string — one sentence describing the trigger situation. Start with 'Use when...'. 10 to 25 words. (embedded, display, agent)",
+
+  "tags": [
+    "string — 3 to 6 lowercase single-word tags. Used for filtering AND embedded as keywords. Examples: writing, summarization, code, planning, feedback."
+  ],
+
+  "use_cases": [
+    "string — 3 to 6 short phrases (5 to 12 words each) a user might literally type when looking for this skill. These do the heaviest lifting for retrieval, so write them in natural query language, not formal descriptions."
+  ],
+
+  "instructions": "string — the prompt / system message / workflow the skill executes. Can be multi-paragraph. NOT embedded (kept out of the vector to avoid retrieval noise from generic phrasing). Shown on the detail page. (display, agent)",
+
   "example": {
-    "input": "string",
-    "output": "string"
-  }
+    "input": "string — a realistic sample input a user might paste in. (display, agent)",
+    "output": "string — what the skill would produce for that input. Demonstrates value in the UI. (display, agent)"
+  },
+
+  "owner": "string — optional. Team or person who maintains this skill. (display)"
 }
