@@ -11,7 +11,7 @@ High-level plan:
 """
 
 from embeddings import embed, embed_batch  # noqa: F401  (used below once implemented)
-
+from skills_loader import load_skills
 # Sample skills for local testing. Real ones will come from data/skills/.
 skills = [
     {
@@ -98,8 +98,8 @@ def skill_to_text(skill: dict) -> str:
     return " ".join([
         skill['id'],
         skill['name'],
-        skill['description'],
-        " ".join(skill['tags']),
+        #skill['description'],
+        #" ".join(skill['tags']),
         " ".join(skill['use_cases']),
     ])
 
@@ -138,9 +138,10 @@ def match(query: str, skills_with_vectors: list, top_k: int = 10) -> list:
 
 
 if __name__ == "__main__":
+    skills = load_skills()
     skillVectors = precompute_skill_vectors(skills)
-    query = "I need a prompt to condense my meeting's transcript to notes"
+    query = "i need something to rewrite my emails professionally"
     matched = match(query, skillVectors)
-    print(f'this is the best match: {((matched[0])[0])['id']}')
+    print(f'this is the best match: {((matched[0])[0])['id']} with similarity {((matched[0])[1])}')
 
 
