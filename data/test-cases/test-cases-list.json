@@ -10,5 +10,116 @@
   {
     "query": "ideas for new product",
     "expected_skill_ids": ["brainstorm-product-ideas"]
+  },
+
+  {
+    "query": "tldr this transcript please",
+    "expected_skill_ids": ["summarize-meeting-notes"]
+  },
+  {
+    "query": "i was in a 2hr sync and my brain is mush, what happened",
+    "expected_skill_ids": ["summarize-meeting-notes"]
+  },
+  {
+    "query": "give me the key takeaways from this call",
+    "expected_skill_ids": ["summarize-meeting-notes"]
+  },
+  {
+    "query": "condense this wall of text into bullets",
+    "expected_skill_ids": ["summarize-meeting-notes"]
+  },
+
+  {
+    "query": "what do i actually need to do after this meeting",
+    "expected_skill_ids": ["extract-action-items"]
+  },
+  {
+    "query": "pull out the todos from this discussion",
+    "expected_skill_ids": ["extract-action-items"]
+  },
+  {
+    "query": "who owns what after the standup",
+    "expected_skill_ids": ["extract-action-items"]
+  },
+  {
+    "query": "list next steps from this conversation",
+    "expected_skill_ids": ["extract-action-items"]
+  },
+
+  {
+    "query": "polish this draft before i send it to my skip",
+    "expected_skill_ids": ["rewrite-email-professional"]
+  },
+  {
+    "query": "this sounds too blunt, fix the tone",
+    "expected_skill_ids": ["rewrite-email-professional"]
+  },
+  {
+    "query": "rewrite this so it doesn't sound like i'm pissed off",
+    "expected_skill_ids": ["rewrite-email-professional"]
+  },
+  {
+    "query": "make this message sound less casual",
+    "expected_skill_ids": ["rewrite-email-professional"]
+  },
+
+  {
+    "query": "i need feature ideas for my app",
+    "expected_skill_ids": ["brainstorm-product-ideas"]
+  },
+  {
+    "query": "what could we build to solve this problem",
+    "expected_skill_ids": ["brainstorm-product-ideas"]
+  },
+  {
+    "query": "generate some startup concepts in the productivity space",
+    "expected_skill_ids": ["brainstorm-product-ideas"]
+  },
+
+  {
+    "query": "break this project into phases and milestones",
+    "expected_skill_ids": ["create-project-plan"]
+  },
+  {
+    "query": "how should i structure the work for the next quarter",
+    "expected_skill_ids": ["create-project-plan"]
+  },
+  {
+    "query": "lay out a roadmap for building this feature",
+    "expected_skill_ids": ["create-project-plan"]
+  },
+  {
+    "query": "what are the steps to ship this thing",
+    "expected_skill_ids": ["create-project-plan"]
+  },
+
+  {
+    "query": "clean up my notes from the standup",
+    "expected_skill_ids": ["summarize-meeting-notes", "extract-action-items"]
+  },
+  {
+    "query": "process this meeting recording into something useful",
+    "expected_skill_ids": ["summarize-meeting-notes", "extract-action-items"]
+  },
+  {
+    "query": "we have an idea, now what do we do next",
+    "expected_skill_ids": ["create-project-plan", "brainstorm-product-ideas"]
+  },
+
+  {
+    "query": "what should we build next quarter",
+    "expected_skill_ids": ["brainstorm-product-ideas"]
+  },
+  {
+    "query": "i have a project idea and want a timeline",
+    "expected_skill_ids": ["create-project-plan"]
+  },
+  {
+    "query": "draft a follow up note to the team after the offsite",
+    "expected_skill_ids": ["rewrite-email-professional"]
+  },
+  {
+    "query": "turn this transcript into assigned tasks",
+    "expected_skill_ids": ["extract-action-items"]
   }
 ]
