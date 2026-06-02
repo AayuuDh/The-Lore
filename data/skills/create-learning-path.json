@@ -1,0 +1,19 @@
+{
+  "id": "create-learning-plan",
+  "name": "Create Learning Plan",
+  "problem": "I want to learn a tool, framework, or skill, but it is hard to structure a realistic plan and know where to begin.",
+  "when_to_use": "Use when starting to learn a new technical or professional skill during an internship or project.",
+  "tags": ["learning", "planning", "career-growth", "technical"],
+  "use_cases": [
+    "make a plan to learn React",
+    "create a structured way to learn Git and GitHub",
+    "build a short learning roadmap for a new tool",
+    "plan how to improve presentation or communication skills"
+  ],
+  "instructions": "Given a skill or topic to learn, create a practical learning plan with manageable steps, suggested milestones, and a simple progression from beginner to more confident use. Keep the plan realistic and concise.",
+  "example": {
+    "input": "I want to learn Git well enough to contribute confidently during my internship.",
+    "output": "Week 1: Learn basic commands like clone, pull, add, commit, and push\nWeek 2: Practice branching, merging, and resolving simple conflicts\nWeek 3: Use Git in a real project workflow with pull requests and reviews\nGoal: be comfortable making changes and collaborating through version control"
+  },
+  "owner": ""
+}

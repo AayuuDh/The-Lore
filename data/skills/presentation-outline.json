@@ -1,0 +1,19 @@
+{
+  "id": "presentation-outline",
+  "name": "Create Presentation Outline",
+  "problem": "I have the core idea for a presentation, but I struggle to organize it into a clear structure that tells a compelling story.",
+  "when_to_use": "Use when preparing a project presentation, intern demo, status update, or final recap deck.",
+  "tags": ["presentation", "storytelling", "communication", "planning"],
+  "use_cases": [
+    "create an outline for an intern project presentation",
+    "turn project notes into a slide structure",
+    "prepare a demo presentation for a manager review",
+    "organize ideas for a final internship presentation"
+  ],
+  "instructions": "Given a presentation topic, audience, and goal, generate a clear outline with a logical flow. Include a suggested title, key sections, and short descriptions of what each part should cover. Keep the structure concise and presentation-ready.",
+  "example": {
+    "input": "I need to present my internship project and explain the problem, the solution, and what I learned.",
+    "output": "Title: Improving Skill Discovery and Reuse\n- Problem: Why finding and reusing skills is difficult today\n- Approach: How the project explored a structured solution\n- Progress: Key work completed so far\n- Impact: Why this matters for teams and users\n- Learnings and Next Steps: What was learned and where the project could go next"
+  },
+  "owner": ""
+}

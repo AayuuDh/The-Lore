@@ -1,0 +1,19 @@
+{
+  "id": "brainstorm-hackathon-ideas",
+  "name": "Brainstorm Hackathon Ideas",
+  "problem": "Coming up with strong hackathon or side-project ideas quickly is difficult, especially when trying to balance creativity with practicality.",
+  "when_to_use": "Use when generating project ideas for a hackathon, internship showcase, club event, or prototype sprint.",
+  "tags": ["ideation", "hackathon", "innovation", "projects"],
+  "use_cases": [
+    "brainstorm hackathon ideas for students",
+    "generate internship demo concepts",
+    "come up with product ideas for a team event",
+    "list realistic project ideas for a short timeline"
+  ],
+  "instructions": "Given a problem space, user group, or theme, generate multiple creative but practical hackathon or prototype ideas. Focus on novelty, feasibility, and user value. Format the output as a concise bullet list, with each idea described in one line.",
+  "example": {
+    "input": "We want hackathon ideas that help interns be more productive at work.",
+    "output": "- AI onboarding guide that answers intern questions based on team docs and FAQs\n- Meeting recap tool that turns notes into action items and follow-ups\n- Networking assistant that suggests personalized coffee chat questions and follow-up messages\n- Internship dashboard that tracks goals, wins, blockers, and learning progress"
+  },
+  "owner": ""
+}

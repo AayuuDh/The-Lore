@@ -1,0 +1,19 @@
+{
+  "id": "simplify-technical-explanation",
+  "name": "Simplify Technical Explanation",
+  "problem": "Technical ideas can be difficult to explain clearly to people who are not deeply familiar with the system or terminology.",
+  "when_to_use": "Use when translating technical concepts for non-technical teammates, stakeholders, or broader audiences.",
+  "tags": ["technical", "communication", "clarity", "collaboration"],
+  "use_cases": [
+    "explain a technical system to a product manager",
+    "simplify engineering work for a presentation",
+    "rewrite a complex explanation in plain language",
+    "describe backend or data work in a more accessible way"
+  ],
+  "instructions": "Given a technical explanation, rewrite it in simple, clear language for a non-technical audience. Preserve the core meaning, remove unnecessary jargon, and focus on what the system does, why it matters, and how it helps the user or team.",
+  "example": {
+    "input": "We are creating a schema-driven retrieval system that improves discoverability and reuse of skills across teams.",
+    "output": "We are building a structured system that makes it easier for teams to find and reuse useful skills instead of recreating the same work from scratch."
+  },
+  "owner": ""
+}
