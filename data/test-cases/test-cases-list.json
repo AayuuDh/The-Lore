@@ -121,5 +121,88 @@
   {
     "query": "turn this transcript into assigned tasks",
     "expected_skill_ids": ["extract-action-items"]
+  },
+
+  {
+    "query": "i need to pitch project ideas for our intern hackathon",
+    "expected_skill_ids": ["brainstorm-hackathon-ideas"]
+  },
+  {
+    "query": "weekend coding sprint ideas",
+    "expected_skill_ids": ["brainstorm-hackathon-ideas"]
+  },
+  {
+    "query": "help me figure out how to learn react",
+    "expected_skill_ids": ["create-learning-plan"]
+  },
+  {
+    "query": "i need a roadmap for picking up kubernetes",
+    "expected_skill_ids": ["create-learning-plan"]
+  },
+
+  {
+    "query": "i need to give my report some hard feedback without being a jerk",
+    "expected_skill_ids": ["draft-feedback-message"]
+  },
+  {
+    "query": "how do i tell my teammate their code review was too harsh",
+    "expected_skill_ids": ["draft-feedback-message"]
+  },
+  {
+    "query": "i want to ask my manager for feedback on my presentation",
+    "expected_skill_ids": ["draft-feedback-request"]
+  },
+  {
+    "query": "help me ask my mentor what i could be doing better",
+    "expected_skill_ids": ["draft-feedback-request"]
+  },
+
+  {
+    "query": "post a quick update in our team channel about where i'm at",
+    "expected_skill_ids": ["draft-team-update"]
+  },
+  {
+    "query": "write up what i did this week for my manager",
+    "expected_skill_ids": ["write-weekly-status-update"]
+  },
+  {
+    "query": "i need to send a friday wrap-up email",
+    "expected_skill_ids": ["write-weekly-status-update", "draft-team-update"]
+  },
+
+  {
+    "query": "what could go wrong with this project before we start",
+    "expected_skill_ids": ["identify-project-risks"]
+  },
+  {
+    "query": "spot the blockers and dependencies in this plan",
+    "expected_skill_ids": ["identify-project-risks"]
+  },
+
+  {
+    "query": "outline a deck for my final intern presentation",
+    "expected_skill_ids": ["presentation-outline"]
+  },
+  {
+    "query": "structure slides for my demo day",
+    "expected_skill_ids": ["presentation-outline"]
+  },
+
+  {
+    "query": "explain what an embedding is for someone non-technical",
+    "expected_skill_ids": ["simplify-technical-explanation"]
+  },
+  {
+    "query": "how do i describe our api to the design team without jargon",
+    "expected_skill_ids": ["simplify-technical-explanation"]
+  },
+
+  {
+    "query": "my manager gave me a bunch of feedback, now what",
+    "expected_skill_ids": ["turn-feedback-into-action-items"]
+  },
+  {
+    "query": "convert mentor feedback into things i should actually do",
+    "expected_skill_ids": ["turn-feedback-into-action-items"]
   }
 ]

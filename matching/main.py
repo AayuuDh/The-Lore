@@ -33,7 +33,7 @@ from pydantic import BaseModel
 from matcher import match, precompute_skill_vectors
 from skills_loader import load_skills
 from fastapi.middleware.cors import CORSMiddleware
-
+from query_rewriter import rewrite_query
 app = FastAPI()
 
 # TODO: tighten allow_origins before production.
@@ -47,10 +47,15 @@ app.add_middleware(
 
 
 # --- Startup ---------------------------------------------------------------
-# Load all skill JSON files and compute their embedding vectors once at boot.
+# Load all skill markdown files and compute their embedding vectors once at boot.
 # Every request after this just does fast math on the cached vectors.
 skills = load_skills()
 skills_with_vectors = precompute_skill_vectors(skills)
+
+
+def _public(skill: dict) -> dict:
+    """Drop the 'vector' field. It's huge and the UI doesn't need it."""
+    return {k: v for k, v in skill.items() if k != "vector"}
 
 
 # --- Request shapes --------------------------------------------------------
@@ -58,17 +63,21 @@ class MatchRequest(BaseModel):
     """Shape of the JSON body POSTed to /match."""
     query: str          # what the user typed in the search box
     top_k: int = 10     # how many ranked results to return
+    rewrite: bool = False
 
 
 # --- Endpoints -------------------------------------------------------------
 @app.post("/match")
 def match_endpoint(req: MatchRequest):
     """Rank skills by how well they match `req.query`. Returns top `req.top_k`."""
-    results = match(req.query, skills_with_vectors, req.top_k)
+    if req.rewrite:
+        query = rewrite_query(req.query)
+    else:
+        query = req.query
+    results = match(query, skills_with_vectors, req.top_k)
     return [
         {
-            # strip the "vector" field — it's huge and the UI doesn't need it
-            "skill": {k: v for k, v in skill.items() if k != "vector"},
+            "skill": _public(skill),
             "score": score,
         }
         for skill, score in results
@@ -78,7 +87,7 @@ def match_endpoint(req: MatchRequest):
 @app.get("/skills")
 def list_skills():
     """Return every skill in the catalog (used by browse views)."""
-    return skills
+    return [_public(skill) for skill in skills]
 
 
 @app.get("/skills/{id}")
@@ -86,5 +95,5 @@ def get_skill(id: str):
     """Return the full data for one skill by its id (used by detail pages)."""
     for skill in skills:
         if skill["id"] == id:
-            return skill
+            return _public(skill)
     raise HTTPException(status_code=404, detail=f"skill not found: {id}")

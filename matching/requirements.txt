@@ -1,3 +1,4 @@
 fastapi
 uvicorn
 model2vec
+requests

@@ -15,6 +15,13 @@ from pathlib import Path
 
 from matcher import match, precompute_skill_vectors
 from skills_loader import load_skills
+from query_rewriter import rewrite_query
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--rewrite", action = "store_true")
+args = parser.parse_args()
+
 
 TEST_CASES_DIR = Path(__file__).parent.parent / "data" / "test-cases"
 TOP_KS = [1, 3, 5]
@@ -42,7 +49,10 @@ def evaluate(cases: list, skills_with_vectors: list) -> None:
     failures = []
 
     for case in cases:
-        query = case["query"]
+        if args.rewrite:
+            query = rewrite_query(case["query"])
+        else:
+            query = case["query"]
         expected = set(case["expected_skill_ids"])
         results = match(query, skills_with_vectors, top_k=max_k)
         result_ids = [skill["id"] for skill, _score in results]

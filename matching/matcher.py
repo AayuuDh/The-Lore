@@ -12,11 +12,8 @@ from skills_loader import load_skills
 
 def skill_to_text(skill: dict) -> str:
     return " ".join([
-        skill["name"],
-        skill["problem"],
-        skill["when_to_use"],
-        " ".join(skill["tags"]),
-        " ".join(skill["use_cases"]),
+        skill.get("name", ""),
+        skill.get("description", ""),
     ])
 
 
