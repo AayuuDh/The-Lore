@@ -56,7 +56,7 @@
   },
   {
     "query": "rewrite this so it doesn't sound like i'm pissed off",
-    "expected_skill_ids": ["rewrite-email-professional"]
+    "expected_skill_ids": ["rewrite-email-professional", "draft-feedback-message"]
   },
   {
     "query": "make this message sound less casual",
@@ -95,7 +95,7 @@
 
   {
     "query": "clean up my notes from the standup",
-    "expected_skill_ids": ["summarize-meeting-notes", "extract-action-items"]
+    "expected_skill_ids": ["summarize-meeting-notes", "extract-action-items", "draft-team-update"]
   },
   {
     "query": "process this meeting recording into something useful",
@@ -116,7 +116,7 @@
   },
   {
     "query": "draft a follow up note to the team after the offsite",
-    "expected_skill_ids": ["rewrite-email-professional"]
+    "expected_skill_ids": ["draft-team-update", "rewrite-email-professional"]
   },
   {
     "query": "turn this transcript into assigned tasks",
