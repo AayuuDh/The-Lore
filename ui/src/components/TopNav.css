@@ -1,0 +1,149 @@
+.topnav {
+  height: 64px;
+  background: #06061F;
+  border-bottom: 1px solid #30363d;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 80;
+}
+
+/* Left */
+.topnav__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topnav__hamburger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  background: transparent;
+  color: #e6edf3;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.topnav__hamburger:hover {
+  background: #21262d;
+  border-color: #8b949e;
+}
+
+.topnav__logo {
+  display: block;
+}
+
+.topnav__separator {
+  color: #484f58;
+  font-size: 18px;
+  font-weight: 300;
+  user-select: none;
+}
+
+.topnav__page-name {
+  color: #e6edf3;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Center — Search */
+.topnav__center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 0 24px;
+}
+
+.topnav__search {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+}
+
+.topnav__search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #484f58;
+  pointer-events: none;
+}
+
+.topnav__search-input {
+  width: 100%;
+  height: 32px;
+  padding: 0 36px 0 32px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  color: #e6edf3;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.topnav__search-input::placeholder {
+  color: #484f58;
+}
+
+.topnav__search-input:focus {
+  border-color: #1f6feb;
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.3);
+}
+
+.topnav__search-shortcut {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #484f58;
+  pointer-events: none;
+  background: transparent;
+}
+
+/* Right */
+.topnav__right {
+  display: flex;
+  align-items: center;
+}
+
+.topnav__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #30363d;
+  background: #161b22;
+  color: #7d8590;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.topnav__avatar:hover {
+  border-color: #8b949e;
+}
+
+@media (max-width: 600px) {
+  .topnav__center {
+    display: none;
+  }
+}

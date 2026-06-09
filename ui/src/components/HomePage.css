@@ -1,0 +1,193 @@
+/* ── Home Page ────────────────────────────────────────────── */
+.homepage {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-left: 24px;
+
+  /* for gradient background, haven't use it yet */
+  
+  /* background: #020C17; */
+  /* margin: 0;
+  height: 100vh;
+  background: linear-gradient(-45deg, #0D0B1F,#14112B,    #1C1740,    #2A1F6F);
+  background-size: 400% 400%;
+  animation: gradientMove 10s ease infinite; */
+  
+  /* margin: 0;
+  height: 100vh;
+  background: radial-gradient(circle at 20% 30%, rgba(139,123,255,0.2), transparent 40%),
+              radial-gradient(circle at 80% 70%, rgba(109,93,246,0.15), transparent 40%),
+              linear-gradient(-45deg, #0D0B1F, #14112B, #1C1740);
+  background-size: 400% 400%;
+  animation: gradientMove 25s ease infinite; */
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Welcome card*/
+.homepage__welcome {
+  background: #130f2a;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  padding: 32px;
+}
+
+.homepage__welcome-heading {
+  font-size: 24px;
+  font-weight: 600;
+  color: #e6edf3;
+  margin-bottom: 8px;
+}
+
+.homepage__welcome-text {
+  font-size: 14px;
+  color: #7d8590;
+  line-height: 1.6;
+  max-width: 620px;
+}
+
+/* Section titles */
+.homepage__section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e6edf3;
+  margin-bottom: 16px;
+}
+
+/* Grid */
+.homepage__tips-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.homepage__tip-card {
+  background: #130f2a;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 20px;
+  transition: border-color 0.2s;
+}
+
+.homepage__tip-card:hover {
+  border-color: #8b949e;
+}
+
+.homepage__tip-emoji {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.homepage__tip-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e6edf3;
+  margin-bottom: 6px;
+}
+
+.homepage__tip-desc {
+  font-size: 13px;
+  color: #7d8590;
+  line-height: 1.5;
+}
+
+/* Demo Video */
+.homepage__video-placeholder {
+  background: #130f2a;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.homepage__video-placeholder:hover {
+  border-color: #8b949e;
+}
+
+/* Play Button in demo video*/
+.homepage__play-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e6edf3;
+  transition: background 0.2s;
+}
+
+.homepage__video-placeholder:hover .homepage__play-btn {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.homepage__video-label {
+  font-size: 14px;
+  color: #7d8590;
+  font-weight: 500;
+}
+
+
+/* This was for the buttons but since we removed it, we are just keeping the code for reference. */
+/* CTA Buttons
+.homepage__cta {
+  display: flex;
+  gap: 12px;
+}
+
+.homepage__cta-btn {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.homepage__cta-btn--primary {
+  background: #238636;
+  border: 1px solid #238636;
+  color: #ffffff;
+}
+
+.homepage__cta-btn--primary:hover {
+  background: #2ea043;
+}
+
+.homepage__cta-btn--secondary {
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #e6edf3;
+}
+
+.homepage__cta-btn--secondary:hover {
+  border-color: #8b949e;
+} */
+
+@media (max-width: 768px) {
+  .homepage {
+    padding-left: 0;
+  }
+
+  .homepage__tips-grid {
+    grid-template-columns: 1fr;
+  }
+}
