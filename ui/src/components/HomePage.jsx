@@ -20,7 +20,7 @@ const TIPS = [
   },
 ];
 
-function HomePage() {
+function HomePage({ onDiscoverSkills }) {
   return (
     <div className="homepage">
       {/* Welcome Card */}
@@ -39,14 +39,41 @@ function HomePage() {
       <section className="homepage__tips">
         <h2 className="homepage__section-title">Quick Tips</h2>
         <div className="homepage__tips-grid">
-          {TIPS.map((tip) => (
-            <div key={tip.title} className="homepage__tip-card">
-              <span className="homepage__tip-emoji">{tip.emoji}</span>
-              <h3 className="homepage__tip-title">{tip.title}</h3>
-              <p className="homepage__tip-desc">{tip.desc}</p>
-            </div>
-          ))}
+          {TIPS.map((tip) => {
+            const isDiscover = tip.title === "Discover Skills";
+            return (
+              <div
+                key={tip.title}
+                className={`homepage__tip-card${isDiscover ? " homepage__tip-card--action" : ""}`}
+                onClick={isDiscover ? onDiscoverSkills : undefined}
+                role={isDiscover ? "button" : undefined}
+                tabIndex={isDiscover ? 0 : undefined}
+                onKeyDown={
+                  isDiscover
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          onDiscoverSkills?.();
+                        }
+                      }
+                    : undefined
+                }
+              >
+                <span className="homepage__tip-emoji">{tip.emoji}</span>
+                <h3 className="homepage__tip-title">{tip.title}</h3>
+                <p className="homepage__tip-desc">{tip.desc}</p>
+                {isDiscover && (
+                  <span className="homepage__tip-cta">Explore skills →</span>
+                )}
+              </div>
+            );
+          })}
         </div>
+      </section>
+
+      {/* Discover Skills primary button */}
+      <section className="homepage__discover">
+        
       </section>
 
       {/* Demo Video Placeholder */}
