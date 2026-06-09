@@ -36,7 +36,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from query_rewriter import rewrite_query
 app = FastAPI()
 
-# TODO: tighten allow_origins before production.
+# WARNING!!!!: tighten allow_origins before production.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -55,7 +55,11 @@ skills_with_vectors = precompute_skill_vectors(skills)
 
 def _public(skill: dict) -> dict:
     """Drop the 'vector' field. It's huge and the UI doesn't need it."""
-    return {k: v for k, v in skill.items() if k != "vector"}
+    result = {}
+    for key, value in skill.items():
+        if key != "vector":
+            result[key] = value
+    return result
 
 
 # --- Request shapes --------------------------------------------------------

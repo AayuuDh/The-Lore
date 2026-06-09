@@ -24,7 +24,7 @@ args = parser.parse_args()
 
 
 TEST_CASES_DIR = Path(__file__).parent.parent / "data" / "test-cases"
-TOP_KS = [1, 3, 5]
+TOP_KS = [1, 3, 5, 10]
 
 
 def load_test_cases() -> list:

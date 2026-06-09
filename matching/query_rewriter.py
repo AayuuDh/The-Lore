@@ -21,5 +21,5 @@ def rewrite_query(query: str):
     return data["response"]
 
 if __name__ == "__main__":
-    test_query = "my brain is super mush and i cant think, i need some kind of tool to dumb down my meetings"
+    test_query = ""
     print(rewrite_query(test_query))
