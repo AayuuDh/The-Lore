@@ -6,17 +6,32 @@ import TopNav from "./components/TopNav";
 import HomePage from "./components/HomePage";
 import SkillsPage from "./components/SkillsPage";
 import Footer from "./components/Footer";
+import Login from "./components/Login";
 import "./App.css";
 import PurpleCubeBackground from "./components/PurpleCubeBackground";
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("Home");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const handleNavSelect = (page) => {
     setCurrentPage(page);
     setSidebarOpen(false);
   };
+
+  if (!isAuthenticated) {
+    return (
+      <ThemeProvider colorMode="dark">
+        <BaseStyles>
+          <div className="app-container">
+            <PurpleCubeBackground />
+            <Login onLogin={() => setIsAuthenticated(true)} />
+          </div>
+        </BaseStyles>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider colorMode="dark">
