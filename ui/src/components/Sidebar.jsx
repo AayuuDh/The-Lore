@@ -9,8 +9,10 @@ import {
   CommentDiscussionIcon,
   ZapIcon,
   PlusIcon,
-} from "@primer/octicons-react";
+} 
+from "@primer/octicons-react";
 import "./Sidebar.css";
+import logo from "../assets/logo light.png"
 
 const NAV_ITEMS = [
   { label: "Home", icon: HomeIcon, activeIcon: HomeFillIcon },
@@ -40,19 +42,19 @@ function Sidebar({ isOpen, onClose, currentPage, onNavigate }) {
       {/* Header */}
       <div className="sidebar__header">
         <div className="sidebar__logo">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path
-              d="M16 2L28 9.5V22.5L16 30L4 22.5V9.5L16 2Z"
-              stroke="#e6edf3"
-              strokeWidth="2"
-              fill="none"
-            />
-            <path
-              d="M16 8L22 11.5V18.5L16 22L10 18.5V11.5L16 8Z"
-              fill="#e6edf3"
-            />
-          </svg>
+
+          <img
+            className="topnav__logo"
+            src={logo}
+            width="28"
+            height="40"
+            alt="Logo"
+          />
+        
+        <span className="sidebar__the-lore">The Lore</span>
+
         </div>
+        
         <button className="sidebar__close" onClick={onClose} aria-label="Close sidebar">
           <XIcon size={16} />
         </button>

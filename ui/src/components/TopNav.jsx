@@ -7,6 +7,7 @@ function TopNav({ onMenuClick, currentPage }) {
   return (
     <header className="topnav">
       {/* Left group */}
+
       <div className="topnav__left">
         <button
           className="topnav__hamburger"

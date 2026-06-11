@@ -62,9 +62,6 @@ function HomePage({ onDiscoverSkills }) {
                 <span className="homepage__tip-emoji">{tip.emoji}</span>
                 <h3 className="homepage__tip-title">{tip.title}</h3>
                 <p className="homepage__tip-desc">{tip.desc}</p>
-                {isDiscover && (
-                  <span className="homepage__tip-cta">Explore skills →</span>
-                )}
               </div>
             );
           })}
