@@ -12,6 +12,23 @@ A small, reusable unit of AI knowledge — a prompt, workflow, agent config, or 
 user input  →  matching  →  ranked skills  →  click  →  skill details
 ```
 
+## Run it locally
+
+Two terminals, then open http://localhost:5173
+
+```powershell
+# Terminal 1 — backend (http://localhost:8000)
+cd matching; python -m uvicorn main:app --port 8000
+
+# Terminal 2 — frontend (http://localhost:5173)
+cd ui; npm.cmd run dev
+```
+
+First time only: `cd ui; npm.cmd install`, then copy `ui/.env.example` to `ui/.env` and fill in the two GUIDs (needed for Microsoft sign-in).
+
+Notes: use `npm.cmd` (not `npm`). "Port 5173 already in use" means the frontend is already running — just open the browser. Ctrl+C stops a server.
+
+
 ## Project structure
 
 - `ui/` — React frontend (Person 3: interaction & navigation)
