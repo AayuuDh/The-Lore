@@ -1,6 +1,6 @@
 # Product Requirements: AI Add-Skill
 
-**The Lore**  |  Owner: Erk (PM)  |  Status: Draft
+**The Lore**  |  Owner: Erk (PM)  |  Status: In progress (building for real, not a throwaway prototype)
 
 ## 1. Problem
 
@@ -18,11 +18,14 @@ becomes searchable.
 
 ## 3. Non-goals (explicitly out of scope)
 
-- **NOT** automatically committing or pushing skills to GitHub. The MVP writes a
-  local markdown file only.
-- **NOT** opening pull requests or branching via automation.
 - **NOT** editing or deleting existing skills (creation only).
 - **NOT** user accounts / per-user skill ownership beyond what exists.
+- **NOT** building a general-purpose agent framework; this is one focused
+  skill-authoring agent.
+
+> Note: persistence (whether saved skills live only on the server's disk vs.
+> being committed to the shared repo) is now an open question, since we are
+> building for real and a local-only file is lost on restart. See section 6.
 
 ## 4. User flow
 
@@ -38,8 +41,9 @@ becomes searchable.
 - Chat UI with multi-turn conversation state (React).
 - Backend endpoint that takes raw text + conversation and returns a structured
   skill (`id`, `name`, `description`, `body`).
-- LLM call routed through the sanctioned Sandbox / Substrate platform (not a
-  direct third-party API).
+- LLM access through the **Copilot SDK** (Python supported), the sanctioned path
+  for a real tool/agent. Sandbox is explicitly NOT used here, since Sandbox is
+  for prototyping only and this is being built for real.
 - Backend endpoint that writes an approved skill to `data/skills/<id>.md` with
   valid frontmatter.
 - Generated `id` must be a unique kebab-case slug; handle collisions.
@@ -48,19 +52,24 @@ becomes searchable.
 
 ## 6. Open questions
 
-- Does the Substrate LLM call happen in the Vite frontend or the FastAPI
-  backend? (Leaning backend: the save step must be backend anyway, and
-  credentials stay server-side.) → ask mentor.
-- Which model / endpoint on Substrate, and what is the auth pattern from the
-  sandbox template?
-- Do we need any review/approval step before a skill goes live, or is self-serve
-  creation acceptable for the prototype?
+- **Platform confirmed:** Copilot SDK (over Work IQ / Graph) because this is a
+  conversational agent that takes an action, and it supports Python. Still need
+  mentor sign-off that Add-Skill counts as a "real tool" requiring this rather
+  than Sandbox.
+- **Persistence:** now that we're building for real, a local-only `.md` file is
+  lost when the server restarts. Do saved skills need to persist to the shared
+  repo (commit/PR), or is server-local storage acceptable for now? → decide with
+  mentor.
+- **LLM call location:** frontend vs. backend. Leaning backend: the save step
+  must be backend anyway, and credentials stay server-side.
+- Do we need a review/approval step before a skill goes live, or is self-serve
+  creation acceptable?
 
 ## 7. Milestones (build order)
 
 - **M1:** Backend `POST /draft-skill` returning a HARDCODED structured skill
   (prove the flow end-to-end, no LLM yet).
-- **M2:** Swap the hardcoded response for a real Substrate LLM call.
+- **M2:** Swap the hardcoded response for a real Copilot SDK LLM call.
 - **M3:** Backend `POST /skills` that writes the approved `.md` file.
 - **M4:** Build the chat UI and wire the back-and-forth.
 - **M5:** Polish (loading states, errors, empty states).
