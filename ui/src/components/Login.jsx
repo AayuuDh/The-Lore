@@ -7,7 +7,7 @@
 // credentials on Microsoft's page, never on ours).
 // ============================================================================
 
-import React from "react";
+import { useState } from "react";
 // useMsal is a React hook that gives us the shared MSAL engine (from the
 // MsalProvider in main.jsx) so we can trigger login from this component.
 import { useMsal } from "@azure/msal-react";
@@ -21,9 +21,12 @@ function Login() {
   // Pull `instance` (the MSAL engine) out of the hook. The { } is object
   // destructuring: useMsal() returns an object and we grab just that field.
   const { instance } = useMsal();
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   // Runs when the user clicks the sign-in button.
   const handleSignIn = () => {
+    if (isSigningIn) return;
+    setIsSigningIn(true);
     // loginRedirect navigates THIS SAME TAB to Microsoft, then Microsoft sends
     // the user back to our redirectUri. We chose redirect over popup because a
     // popup relies on window.opener messaging, which browsers (COOP) sever when
@@ -33,6 +36,7 @@ function Login() {
     // .catch handles the rare case the redirect call itself throws.
     instance.loginRedirect(loginRequest).catch((error) => {
       console.error("Sign-in failed:", error);
+      setIsSigningIn(false);
     });
   };
 
@@ -50,8 +54,8 @@ function Login() {
         <h1 className="login__title">Welcome to The Lore</h1>
         <p className="login__subtitle">Sign in with your Microsoft account to continue.</p>
 
-        <button type="button" className="login__button" onClick={handleSignIn}>
-          Sign in with Microsoft
+        <button type="button" className="login__button" onClick={handleSignIn} disabled={isSigningIn}>
+          {isSigningIn ? "Redirecting..." : "Sign in with Microsoft"}
         </button>
       </div>
     </div>
