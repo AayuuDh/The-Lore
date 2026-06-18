@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PlusIcon } from "@primer/octicons-react";
+import { PlusIcon, ArrowLeftIcon } from "@primer/octicons-react";
 import "./AddSkillPage.css";
 
 function SkillInput({ value, onChange, onSubmit }) {
@@ -20,7 +20,7 @@ function SkillInput({ value, onChange, onSubmit }) {
   );
 }
 
-function AddSkillPage() {
+function AddSkillPage({ onBackHome }) {
   const [skill, setSkill] = useState("");
 
   function handleSubmit(e) {
@@ -40,6 +40,11 @@ function AddSkillPage() {
       </aside>
 
       <main className="add-skill-page__main">
+        <button className="add-skill-page__back" onClick={onBackHome}>
+          <ArrowLeftIcon size={16} />
+          <span>Back to Home</span>
+        </button>
+
         <section className="add-skill-page__hero">
           <p className="add-skill-page__eyebrow">Skill builder</p>
           <h1 className="add-skill-page__title">Add a Skill</h1>

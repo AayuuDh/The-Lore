@@ -62,11 +62,34 @@
 }
 
 .add-skill-page__main {
+  position: relative;
   min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 36px;
+}
+
+.add-skill-page__back {
+  position: absolute;
+  top: 22px;
+  left: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.add-skill-page__back:hover {
+  border-color: #8957e5;
+  color: #e6edf3;
 }
 
 .add-skill-page__hero {
@@ -183,11 +206,21 @@
   .add-skill-page__main {
     padding: 24px;
   }
+
+  .add-skill-page__back {
+    top: 16px;
+    left: 24px;
+  }
 }
 
 @media (max-width: 640px) {
   .add-skill-page__main {
     padding: 18px;
+  }
+
+  .add-skill-page__back {
+    top: 12px;
+    left: 18px;
   }
 
   .add-skill-page__card {
