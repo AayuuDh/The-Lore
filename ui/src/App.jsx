@@ -1,4 +1,4 @@
-  import React, { useState } from "react";
+  import { useState } from "react";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { ThemeProvider, BaseStyles } from "@primer/react";
 import Sidebar from "./components/Sidebar";
@@ -6,6 +6,7 @@ import TopNav from "./components/TopNav";
 // import LeftPanel from "./components/LeftPanel";
 import HomePage from "./components/HomePage";
 import SkillsPage from "./components/SkillsPage";
+import AddSkillPage from "./components/AddSkillPage";
 import Footer from "./components/Footer";
 import Login from "./components/Login";
 import "./App.css";
@@ -83,8 +84,13 @@ function App() {
               <div className="main-content">
                 {currentPage === "Skills" ? (
                   <SkillsPage onBackHome={() => handleNavSelect("Home")} />
+                ) : currentPage === "AddSkill" ? (
+                  <AddSkillPage onBackHome={() => handleNavSelect("Home")} />
                 ) : (
-                  <HomePage onDiscoverSkills={() => handleNavSelect("Skills")} />
+                  <HomePage
+                    onDiscoverSkills={() => handleNavSelect("Skills")}
+                    onAddSkills={() => handleNavSelect("AddSkill")}
+                  />
                 )}
               </div>
             </div>

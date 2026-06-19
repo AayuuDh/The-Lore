@@ -93,40 +93,6 @@
   box-shadow: 0 8px 24px rgba(137, 87, 229, 0.18);
 }
 
-.homepage__tip-cta {
-  display: inline-block;
-  margin-top: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #c9a6ff;
-}
-
-/* Discover Skills primary button */
-.homepage__discover {
-  display: flex;
-}
-
-.homepage__discover-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #8957e5;
-  border: 1px solid #8957e5;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 600;
-  padding: 14px 28px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background 0.15s, transform 0.15s, box-shadow 0.2s;
-}
-
-.homepage__discover-btn:hover {
-  background: #9a6ff0;
-  transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(137, 87, 229, 0.3);
-}
-
 .homepage__tip-emoji {
   font-size: 28px;
   display: block;
