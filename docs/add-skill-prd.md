@@ -50,6 +50,15 @@ becomes searchable.
 - Saved skill must match the existing format so the loader and matcher pick it
   up with no other changes.
 
+### Known tradeoff: SDK cost/latency
+
+The Copilot SDK is an agent runtime, not a lightweight API call: each request
+spawns a GitHub Copilot CLI subprocess in the background. That makes every
+`/draft-skill` call relatively slow and heavy (process startup + model round
+trip). Acceptable for a prototype and low request volume. If this ever needs to
+scale, revisit (e.g. a pooled/long-lived session instead of one process per
+request).
+
 ## 6. Open questions
 
 - **Platform confirmed:** Copilot SDK (over Work IQ / Graph) because this is a
@@ -60,16 +69,20 @@ becomes searchable.
   lost when the server restarts. Do saved skills need to persist to the shared
   repo (commit/PR), or is server-local storage acceptable for now? → decide with
   mentor.
-- **LLM call location:** frontend vs. backend. Leaning backend: the save step
-  must be backend anyway, and credentials stay server-side.
+- **LLM call location:** RESOLVED → backend. The save step must be backend
+  anyway, and keeping the SDK call server-side keeps credentials off the
+  browser. Implemented as `POST /draft-skill` in `matching/main.py`.
 - Do we need a review/approval step before a skill goes live, or is self-serve
   creation acceptable?
 
 ## 7. Milestones (build order)
 
 - **M1:** Backend `POST /draft-skill` returning a HARDCODED structured skill
-  (prove the flow end-to-end, no LLM yet).
-- **M2:** Swap the hardcoded response for a real Copilot SDK LLM call.
+  (prove the flow end-to-end, no LLM yet). → SKIPPED (no value in hardcoding).
+- **M2:** Real Copilot SDK call behind `POST /draft-skill`. → DONE. Returns a
+  structured `{ id, name, description, body }` skill. Uses `model="auto"`
+  (gpt-5 was not available on the account). Code in `matching/draft_skill.py`
+  + endpoint in `matching/main.py`.
 - **M3:** Backend `POST /skills` that writes the approved `.md` file.
 - **M4:** Build the chat UI and wire the back-and-forth.
 - **M5:** Polish (loading states, errors, empty states).

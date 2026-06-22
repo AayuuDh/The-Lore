@@ -34,6 +34,7 @@ from matcher import match, precompute_skill_vectors
 from skills_loader import load_skills
 from fastapi.middleware.cors import CORSMiddleware
 from query_rewriter import rewrite_query
+from draft_skill import draft_skill
 app = FastAPI()
 
 # WARNING!!!!: tighten allow_origins before production.
@@ -70,6 +71,11 @@ class MatchRequest(BaseModel):
     rewrite: bool = False
 
 
+class DraftSkillRequest(BaseModel):
+    """Shape of the JSON body POSTed to /draft-skill."""
+    description: str    # plain-English description of the skill the user wants
+
+
 # --- Endpoints -------------------------------------------------------------
 @app.post("/match")
 def match_endpoint(req: MatchRequest):
@@ -101,3 +107,20 @@ def get_skill(id: str):
         if skill["id"] == id:
             return _public(skill)
     raise HTTPException(status_code=404, detail=f"skill not found: {id}")
+
+
+@app.post("/draft-skill")
+async def draft_skill_endpoint(req: DraftSkillRequest):
+    """Use the Copilot SDK to draft a skill from a plain-English description.
+
+    Returns a structured skill: { id, name, description, body }.
+    This only DRAFTS it; saving to a real .md file is a later step.
+    """
+    # draft_skill() is a coroutine, so we await it directly (no asyncio.run
+    # inside an already-running event loop).
+    try:
+        return await draft_skill(req.description)
+    except Exception as exc:
+        # The model reply could be unparseable, or the SDK runtime could fail.
+        raise HTTPException(status_code=502, detail=f"draft failed: {exc}")
+

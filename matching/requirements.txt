@@ -3,3 +3,4 @@ uvicorn
 model2vec
 requests
 python-frontmatter
+github-copilot-sdk
