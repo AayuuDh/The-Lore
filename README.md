@@ -18,7 +18,7 @@ Two terminals, then open http://localhost:5173
 
 ```powershell
 # Terminal 1 — backend (http://localhost:8000)
-cd matching; python -m uvicorn main:app --port 8000
+cd matching; py -m uvicorn main:app --port 8000
 
 # Terminal 2 — frontend (http://localhost:5173)
 cd ui; npm.cmd run dev

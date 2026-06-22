@@ -1,4 +1,3 @@
-import React from "react";
 import { PlayIcon } from "@primer/octicons-react";
 import "./HomePage.css";
 
@@ -20,7 +19,7 @@ const TIPS = [
   },
 ];
 
-function HomePage({ onDiscoverSkills }) {
+function HomePage({ onDiscoverSkills, onAddSkills }) {
   return (
     <div className="homepage">
       {/* Welcome Card */}
@@ -41,19 +40,22 @@ function HomePage({ onDiscoverSkills }) {
         <div className="homepage__tips-grid">
           {TIPS.map((tip) => {
             const isDiscover = tip.title === "Discover Skills";
+            const isUpload = tip.title === "Upload skills";
+            const isAction = isDiscover || isUpload;
+            const onAction = isDiscover ? onDiscoverSkills : onAddSkills;
             return (
               <div
                 key={tip.title}
-                className={`homepage__tip-card${isDiscover ? " homepage__tip-card--action" : ""}`}
-                onClick={isDiscover ? onDiscoverSkills : undefined}
-                role={isDiscover ? "button" : undefined}
-                tabIndex={isDiscover ? 0 : undefined}
+                className={`homepage__tip-card${isAction ? " homepage__tip-card--action" : ""}`}
+                onClick={isAction ? onAction : undefined}
+                role={isAction ? "button" : undefined}
+                tabIndex={isAction ? 0 : undefined}
                 onKeyDown={
-                  isDiscover
+                  isAction
                     ? (e) => {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
-                          onDiscoverSkills?.();
+                          onAction?.();
                         }
                       }
                     : undefined
@@ -68,11 +70,6 @@ function HomePage({ onDiscoverSkills }) {
         </div>
       </section>
 
-      {/* Discover Skills primary button */}
-      <section className="homepage__discover">
-        
-      </section>
-
       {/* Demo Video Placeholder */}
       <section className="homepage__demo">
         <h2 className="homepage__section-title">Getting Started</h2>
@@ -84,16 +81,6 @@ function HomePage({ onDiscoverSkills }) {
         </div>
       </section>
 
-      {/* This was for the buttons but since we removed it, we are just keeping the code for reference. */}
-      {/* CTA Buttons
-      <div className="homepage__cta">
-        <button className="homepage__cta-btn homepage__cta-btn--primary">
-          Browse Skills
-        </button>
-        <button className="homepage__cta-btn homepage__cta-btn--secondary">
-          Add Skills
-        </button>
-      </div> */}
     </div>
   );
 }
