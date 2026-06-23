@@ -32,7 +32,7 @@ from pydantic import BaseModel
 from contextlib import asynccontextmanager
 
 from matcher import match, precompute_skill_vectors
-from skills_loader import load_skills
+from skills_loader import load_skills, save_skill
 from fastapi.middleware.cors import CORSMiddleware
 from query_rewriter import rewrite_query
 from draft_skill import start_draft, refine_draft, shutdown_client
@@ -93,6 +93,14 @@ class RefineSkillRequest(BaseModel):
     message: str        # the change to apply, e.g. "make the instructions shorter"
 
 
+class SaveSkillRequest(BaseModel):
+    """Shape of the JSON body POSTed to /skills (the approved skill to save)."""
+    id: str             # kebab-case id; becomes the filename data/skills/<id>.md
+    name: str           # human-readable title
+    description: str     # one paragraph used for search matching
+    body: str           # markdown body (## Instructions, ## Example, ...)
+
+
 # --- Endpoints -------------------------------------------------------------
 @app.post("/match")
 def match_endpoint(req: MatchRequest):
@@ -115,6 +123,27 @@ def match_endpoint(req: MatchRequest):
 def list_skills():
     """Return every skill in the catalog (used by browse views)."""
     return [_public(skill) for skill in skills]
+
+
+@app.post("/skills")
+def add_skill_endpoint(req: SaveSkillRequest):
+    """Save an approved skill to disk AND make it searchable right away.
+
+    Writes data/skills/<id>.md, then embeds the skill and appends it to the
+    live in-memory catalog. No restart needed: a browser refresh will find it.
+    If the id is already taken it is auto-suffixed (e.g. 'meeting-notes-2'); the
+    response carries the final id. 400 if the id is invalid (not kebab-case).
+    """
+    try:
+        saved = save_skill(req.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    # Attach the embedding vector in place, then add to the shared catalog.
+    # `skills` and `skills_with_vectors` are the same list, so /match sees it too.
+    precompute_skill_vectors([saved])
+    skills.append(saved)
+    return _public(saved)
 
 
 @app.get("/skills/{id}")
