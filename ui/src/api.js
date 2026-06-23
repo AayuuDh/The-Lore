@@ -29,3 +29,36 @@ export function matchSkills(query, topK = 30) {
     body: JSON.stringify({ query, top_k: topK }),
   });
 }
+
+// POST /draft-skill -> { session_id, skill }
+// Turn 1 of the AI conversation: turn a plain-English description into a first
+// draft. Keep the returned session_id to continue the conversation.
+export function draftSkill(description) {
+  return request("/draft-skill", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ description }),
+  });
+}
+
+// POST /draft-skill/refine -> { session_id, skill }
+// Later turns: pass back the session_id plus a change ("make it shorter") and
+// the AI returns the updated skill, remembering everything said before.
+export function refineSkill(sessionId, message) {
+  return request("/draft-skill/refine", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId, message }),
+  });
+}
+
+// POST /skills -> the saved skill (with its final id)
+// Persists an approved skill and makes it searchable. `skill` is just the
+// { id, name, description, body } object -- no session_id needed.
+export function saveSkill(skill) {
+  return request("/skills", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(skill),
+  });
+}
