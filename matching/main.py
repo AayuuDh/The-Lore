@@ -29,13 +29,24 @@ Endpoints (all return JSON):
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from contextlib import asynccontextmanager
 
 from matcher import match, precompute_skill_vectors
 from skills_loader import load_skills
 from fastapi.middleware.cors import CORSMiddleware
 from query_rewriter import rewrite_query
-from draft_skill import draft_skill
-app = FastAPI()
+from draft_skill import start_draft, refine_draft, shutdown_client
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # The Copilot client boots lazily on the first draft, so there's nothing to
+    # do on startup. On shutdown we stop its background subprocess cleanly.
+    yield
+    await shutdown_client()
+
+
+app = FastAPI(lifespan=lifespan)
 
 # WARNING!!!!: tighten allow_origins before production.
 app.add_middleware(
@@ -76,6 +87,12 @@ class DraftSkillRequest(BaseModel):
     description: str    # plain-English description of the skill the user wants
 
 
+class RefineSkillRequest(BaseModel):
+    """Shape of the JSON body POSTed to /draft-skill/refine."""
+    session_id: str     # the conversation to continue (from a previous response)
+    message: str        # the change to apply, e.g. "make the instructions shorter"
+
+
 # --- Endpoints -------------------------------------------------------------
 @app.post("/match")
 def match_endpoint(req: MatchRequest):
@@ -111,16 +128,29 @@ def get_skill(id: str):
 
 @app.post("/draft-skill")
 async def draft_skill_endpoint(req: DraftSkillRequest):
-    """Use the Copilot SDK to draft a skill from a plain-English description.
+    """Turn 1 of the conversation: draft a skill from a plain-English description.
 
-    Returns a structured skill: { id, name, description, body }.
-    This only DRAFTS it; saving to a real .md file is a later step.
+    Returns { "session_id": ..., "skill": { id, name, description, body } }.
+    Keep the session_id and pass it to /draft-skill/refine to ask for changes.
     """
-    # draft_skill() is a coroutine, so we await it directly (no asyncio.run
-    # inside an already-running event loop).
     try:
-        return await draft_skill(req.description)
+        session_id, skill = await start_draft(req.description)
+        return {"session_id": session_id, "skill": skill}
     except Exception as exc:
         # The model reply could be unparseable, or the SDK runtime could fail.
         raise HTTPException(status_code=502, detail=f"draft failed: {exc}")
+
+
+@app.post("/draft-skill/refine")
+async def refine_skill_endpoint(req: RefineSkillRequest):
+    """Later turns: continue the same conversation and apply a change.
+
+    Body: { "session_id": ..., "message": "make the instructions shorter" }
+    Returns the same shape as /draft-skill, with the updated skill.
+    """
+    try:
+        session_id, skill = await refine_draft(req.session_id, req.message)
+        return {"session_id": session_id, "skill": skill}
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"refine failed: {exc}")
 
