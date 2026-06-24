@@ -287,6 +287,15 @@
   letter-spacing: 0.08em;
 }
 
+.add-skill-page__hint {
+  color: #7d8590;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
 .add-skill-page__text-input,
 .add-skill-page__textarea {
   width: 100%;

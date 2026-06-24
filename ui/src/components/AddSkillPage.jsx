@@ -141,6 +141,19 @@ function AddSkillPage({ onBackHome }) {
             /* CASE 2: we have a draft -> editable boxes + refine + save */
             <div className="add-skill-page__card add-skill-page__card--editor">
               <label className="add-skill-page__field">
+                <span className="add-skill-page__label">ID</span>
+                <input
+                  className="add-skill-page__text-input"
+                  value={skill.id}
+                  onChange={(e) => updateField("id", e.target.value)}
+                />
+                <span className="add-skill-page__hint">
+                  Lowercase letters, numbers, and hyphens. If this id is already taken, a
+                  number is added automatically &mdash; you can&apos;t overwrite an existing skill.
+                </span>
+              </label>
+
+              <label className="add-skill-page__field">
                 <span className="add-skill-page__label">Name</span>
                 <input
                   className="add-skill-page__text-input"
