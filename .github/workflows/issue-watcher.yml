@@ -16,7 +16,7 @@ jobs:
         id: classify
         uses: actions/ai-inference@v1
         with:
-          model: openai/gpt-4o-mini
+          model: openai/gpt-4o
           system-prompt: |
             You are an issue triage assistant. Decide whether the issue is a
             small, clearly described change that an automated coding agent
