@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { SearchIcon, ArrowLeftIcon, XIcon } from "@primer/octicons-react";
+import { SearchIcon, ArrowLeftIcon, XIcon, StarIcon, StarFillIcon } from "@primer/octicons-react";
 import { getSkills, matchSkills } from "../api";
+import { getFavorites, toggleFavorite } from "../favorites";
 import SkillDetail from "./SkillDetail";
 import "./SkillsPage.css";
 
@@ -28,6 +29,22 @@ function SkillsPage({ onBackHome }) {
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
+  // The list of starred skill ids. We seed it from localStorage on first render
+  // (getFavorites reads what was saved last time), then keep it in React state
+  // so the stars on screen update the instant you click them.
+  const [favorites, setFavorites] = useState(getFavorites);
+  // When true, the grid shows ONLY skills you've starred. Just a view filter,
+  // it doesn't change what's saved, it changes what we render.
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+
+  // Star/unstar a skill. We stop the click from bubbling up to the card button
+  // (otherwise clicking the star would also open the skill's detail page).
+  // toggleFavorite saves to localStorage AND returns the new list, which we
+  // drop into state to re-render the stars.
+  function handleToggleFavorite(e, id) {
+    e.stopPropagation();
+    setFavorites(toggleFavorite(id));
+  }
 
   // Load the full catalog once on mount.
   useEffect(() => {
@@ -77,7 +94,12 @@ function SkillsPage({ onBackHome }) {
   }
 
   const isSearchView = results !== null;
-  const visibleSkills = isSearchView ? results : alphabetical;
+  // Start from either the search results or the full A–Z catalog, then (if the
+  // favorites filter is on) keep only the skills whose id is in `favorites`.
+  const baseSkills = isSearchView ? results : alphabetical;
+  const visibleSkills = showFavoritesOnly
+    ? baseSkills.filter((skill) => favorites.includes(skill.id))
+    : baseSkills;
 
   if (selectedId) {
     return (
@@ -137,6 +159,19 @@ function SkillsPage({ onBackHome }) {
         ) : (
           !loading && <span>{alphabetical.length} skills, sorted A–Z</span>
         )}
+
+        <button
+          type="button"
+          className={`skills-page__fav-toggle${showFavoritesOnly ? " is-active" : ""}`}
+          onClick={() => setShowFavoritesOnly((v) => !v)}
+          aria-pressed={showFavoritesOnly}
+        >
+          {showFavoritesOnly ? <StarFillIcon size={14} /> : <StarIcon size={14} />}
+          <span>{showFavoritesOnly ? "Showing favorites" : "My Favorites"}</span>
+          {favorites.length > 0 && (
+            <span className="skills-page__fav-count">{favorites.length}</span>
+          )}
+        </button>
       </div>
 
       {error && <div className="skills-page__error">{error}</div>}
@@ -154,12 +189,33 @@ function SkillsPage({ onBackHome }) {
               {isSearchView && i === 0 && (
                 <span className="skill-card__badge">Top match</span>
               )}
+              <span
+                className="skill-card__fav"
+                role="button"
+                tabIndex={0}
+                aria-label={favorites.includes(skill.id) ? "Remove from favorites" : "Add to favorites"}
+                aria-pressed={favorites.includes(skill.id)}
+                onClick={(e) => handleToggleFavorite(e, skill.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") handleToggleFavorite(e, skill.id);
+                }}
+              >
+                {favorites.includes(skill.id) ? (
+                  <StarFillIcon size={18} />
+                ) : (
+                  <StarIcon size={18} />
+                )}
+              </span>
               <h3 className="skill-card__title">{skill.name || skill.id}</h3>
               <p className="skill-card__desc">{shortDescription(skill.description)}</p>
             </button>
           ))}
           {visibleSkills.length === 0 && !error && (
-            <div className="skills-page__empty">No matching skills found.</div>
+            <div className="skills-page__empty">
+              {showFavoritesOnly
+                ? "You haven’t starred any skills yet. Tap the ☆ on a card to add one."
+                : "No matching skills found."}
+            </div>
           )}
         </div>
       )}
