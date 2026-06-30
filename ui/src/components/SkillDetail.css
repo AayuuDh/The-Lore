@@ -50,6 +50,35 @@
   gap: 12px;
 }
 
+.skill-detail__header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.skill-detail__download {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  background: #8957e5;
+  border: 1px solid #8957e5;
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.skill-detail__download:hover {
+  background: #7a47d3;
+  border-color: #7a47d3;
+}
+
 .skill-detail__title {
   font-size: 30px;
   font-weight: 700;
