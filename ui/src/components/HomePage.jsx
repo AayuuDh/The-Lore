@@ -1,5 +1,13 @@
 import { PlayIcon } from "@primer/octicons-react";
+import { getRecentlyViewed } from "../recentlyViewed";
 import "./HomePage.css";
+
+// Trim a long backend description down to a short, card-friendly snippet.
+function shortDescription(description = "") {
+  const clean = description.trim();
+  if (!clean) return "No description available.";
+  return clean.length > 120 ? `${clean.slice(0, 120).trimEnd()}…` : clean;
+}
 
 const TIPS = [
   {
@@ -19,7 +27,11 @@ const TIPS = [
   },
 ];
 
-function HomePage({ onDiscoverSkills, onAddSkills }) {
+function HomePage({ onDiscoverSkills, onAddSkills, onOpenSkill }) {
+  // Read the recently-opened skills once when the home page renders. It remounts
+  // every time you navigate back here, so this stays in sync without extra work.
+  const recent = getRecentlyViewed();
+
   return (
     <div className="homepage">
       {/* Welcome Card */}
@@ -33,6 +45,27 @@ function HomePage({ onDiscoverSkills, onAddSkills }) {
           your team&rsquo;s latest contributions.
         </p>
       </div>
+
+      {/* Jump back in — only shown once you've opened at least one skill. */}
+      {recent.length > 0 && (
+        <section className="homepage__recent">
+          <h2 className="homepage__section-title">Jump back in</h2>
+          <div className="homepage__recent-row">
+            {recent.map((skill) => (
+              <button
+                key={skill.id}
+                className="homepage__recent-card"
+                onClick={() => onOpenSkill?.(skill.id)}
+              >
+                <h3 className="homepage__recent-title">{skill.name}</h3>
+                <p className="homepage__recent-desc">
+                  {shortDescription(skill.description)}
+                </p>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Quick Tips */}
       <section className="homepage__tips">

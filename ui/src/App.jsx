@@ -17,6 +17,10 @@ import { recordVisit } from "./streaks";
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("Home");
+  // When we want to jump straight into a specific skill (from the home page's
+  // "Jump back in" row), we stash its id here and switch to the Skills page,
+  // which reads it and opens that skill on mount. null = open the catalog.
+  const [pendingSkillId, setPendingSkillId] = useState(null);
   // useIsAuthenticated() is an MSAL hook that returns true whenever there's a
   // signed-in account, false otherwise. We DON'T track this ourselves with
   // useState anymore: MSAL owns the truth about auth, and this hook makes our
@@ -37,7 +41,17 @@ function App() {
   }, [isAuthenticated]);
 
   const handleNavSelect = (page) => {
+    // Normal navigation always opens a page fresh, so forget any pending skill.
+    setPendingSkillId(null);
     setCurrentPage(page);
+    setSidebarOpen(false);
+  };
+
+  // Open a specific skill's detail view from anywhere. Unlike handleNavSelect,
+  // this keeps the skill id so SkillsPage opens straight to that skill.
+  const openSkill = (skillId) => {
+    setPendingSkillId(skillId);
+    setCurrentPage("Skills");
     setSidebarOpen(false);
   };
 
@@ -97,11 +111,18 @@ function App() {
               {/* <LeftPanel /> */}
               <div className="main-content">
                 {currentPage === "Skills" ? (
-                  <SkillsPage onBackHome={() => handleNavSelect("Home")} />
+                  <SkillsPage
+                    onBackHome={() => handleNavSelect("Home")}
+                    initialSkillId={pendingSkillId}
+                  />
                 ) : currentPage === "Add Skill" ? (
                   <AddSkillPage onBackHome={() => handleNavSelect("Home")} />
                 ) : (
-                  <HomePage onDiscoverSkills={() => handleNavSelect("Skills")} />
+                  <HomePage
+                    onDiscoverSkills={() => handleNavSelect("Skills")}
+                    onAddSkills={() => handleNavSelect("Add Skill")}
+                    onOpenSkill={openSkill}
+                  />
                 )}
               </div>
             </div>

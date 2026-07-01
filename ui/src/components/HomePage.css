@@ -57,6 +57,43 @@
   max-width: 620px;
 }
 
+/* Jump back in — horizontal row of recently opened skills */
+.homepage__recent-row {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.homepage__recent-card {
+  flex: 0 0 240px;
+  text-align: left;
+  background: #130f2a;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.homepage__recent-card:hover {
+  border-color: #8957e5;
+  box-shadow: 0 8px 24px rgba(137, 87, 229, 0.18);
+}
+
+.homepage__recent-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e6edf3;
+  margin-bottom: 6px;
+}
+
+.homepage__recent-desc {
+  font-size: 13px;
+  color: #7d8590;
+  line-height: 1.5;
+}
+
 /* Section titles */
 .homepage__section-title {
   font-size: 16px;

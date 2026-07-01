@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { SearchIcon, ArrowLeftIcon, XIcon, StarIcon, StarFillIcon } from "@primer/octicons-react";
 import { getSkills, matchSkills } from "../api";
 import { getFavorites, toggleFavorite } from "../favorites";
+import { recordView } from "../recentlyViewed";
 import SkillDetail from "./SkillDetail";
 import "./SkillsPage.css";
 
@@ -21,14 +22,16 @@ function sortByName(skills) {
   );
 }
 
-function SkillsPage({ onBackHome }) {
+function SkillsPage({ onBackHome, initialSkillId = null }) {
   const [allSkills, setAllSkills] = useState([]);
   const [results, setResults] = useState(null); // null = showing full catalog
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState("");
-  const [selectedId, setSelectedId] = useState(null);
+  // Seed the open skill from initialSkillId. When the home page's "Jump back in"
+  // row navigates here, App passes that skill's id and it opens straight away.
+  const [selectedId, setSelectedId] = useState(initialSkillId);
   // The list of starred skill ids. We seed it from localStorage on first render
   // (getFavorites reads what was saved last time), then keep it in React state
   // so the stars on screen update the instant you click them.
@@ -184,7 +187,12 @@ function SkillsPage({ onBackHome }) {
             <button
               key={skill.id}
               className="skill-card"
-              onClick={() => setSelectedId(skill.id)}
+              onClick={() => {
+                // Remember this open so it shows up in "Jump back in", then
+                // switch to the detail view.
+                recordView(skill);
+                setSelectedId(skill.id);
+              }}
             >
               {isSearchView && i === 0 && (
                 <span className="skill-card__badge">Top match</span>
