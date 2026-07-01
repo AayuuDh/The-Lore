@@ -1,4 +1,5 @@
-  import { useState } from "react";
+
+import React, { useEffect, useState } from "react";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { ThemeProvider, BaseStyles } from "@primer/react";
 import Sidebar from "./components/Sidebar";
@@ -11,6 +12,7 @@ import Footer from "./components/Footer";
 import Login from "./components/Login";
 import "./App.css";
 import PurpleCubeBackground from "./components/PurpleCubeBackground";
+import { recordVisit } from "./streaks";
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -22,6 +24,17 @@ function App() {
   // after login completes). That re-render is what swaps the login screen out
   // for the real app below.
   const isAuthenticated = useIsAuthenticated();
+
+  // The daily streak (how many days in a row you've used The Lore). We record
+  // today's visit once, right after sign-in, and keep the result in state so the
+  // TopNav can show the flame counter. recordVisit() is safe to call every load:
+  // it only bumps the streak once per calendar day.
+  const [streak, setStreak] = useState(null);
+  useEffect(() => {
+    if (isAuthenticated) {
+      setStreak(recordVisit());
+    }
+  }, [isAuthenticated]);
 
   const handleNavSelect = (page) => {
     setCurrentPage(page);
@@ -77,6 +90,7 @@ function App() {
             <TopNav
               onMenuClick={() => setSidebarOpen(true)}
               currentPage={currentPage}
+              streak={streak}
             />
 
             <div className="content-area">
@@ -84,13 +98,10 @@ function App() {
               <div className="main-content">
                 {currentPage === "Skills" ? (
                   <SkillsPage onBackHome={() => handleNavSelect("Home")} />
-                ) : currentPage === "AddSkill" ? (
+                ) : currentPage === "Add Skill" ? (
                   <AddSkillPage onBackHome={() => handleNavSelect("Home")} />
                 ) : (
-                  <HomePage
-                    onDiscoverSkills={() => handleNavSelect("Skills")}
-                    onAddSkills={() => handleNavSelect("AddSkill")}
-                  />
+                  <HomePage onDiscoverSkills={() => handleNavSelect("Skills")} />
                 )}
               </div>
             </div>
