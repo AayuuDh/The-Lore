@@ -94,6 +94,67 @@
   line-height: 1.5;
 }
 
+.homepage__recent-count {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8957e5;
+}
+
+/* Achievements / badges */
+.homepage__achievements-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8957e5;
+  margin-left: 6px;
+}
+
+.homepage__badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.homepage__badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #130f2a;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  padding: 14px 16px;
+  transition: border-color 0.2s;
+}
+
+.homepage__badge.is-earned {
+  border-color: rgba(137, 87, 229, 0.5);
+  box-shadow: 0 4px 16px rgba(137, 87, 229, 0.12);
+}
+
+.homepage__badge.is-locked {
+  opacity: 0.45;
+  filter: grayscale(0.8);
+}
+
+.homepage__badge-emoji {
+  font-size: 26px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.homepage__badge-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e6edf3;
+  margin-bottom: 2px;
+}
+
+.homepage__badge-desc {
+  font-size: 12px;
+  color: #7d8590;
+  line-height: 1.4;
+}
+
 /* Section titles */
 .homepage__section-title {
   font-size: 16px;

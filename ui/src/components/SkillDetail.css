@@ -57,6 +57,61 @@
   gap: 16px;
 }
 
+.skill-detail__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.skill-detail__fav {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.skill-detail__fav:hover {
+  border-color: #e3b341;
+  color: #e6edf3;
+}
+
+.skill-detail__fav.is-active {
+  border-color: #e3b341;
+  color: #e3b341;
+  background: rgba(227, 179, 65, 0.12);
+}
+
+.skill-detail__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.skill-detail__copy:hover {
+  border-color: #8957e5;
+  color: #e6edf3;
+}
+
 .skill-detail__download {
   display: inline-flex;
   align-items: center;

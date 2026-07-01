@@ -165,6 +165,9 @@
 }
 
 .skills-page__error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   background: rgba(248, 81, 73, 0.1);
   border: 1px solid rgba(248, 81, 73, 0.4);
   color: #ff7b72;
@@ -178,6 +181,80 @@
   color: #7d8590;
   font-size: 14px;
   padding: 24px 0;
+}
+
+/* Loading skeletons — shimmering placeholder cards shown while skills load. */
+.skill-card--skeleton {
+  cursor: default;
+  pointer-events: none;
+}
+
+.skill-card--skeleton:hover {
+  border-color: #30363d;
+  transform: none;
+  box-shadow: none;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    #1c1836 25%,
+    #2a2450 37%,
+    #1c1836 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+.skeleton-line--title {
+  height: 16px;
+  width: 60%;
+  margin-bottom: 6px;
+}
+
+.skeleton-line--short {
+  width: 40%;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Category filter chips */
+.skills-page__categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skills-page__chip {
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #adb6c2;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.skills-page__chip:hover {
+  border-color: #8957e5;
+  color: #e6edf3;
+}
+
+.skills-page__chip.is-active {
+  background: rgba(137, 87, 229, 0.18);
+  border-color: #8957e5;
+  color: #e6edf3;
+  font-weight: 600;
 }
 
 /* Cards grid */

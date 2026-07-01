@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ArrowLeftIcon, DownloadIcon } from "@primer/octicons-react";
+import { ArrowLeftIcon, DownloadIcon, CopyIcon, CheckIcon, StarIcon, StarFillIcon } from "@primer/octicons-react";
 import { getSkill } from "../api";
+import { isFavorite, toggleFavorite } from "../favorites";
 import "./SkillDetail.css";
 
 // Rebuild the original markdown file (YAML frontmatter + body) from a skill.
@@ -40,6 +41,11 @@ function SkillDetail({ skillId, onBack }) {
   const [skill, setSkill] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // Tracks the little "Copied!" confirmation after the copy button is pressed.
+  const [copied, setCopied] = useState(false);
+  // Whether this skill is starred. Seeded from localStorage, and re-checked if
+  // we switch to a different skill.
+  const [favorited, setFavorited] = useState(() => isFavorite(skillId));
 
   useEffect(() => {
     let active = true;
@@ -53,6 +59,30 @@ function SkillDetail({ skillId, onBack }) {
       active = false;
     };
   }, [skillId]);
+
+  // Keep the star in sync when the skill changes.
+  useEffect(() => {
+    setFavorited(isFavorite(skillId));
+  }, [skillId]);
+
+  // Star/unstar this skill. toggleFavorite saves to localStorage and returns the
+  // new list, so we just check whether this id is still in it.
+  function handleToggleFavorite() {
+    setFavorited(toggleFavorite(skillId).includes(skillId));
+  }
+
+  // Copy the skill's body (the actual prompt/instructions) to the clipboard,
+  // then flash "Copied!" for a couple of seconds. navigator.clipboard can reject
+  // (e.g. missing permission), so we swallow that quietly rather than crash.
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(skill?.body || "");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard unavailable — nothing we can do, so stay silent.
+    }
+  }
 
   return (
     <div className="skill-detail">
@@ -69,14 +99,33 @@ function SkillDetail({ skillId, onBack }) {
           <header className="skill-detail__header">
             <div className="skill-detail__header-top">
               <h1 className="skill-detail__title">{skill.name || skill.id}</h1>
-              <button
-                className="skill-detail__download"
-                onClick={() => downloadSkill(skill)}
-                title="Download this skill as a Markdown file"
-              >
-                <DownloadIcon size={16} />
-                <span>Download .md</span>
-              </button>
+              <div className="skill-detail__actions">
+                <button
+                  className={`skill-detail__fav${favorited ? " is-active" : ""}`}
+                  onClick={handleToggleFavorite}
+                  title={favorited ? "Remove from favorites" : "Add to favorites"}
+                  aria-pressed={favorited}
+                >
+                  {favorited ? <StarFillIcon size={16} /> : <StarIcon size={16} />}
+                  <span>{favorited ? "Favorited" : "Favorite"}</span>
+                </button>
+                <button
+                  className="skill-detail__copy"
+                  onClick={handleCopy}
+                  title="Copy this skill's contents to your clipboard"
+                >
+                  {copied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}
+                  <span>{copied ? "Copied!" : "Copy"}</span>
+                </button>
+                <button
+                  className="skill-detail__download"
+                  onClick={() => downloadSkill(skill)}
+                  title="Download this skill as a Markdown file"
+                >
+                  <DownloadIcon size={16} />
+                  <span>Download .md</span>
+                </button>
+              </div>
             </div>
             {skill.description && (
               <p className="skill-detail__summary">{skill.description}</p>

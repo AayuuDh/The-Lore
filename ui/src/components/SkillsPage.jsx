@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { SearchIcon, ArrowLeftIcon, XIcon, StarIcon, StarFillIcon } from "@primer/octicons-react";
+import { SearchIcon, ArrowLeftIcon, XIcon, StarIcon, StarFillIcon, AlertIcon } from "@primer/octicons-react";
 import { getSkills, matchSkills } from "../api";
 import { getFavorites, toggleFavorite } from "../favorites";
 import { recordView } from "../recentlyViewed";
+import { getCategory, getAllCategories } from "../categories";
 import SkillDetail from "./SkillDetail";
 import "./SkillsPage.css";
 
@@ -39,6 +40,8 @@ function SkillsPage({ onBackHome, initialSkillId = null }) {
   // When true, the grid shows ONLY skills you've starred. Just a view filter,
   // it doesn't change what's saved, it changes what we render.
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  // The selected category chip (null = All). Only applies in the catalog view.
+  const [activeCategory, setActiveCategory] = useState(null);
 
   // Star/unstar a skill. We stop the click from bubbling up to the card button
   // (otherwise clicking the star would also open the skill's detail page).
@@ -70,6 +73,13 @@ function SkillsPage({ onBackHome, initialSkillId = null }) {
 
   const alphabetical = useMemo(() => sortByName(allSkills), [allSkills]);
 
+  // The categories that actually appear in the catalog, in fixed display order.
+  // We only show a chip if at least one skill falls into that category.
+  const availableCategories = useMemo(() => {
+    const present = new Set(alphabetical.map((s) => getCategory(s)));
+    return getAllCategories().filter((c) => present.has(c));
+  }, [alphabetical]);
+
   async function handleSearch(e) {
     e.preventDefault();
     const q = query.trim();
@@ -97,12 +107,15 @@ function SkillsPage({ onBackHome, initialSkillId = null }) {
   }
 
   const isSearchView = results !== null;
-  // Start from either the search results or the full A–Z catalog, then (if the
-  // favorites filter is on) keep only the skills whose id is in `favorites`.
+  // Start from either the search results or the full A–Z catalog, then apply the
+  // active view filters: favorites (if on) and category (catalog view only).
   const baseSkills = isSearchView ? results : alphabetical;
-  const visibleSkills = showFavoritesOnly
-    ? baseSkills.filter((skill) => favorites.includes(skill.id))
-    : baseSkills;
+  const visibleSkills = baseSkills.filter((skill) => {
+    if (showFavoritesOnly && !favorites.includes(skill.id)) return false;
+    if (!isSearchView && activeCategory && getCategory(skill) !== activeCategory)
+      return false;
+    return true;
+  });
 
   if (selectedId) {
     return (
@@ -177,10 +190,54 @@ function SkillsPage({ onBackHome, initialSkillId = null }) {
         </button>
       </div>
 
-      {error && <div className="skills-page__error">{error}</div>}
+      {/* Category filter chips — catalog view only. */}
+      {!isSearchView && !loading && availableCategories.length > 1 && (
+        <div className="skills-page__categories">
+          <button
+            type="button"
+            className={`skills-page__chip${activeCategory === null ? " is-active" : ""}`}
+            onClick={() => setActiveCategory(null)}
+          >
+            All
+          </button>
+          {availableCategories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              className={`skills-page__chip${activeCategory === cat ? " is-active" : ""}`}
+              onClick={() =>
+                setActiveCategory((c) => (c === cat ? null : cat))
+              }
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {error && (
+        <div className="skills-page__error">
+          <AlertIcon size={16} />
+          <span>{error}</span>
+        </div>
+      )}
 
       {loading ? (
-        <div className="skills-page__loading">Loading skills…</div>
+        <div className="skills-page__grid">
+          {/* Placeholder cards that shimmer while the catalog loads. aria-hidden
+              so screen readers skip the fake content. */}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="skill-card skill-card--skeleton"
+              aria-hidden="true"
+            >
+              <div className="skeleton-line skeleton-line--title" />
+              <div className="skeleton-line" />
+              <div className="skeleton-line skeleton-line--short" />
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="skills-page__grid">
           {visibleSkills.map((skill, i) => (
