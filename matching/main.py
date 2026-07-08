@@ -29,24 +29,26 @@ Endpoints (all return JSON):
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from contextlib import asynccontextmanager
+# from contextlib import asynccontextmanager
 
 from matcher import match, precompute_skill_vectors
 from skills_loader import load_skills, save_skill
 from fastapi.middleware.cors import CORSMiddleware
 from query_rewriter import rewrite_query
-from draft_skill import start_draft, refine_draft, shutdown_client
+from draft_skill import start_draft, refine_draft
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # The Copilot client boots lazily on the first draft, so there's nothing to
-    # do on startup. On shutdown we stop its background subprocess cleanly.
-    yield
-    await shutdown_client()
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     # The Copilot client boots lazily on the first draft, so there's nothing to
+#     # do on startup. On shutdown we stop its background subprocess cleanly.
+#     yield
+#     await shutdown_client()
 
 
-app = FastAPI(lifespan=lifespan)
+# app = FastAPI(lifespan=lifespan)
+app = FastAPI()
+
 
 # WARNING!!!!: tighten allow_origins before production.
 app.add_middleware(

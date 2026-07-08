@@ -1,51 +1,81 @@
-"""
-Drafting skills with the Copilot SDK -- as a back-and-forth conversation.
+"""Drafting skills with Azure OpenAI -- as a back-and-forth conversation.
 
-The flow is multi-turn:
-  1. start_draft(description)                       -> first draft
-  2. refine_draft(session_id, "make it shorter")    -> updated draft
-  3. ...repeat until the user is happy...
+Multi-turn flow:
+  1. start_draft(description)                    -> (session_id, skill)
+  2. refine_draft(session_id, "make it shorter") -> (session_id, skill)
 
-How the "memory" works: the Copilot runtime PERSISTS each conversation to disk
-and hands us a session_id. We do NOT keep the conversation in our own server's
-memory. Turn 1 creates a new session; later turns resume that session by id, and
-the model already remembers everything said before.
+We keep each conversation's message history in memory, keyed by session_id.
+Good enough for a prototype on a single backend instance. If the backend
+restarts or runs multiple instances, in-flight sessions are lost -- move
+_sessions into Cosmos/Redis if that ever matters.
 
-We boot ONE CopilotClient for the whole app. Creating it launches the GitHub
-Copilot CLI as a background subprocess -- that boot is the slow part, so we do it
-once and reuse it for every turn.
+Auth: uses the API key if AZURE_OPENAI_API_KEY is set, otherwise Entra RBAC via
+DefaultAzureCredential (your `az login` locally, Managed Identity in production).
 """
 
-import asyncio
+import os
 import json
+import uuid
 
-from copilot import CopilotClient
-from copilot.session_events import AssistantMessageData
-from copilot.session import PermissionHandler
+from dotenv import load_dotenv
+from openai import AsyncAzureOpenAI
+
+load_dotenv()
+
+_ENDPOINT = os.environ["AZURE_OPENAI_ENDPOINT"]
+_DEPLOYMENT = os.environ["AZURE_OPENAI_DEPLOYMENT"]
+_API_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION", "2024-10-21")
+_KEY = os.environ.get("AZURE_OPENAI_API_KEY") or None
 
 
-# Sent on the FIRST turn only. After this the runtime remembers the rules, so
-# follow-up turns don't repeat the whole contract.
-FIRST_MESSAGE = """You write reusable AI "skills" for a skill library.
+def _make_client() -> AsyncAzureOpenAI:
+    if _KEY:
+        return AsyncAzureOpenAI(
+            azure_endpoint=_ENDPOINT, api_key=_KEY, api_version=_API_VERSION
+        )
+    from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+    token_provider = get_bearer_token_provider(
+        DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+    )
+    return AsyncAzureOpenAI(
+        azure_endpoint=_ENDPOINT,
+        azure_ad_token_provider=token_provider,
+        api_version=_API_VERSION,
+    )
 
-We will go back and forth: I describe a skill, you draft it, then I ask for
-changes. EVERY time you reply -- including after a change -- output the COMPLETE
-current skill as ONE JSON object and NOTHING else (no prose, no code fences).
-Use exactly these keys:
 
-{{
-  "id": "<kebab-case-id>",
-  "name": "<Human Readable Name>",
-  "description": "<one paragraph: the problem, when to use it, and a few example prompts>",
-  "body": "<markdown body with a very detailed '## Instructions' section and a '## Example' section>"
-}}
+_client = _make_client()
 
-Draft a skill for this description:
+# session_id -> full chat history (the conversation so far)
+_sessions: dict[str, list] = {}
+
+
+SYSTEM_PROMPT = """You are an expert author of reusable AI "skills" -- small,
+self-contained instruction sets that let anyone reliably reproduce a useful
+AI-powered task. Your job is to turn a rough description into one polished,
+well-structured skill.
+
+This is a multi-turn conversation: I give a description, you draft a skill, then
+I ask for changes and you revise. Follow these rules on EVERY reply, including
+after a change:
+
+- Output ONE JSON object and nothing else. No prose, no explanations, no code
+  fences, no leading or trailing text.
+- Always return the COMPLETE current skill, not just the part that changed.
+- The JSON must be valid and parseable, using exactly these keys and no others:
+
+{
+  "id": "<kebab-case-id: lowercase words joined by single hyphens, derived from the name>",
+  "name": "<short, human-readable title in Title Case>",
+  "description": "<one tight paragraph covering: the problem it solves, when to use it, and 2-3 concrete example prompts a user might type>",
+  "body": "<markdown body with a detailed, step-by-step '## Instructions' section and a realistic '## Example' section showing sample input and the expected output>"
+}
+
+Write clear, specific, actionable content -- avoid vague filler. Draft a skill
+for this description:
 {description}
 """
 
-# Wrapped around each follow-up message so the model keeps returning the full
-# skill as JSON instead of drifting into chit-chat.
 REFINE_MESSAGE = """Apply this change, then output the COMPLETE updated skill as
 one JSON object and nothing else:
 
@@ -54,11 +84,7 @@ one JSON object and nothing else:
 
 
 def extract_json(text: str) -> dict:
-    """Pull a JSON object out of the model's reply.
-
-    Models often wrap JSON in ```json ... ``` fences or add a stray sentence,
-    so we slice from the first '{' to the last '}' before parsing.
-    """
+    """Pull a JSON object out of the model's reply (tolerates stray text/fences)."""
     start = text.find("{")
     end = text.rfind("}")
     if start == -1 or end == -1:
@@ -66,91 +92,33 @@ def extract_json(text: str) -> dict:
     return json.loads(text[start : end + 1])
 
 
-# --- Shared client ---------------------------------------------------------
-# One client (one background subprocess) for the whole app. Started lazily on
-# first use, stopped on shutdown.
-_client: CopilotClient | None = None
+async def _ask(messages: list) -> str:
+    resp = await _client.chat.completions.create(
+        model=_DEPLOYMENT,
+        messages=messages,
+    )
+    return resp.choices[0].message.content
 
 
-async def get_client() -> CopilotClient:
-    """Return the shared CopilotClient, starting its runtime on first call."""
-    global _client
-    if _client is None:
-        _client = CopilotClient()
-        await _client.start()
-    return _client
-
-
-async def shutdown_client() -> None:
-    """Stop the shared client's runtime. Call this on app shutdown."""
-    global _client
-    if _client is not None:
-        await _client.stop()
-        _client = None
-
-
-async def _ask(session, prompt: str) -> str:
-    """Send one message, wait for the model to finish, return its text."""
-    event = await session.send_and_wait(prompt)
-    if event is None:
-        raise RuntimeError("the model did not reply")
-    data = event.data
-    if not isinstance(data, AssistantMessageData):
-        raise RuntimeError(f"unexpected reply type: {type(data).__name__}")
-    return data.content
-
-
-# --- The two turns ---------------------------------------------------------
 async def start_draft(description: str) -> tuple[str, dict]:
-    """Turn 1: open a new conversation and draft a skill.
-
-    Returns (session_id, skill_dict). Keep the session_id; pass it to
-    refine_draft() to continue the same conversation.
-    """
-    client = await get_client()
-    async with await client.create_session(
-        on_permission_request=PermissionHandler.approve_all,  # this task needs no tools
-        model="auto",  # let Copilot route to an available model
-    ) as session:
-        text = await _ask(session, FIRST_MESSAGE.format(description=description))
-        return session.session_id, extract_json(text)
+    """Turn 1: open a new conversation and draft a skill."""
+    session_id = uuid.uuid4().hex
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": f"Draft a skill for this description:\n{description}"},
+    ]
+    reply = await _ask(messages)
+    messages.append({"role": "assistant", "content": reply})
+    _sessions[session_id] = messages
+    return session_id, extract_json(reply)
 
 
 async def refine_draft(session_id: str, message: str) -> tuple[str, dict]:
-    """Later turns: resume the conversation and apply a change.
-
-    The runtime still remembers the whole conversation, so `message` can be as
-    short as "make the instructions shorter" or "add a Python example".
-    """
-    client = await get_client()
-    async with await client.resume_session(
-        session_id,
-        on_permission_request=PermissionHandler.approve_all,
-        model="auto",
-    ) as session:
-        text = await _ask(session, REFINE_MESSAGE.format(message=message))
-        return session.session_id, extract_json(text)
-
-
-# --- Try the back-and-forth in your terminal -------------------------------
-# Run:  python draft_skill.py
-# Type a description, see the draft, then keep typing changes. 'quit' to stop.
-if __name__ == "__main__":
-    async def chat() -> None:
-        description = input("Describe the skill you want: ")
-        session_id, skill = await start_draft(description)
-        print("\n=== DRAFT ===")
-        print(json.dumps(skill, indent=2))
-
-        while True:
-            change = input("\nChange (or 'quit'): ")
-            if change.strip().lower() in {"quit", "q", "exit"}:
-                break
-            session_id, skill = await refine_draft(session_id, change)
-            print("\n=== UPDATED DRAFT ===")
-            print(json.dumps(skill, indent=2))
-
-        await shutdown_client()
-        print("\nDone. Final skill id:", skill.get("id"))
-
-    asyncio.run(chat())
+    """Later turns: resume the conversation and apply a change."""
+    messages = _sessions.get(session_id)
+    if messages is None:
+        raise KeyError(f"unknown session_id: {session_id}")
+    messages.append({"role": "user", "content": REFINE_MESSAGE.format(message=message)})
+    reply = await _ask(messages)
+    messages.append({"role": "assistant", "content": reply})
+    return session_id, extract_json(reply)
