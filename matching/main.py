@@ -29,12 +29,26 @@ Endpoints (all return JSON):
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+# from contextlib import asynccontextmanager
 
 from matcher import match, precompute_skill_vectors
-from skills_loader import load_skills
+from skills_loader import load_skills, save_skill
 from fastapi.middleware.cors import CORSMiddleware
 from query_rewriter import rewrite_query
+from draft_skill import start_draft, refine_draft
+
+
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     # The Copilot client boots lazily on the first draft, so there's nothing to
+#     # do on startup. On shutdown we stop its background subprocess cleanly.
+#     yield
+#     await shutdown_client()
+
+
+# app = FastAPI(lifespan=lifespan)
 app = FastAPI()
+
 
 # WARNING!!!!: tighten allow_origins before production.
 app.add_middleware(
@@ -70,6 +84,25 @@ class MatchRequest(BaseModel):
     rewrite: bool = False
 
 
+class DraftSkillRequest(BaseModel):
+    """Shape of the JSON body POSTed to /draft-skill."""
+    description: str    # plain-English description of the skill the user wants
+
+
+class RefineSkillRequest(BaseModel):
+    """Shape of the JSON body POSTed to /draft-skill/refine."""
+    session_id: str     # the conversation to continue (from a previous response)
+    message: str        # the change to apply, e.g. "make the instructions shorter"
+
+
+class SaveSkillRequest(BaseModel):
+    """Shape of the JSON body POSTed to /skills (the approved skill to save)."""
+    id: str             # kebab-case id; becomes the filename data/skills/<id>.md
+    name: str           # human-readable title
+    description: str     # one paragraph used for search matching
+    body: str           # markdown body (## Instructions, ## Example, ...)
+
+
 # --- Endpoints -------------------------------------------------------------
 @app.post("/match")
 def match_endpoint(req: MatchRequest):
@@ -94,6 +127,27 @@ def list_skills():
     return [_public(skill) for skill in skills]
 
 
+@app.post("/skills")
+def add_skill_endpoint(req: SaveSkillRequest):
+    """Save an approved skill to disk AND make it searchable right away.
+
+    Writes data/skills/<id>.md, then embeds the skill and appends it to the
+    live in-memory catalog. No restart needed: a browser refresh will find it.
+    If the id is already taken it is auto-suffixed (e.g. 'meeting-notes-2'); the
+    response carries the final id. 400 if the id is invalid (not kebab-case).
+    """
+    try:
+        saved = save_skill(req.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    # Attach the embedding vector in place, then add to the shared catalog.
+    # `skills` and `skills_with_vectors` are the same list, so /match sees it too.
+    precompute_skill_vectors([saved])
+    skills.append(saved)
+    return _public(saved)
+
+
 @app.get("/skills/{id}")
 def get_skill(id: str):
     """Return the full data for one skill by its id (used by detail pages)."""
@@ -101,3 +155,33 @@ def get_skill(id: str):
         if skill["id"] == id:
             return _public(skill)
     raise HTTPException(status_code=404, detail=f"skill not found: {id}")
+
+
+@app.post("/draft-skill")
+async def draft_skill_endpoint(req: DraftSkillRequest):
+    """Turn 1 of the conversation: draft a skill from a plain-English description.
+
+    Returns { "session_id": ..., "skill": { id, name, description, body } }.
+    Keep the session_id and pass it to /draft-skill/refine to ask for changes.
+    """
+    try:
+        session_id, skill = await start_draft(req.description)
+        return {"session_id": session_id, "skill": skill}
+    except Exception as exc:
+        # The model reply could be unparseable, or the SDK runtime could fail.
+        raise HTTPException(status_code=502, detail=f"draft failed: {exc}")
+
+
+@app.post("/draft-skill/refine")
+async def refine_skill_endpoint(req: RefineSkillRequest):
+    """Later turns: continue the same conversation and apply a change.
+
+    Body: { "session_id": ..., "message": "make the instructions shorter" }
+    Returns the same shape as /draft-skill, with the updated skill.
+    """
+    try:
+        session_id, skill = await refine_draft(req.session_id, req.message)
+        return {"session_id": session_id, "skill": skill}
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"refine failed: {exc}")
+

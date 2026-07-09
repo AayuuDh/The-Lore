@@ -85,7 +85,11 @@ function Sidebar({ isOpen, onClose, currentPage, onNavigate }) {
       <div className="sidebar__section">
         <div className="sidebar__section-header">
           <span className="sidebar__section-title">Top Skills</span>
-          <button className="sidebar__section-btn" aria-label="Add skill">
+          <button
+            className="sidebar__section-btn"
+            aria-label="Add skill"
+            onClick={() => onNavigate("Add Skill")}
+          >
             <PlusIcon size={16} />
           </button>
         </div>

@@ -119,9 +119,55 @@
   font-size: 13px;
   color: #7d8590;
   min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.skills-page__fav-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #130f2a;
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.skills-page__fav-toggle:hover {
+  border-color: #e3b341;
+  color: #e3b341;
+}
+
+.skills-page__fav-toggle.is-active {
+  border-color: #e3b341;
+  color: #e3b341;
+  background: rgba(227, 179, 65, 0.12);
+}
+
+.skills-page__fav-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: rgba(227, 179, 65, 0.2);
+  color: #e3b341;
+  font-size: 11px;
 }
 
 .skills-page__error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   background: rgba(248, 81, 73, 0.1);
   border: 1px solid rgba(248, 81, 73, 0.4);
   color: #ff7b72;
@@ -135,6 +181,80 @@
   color: #7d8590;
   font-size: 14px;
   padding: 24px 0;
+}
+
+/* Loading skeletons — shimmering placeholder cards shown while skills load. */
+.skill-card--skeleton {
+  cursor: default;
+  pointer-events: none;
+}
+
+.skill-card--skeleton:hover {
+  border-color: #30363d;
+  transform: none;
+  box-shadow: none;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    #1c1836 25%,
+    #2a2450 37%,
+    #1c1836 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+.skeleton-line--title {
+  height: 16px;
+  width: 60%;
+  margin-bottom: 6px;
+}
+
+.skeleton-line--short {
+  width: 40%;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Category filter chips */
+.skills-page__categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skills-page__chip {
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #adb6c2;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.skills-page__chip:hover {
+  border-color: #8957e5;
+  color: #e6edf3;
+}
+
+.skills-page__chip.is-active {
+  background: rgba(137, 87, 229, 0.18);
+  border-color: #8957e5;
+  color: #e6edf3;
+  font-weight: 600;
 }
 
 /* Cards grid */
@@ -164,10 +284,35 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
+.skill-card__fav {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: #7d8590;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.skill-card__fav:hover {
+  color: #e3b341;
+  background: rgba(227, 179, 65, 0.12);
+}
+
+/* When a star is filled (favorited) its icon inherits this gold color. */
+.skill-card__fav[aria-pressed="true"] {
+  color: #e3b341;
+}
+
 .skill-card__badge {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 14px;
+  right: 48px;
   background: rgba(137, 87, 229, 0.18);
   border: 1px solid rgba(137, 87, 229, 0.5);
   color: #c9a6ff;

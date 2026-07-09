@@ -1,9 +1,9 @@
 import React from "react";
-import { ThreeBarsIcon, SearchIcon, PersonIcon } from "@primer/octicons-react";
+import { ThreeBarsIcon, SearchIcon, PersonIcon, FlameIcon } from "@primer/octicons-react";
 import logo from "../assets/logo light.png";
 import "./TopNav.css";
 
-function TopNav({ onMenuClick, currentPage }) {
+function TopNav({ onMenuClick, currentPage, streak }) {
   return (
     <header className="topnav">
       {/* Left group */}
@@ -44,6 +44,16 @@ function TopNav({ onMenuClick, currentPage }) {
 
       {/* Right group */}
       <div className="topnav__right">
+        {streak && streak.current > 0 && (
+          <div
+            className="topnav__streak"
+            title={`${streak.current}-day streak \u2014 best: ${streak.longest}`}
+            aria-label={`${streak.current} day streak`}
+          >
+            <FlameIcon size={16} />
+            <span>{streak.current}</span>
+          </div>
+        )}
         <button className="topnav__avatar" aria-label="Profile">
           <PersonIcon size={20} />
         </button>

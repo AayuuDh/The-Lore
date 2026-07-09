@@ -3,3 +3,9 @@ uvicorn
 model2vec
 requests
 python-frontmatter
+azure-cosmos
+# azure-identity   # RBAC only; needed on the Linux deploy, not local ARM
+python-dotenv
+openai
+
+

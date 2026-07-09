@@ -1,4 +1,5 @@
-  import { useState } from "react";
+
+import React, { useEffect, useState } from "react";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { ThemeProvider, BaseStyles } from "@primer/react";
 import Sidebar from "./components/Sidebar";
@@ -11,10 +12,15 @@ import Footer from "./components/Footer";
 import Login from "./components/Login";
 import "./App.css";
 import PurpleCubeBackground from "./components/PurpleCubeBackground";
+import { recordVisit } from "./streaks";
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("Home");
+  // When we want to jump straight into a specific skill (from the home page's
+  // "Jump back in" row), we stash its id here and switch to the Skills page,
+  // which reads it and opens that skill on mount. null = open the catalog.
+  const [pendingSkillId, setPendingSkillId] = useState(null);
   // useIsAuthenticated() is an MSAL hook that returns true whenever there's a
   // signed-in account, false otherwise. We DON'T track this ourselves with
   // useState anymore: MSAL owns the truth about auth, and this hook makes our
@@ -23,8 +29,29 @@ function App() {
   // for the real app below.
   const isAuthenticated = useIsAuthenticated();
 
+  // The daily streak (how many days in a row you've used The Lore). We record
+  // today's visit once, right after sign-in, and keep the result in state so the
+  // TopNav can show the flame counter. recordVisit() is safe to call every load:
+  // it only bumps the streak once per calendar day.
+  const [streak, setStreak] = useState(null);
+  useEffect(() => {
+    if (isAuthenticated) {
+      setStreak(recordVisit());
+    }
+  }, [isAuthenticated]);
+
   const handleNavSelect = (page) => {
+    // Normal navigation always opens a page fresh, so forget any pending skill.
+    setPendingSkillId(null);
     setCurrentPage(page);
+    setSidebarOpen(false);
+  };
+
+  // Open a specific skill's detail view from anywhere. Unlike handleNavSelect,
+  // this keeps the skill id so SkillsPage opens straight to that skill.
+  const openSkill = (skillId) => {
+    setPendingSkillId(skillId);
+    setCurrentPage("Skills");
     setSidebarOpen(false);
   };
 
@@ -77,19 +104,24 @@ function App() {
             <TopNav
               onMenuClick={() => setSidebarOpen(true)}
               currentPage={currentPage}
+              streak={streak}
             />
 
             <div className="content-area">
               {/* <LeftPanel /> */}
               <div className="main-content">
                 {currentPage === "Skills" ? (
-                  <SkillsPage onBackHome={() => handleNavSelect("Home")} />
-                ) : currentPage === "AddSkill" ? (
+                  <SkillsPage
+                    onBackHome={() => handleNavSelect("Home")}
+                    initialSkillId={pendingSkillId}
+                  />
+                ) : currentPage === "Add Skill" ? (
                   <AddSkillPage onBackHome={() => handleNavSelect("Home")} />
                 ) : (
                   <HomePage
                     onDiscoverSkills={() => handleNavSelect("Skills")}
-                    onAddSkills={() => handleNavSelect("AddSkill")}
+                    onAddSkills={() => handleNavSelect("Add Skill")}
+                    onOpenSkill={openSkill}
                   />
                 )}
               </div>

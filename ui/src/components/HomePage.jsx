@@ -1,5 +1,14 @@
 import { PlayIcon } from "@primer/octicons-react";
+import { getRecentlyViewed, getMostViewed } from "../recentlyViewed";
+import { getAchievements, getAchievementSummary } from "../achievements";
 import "./HomePage.css";
+
+// Trim a long backend description down to a short, card-friendly snippet.
+function shortDescription(description = "") {
+  const clean = description.trim();
+  if (!clean) return "No description available.";
+  return clean.length > 120 ? `${clean.slice(0, 120).trimEnd()}…` : clean;
+}
 
 const TIPS = [
   {
@@ -19,7 +28,18 @@ const TIPS = [
   },
 ];
 
-function HomePage({ onDiscoverSkills, onAddSkills }) {
+function HomePage({ onDiscoverSkills, onAddSkills, onOpenSkill }) {
+  // Read the recently-opened skills once when the home page renders. It remounts
+  // every time you navigate back here, so this stays in sync without extra work.
+  const recent = getRecentlyViewed();
+  // Badges, computed live from your favorites/streak/views.
+  const achievements = getAchievements();
+  const achievementSummary = getAchievementSummary();
+  // Your most-opened skills. Only worth a whole row once there's some history,
+  // otherwise it just duplicates "Jump back in".
+  const topSkills = getMostViewed(6);
+  const showTopSkills = topSkills.length >= 3;
+
   return (
     <div className="homepage">
       {/* Welcome Card */}
@@ -33,6 +53,76 @@ function HomePage({ onDiscoverSkills, onAddSkills }) {
           your team&rsquo;s latest contributions.
         </p>
       </div>
+
+      {/* Jump back in — only shown once you've opened at least one skill. */}
+      {recent.length > 0 && (
+        <section className="homepage__recent">
+          <h2 className="homepage__section-title">Jump back in</h2>
+          <div className="homepage__recent-row">
+            {recent.map((skill) => (
+              <button
+                key={skill.id}
+                className="homepage__recent-card"
+                onClick={() => onOpenSkill?.(skill.id)}
+              >
+                <h3 className="homepage__recent-title">{skill.name}</h3>
+                <p className="homepage__recent-desc">
+                  {shortDescription(skill.description)}
+                </p>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Achievements — earned badges are bright, locked ones are dimmed. */}
+      <section className="homepage__achievements">
+        <h2 className="homepage__section-title">
+          Achievements{" "}
+          <span className="homepage__achievements-count">
+            {achievementSummary.earned} / {achievementSummary.total}
+          </span>
+        </h2>
+        <div className="homepage__badges-grid">
+          {achievements.map((badge) => (
+            <div
+              key={badge.id}
+              className={`homepage__badge${badge.earned ? " is-earned" : " is-locked"}`}
+              title={badge.description}
+            >
+              <span className="homepage__badge-emoji">{badge.emoji}</span>
+              <div className="homepage__badge-text">
+                <h3 className="homepage__badge-title">{badge.title}</h3>
+                <p className="homepage__badge-desc">{badge.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Your top skills — most-opened, only once there's enough history. */}
+      {showTopSkills && (
+        <section className="homepage__recent">
+          <h2 className="homepage__section-title">Your top skills</h2>
+          <div className="homepage__recent-row">
+            {topSkills.map((skill) => (
+              <button
+                key={skill.id}
+                className="homepage__recent-card"
+                onClick={() => onOpenSkill?.(skill.id)}
+              >
+                <h3 className="homepage__recent-title">{skill.name}</h3>
+                <p className="homepage__recent-desc">
+                  {shortDescription(skill.description)}
+                </p>
+                <span className="homepage__recent-count">
+                  Opened {skill.count} {skill.count === 1 ? "time" : "times"}
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Quick Tips */}
       <section className="homepage__tips">
