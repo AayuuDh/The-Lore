@@ -1,0 +1,81 @@
+# Auto-deploy The Lore to Azure whenever code lands on main.
+#
+# Two independent jobs run in parallel:
+#   backend  -> zips matching/ and deploys to the App Service (Python API)
+#   frontend -> builds ui/ and uploads it to the Static Web App (React SPA)
+#
+# Auth:
+#   backend  uses OIDC (the managed identity 'the-lore-deploy') — no password.
+#   frontend uses the Static Web App deploy token (a GitHub secret).
+
+name: Deploy to Azure
+
+# Trigger on every push to main, plus a manual button in the Actions tab.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# OIDC needs permission to request a login token; reading the code is enough otherwise.
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  # ---------------- Backend: Python FastAPI -> App Service ----------------
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Log into Azure as the managed identity via OIDC (passwordless).
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Zip the matching/ folder and deploy it. Azure runs pip install itself
+      # because SCM_DO_BUILD_DURING_DEPLOYMENT=true is set on the app.
+      - name: Deploy backend
+        run: |
+          cd matching
+          zip -rq ../backend.zip . -x "*.pyc" "__pycache__/*"
+          az webapp deploy \
+            --resource-group rg-aiskills-chelseasimek \
+            --name the-lore-api \
+            --src-path ../backend.zip \
+            --type zip
+
+  # ---------------- Frontend: React/Vite -> Static Web Apps ----------------
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Build the SPA. These VITE_ values get baked into the public browser
+      # bundle, so they are NOT secret — keeping them here makes builds reproducible.
+      - name: Build frontend
+        working-directory: ui
+        env:
+          VITE_API_BASE_URL: https://the-lore-api-e3dghcgkfnfvcxed.westus-01.azurewebsites.net
+          VITE_MSAL_CLIENT_ID: 5368ab3e-6c25-4ea2-951c-84651053f287
+          VITE_MSAL_TENANT_ID: 72f988bf-86f1-41af-91ab-2d7cd011db47
+        run: |
+          npm ci
+          npm run build
+
+      # Upload the already-built dist/ to the Static Web App using its deploy token.
+      - name: Deploy frontend
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: upload
+          app_location: ui/dist
+          skip_app_build: true
