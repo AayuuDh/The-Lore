@@ -46,7 +46,8 @@ jobs:
             --resource-group rg-aiskills-chelseasimek \
             --name the-lore-api \
             --src-path ../backend.zip \
-            --type zip
+            --type zip \
+            --track-status false
 
   # ---------------- Frontend: React/Vite -> Static Web Apps ----------------
   frontend:
