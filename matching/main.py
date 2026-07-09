@@ -36,6 +36,7 @@ from skills_loader import load_skills, save_skill
 from fastapi.middleware.cors import CORSMiddleware
 from query_rewriter import rewrite_query
 from draft_skill import start_draft, refine_draft
+from users import get_user, ensure_user, update_user, UsernameTakenError
 
 
 # @asynccontextmanager
@@ -101,6 +102,21 @@ class SaveSkillRequest(BaseModel):
     name: str           # human-readable title
     description: str     # one paragraph used for search matching
     body: str           # markdown body (## Instructions, ## Example, ...)
+    user_id: str | None = None  # stable id of the signed-in author (from the UI)
+
+
+class EnsureUserRequest(BaseModel):
+    """Shape of the JSON body POSTed to /users to fetch-or-create a profile."""
+    user_id: str        # stable per-user key from the sign-in provider
+
+
+class UpdateUserRequest(BaseModel):
+    """Shape of the JSON body PATCHed to /users/{user_id}. All fields optional."""
+    username: str | None = None
+    contactable: bool | None = None
+    contact_email: str | None = None
+    contact_phone: str | None = None
+    contact_other: str | None = None
 
 
 # --- Endpoints -------------------------------------------------------------
@@ -135,9 +151,31 @@ def add_skill_endpoint(req: SaveSkillRequest):
     live in-memory catalog. No restart needed: a browser refresh will find it.
     If the id is already taken it is auto-suffixed (e.g. 'meeting-notes-2'); the
     response carries the final id. 400 if the id is invalid (not kebab-case).
+
+    Authoring requires a profile: the author must have decided whether they are
+    contactable (contactable is True/False, not None). The saved skill records
+    the author's anonymous username in `created_by`.
     """
+    payload = req.model_dump()
+
+    # Gate: you may only publish a skill once your profile is complete enough,
+    # i.e. you have a username (always true after ensure_user) AND you've said
+    # whether other users may contact you about your skills.
+    if not req.user_id:
+        raise HTTPException(status_code=400, detail="sign-in required to add a skill")
+    profile = get_user(req.user_id)
+    if profile is None:
+        raise HTTPException(status_code=400, detail="complete your profile before adding a skill")
+    if profile.get("contactable") is None:
+        raise HTTPException(
+            status_code=400,
+            detail="choose whether you'd like to be contacted before adding a skill",
+        )
+    payload["created_by"] = profile["username"]
+    payload["created_by_id"] = req.user_id
+
     try:
-        saved = save_skill(req.model_dump())
+        saved = save_skill(payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
@@ -146,6 +184,50 @@ def add_skill_endpoint(req: SaveSkillRequest):
     precompute_skill_vectors([saved])
     skills.append(saved)
     return _public(saved)
+
+
+# --- User profile endpoints ------------------------------------------------
+@app.post("/users")
+def ensure_user_endpoint(req: EnsureUserRequest):
+    """Fetch-or-create the signed-in user's profile.
+
+    Call this right after sign-in. On the first call for a user it mints a unique
+    anonymous username and returns { "profile": {...}, "is_new": true } so the UI
+    can show first-time onboarding. Later calls return the existing profile with
+    "is_new": false.
+    """
+    try:
+        profile, is_new = ensure_user(req.user_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return {"profile": profile, "is_new": is_new}
+
+
+@app.get("/users/{user_id}")
+def get_user_endpoint(user_id: str):
+    """Return one user's public profile (404 if they have no profile yet)."""
+    profile = get_user(user_id)
+    if profile is None:
+        raise HTTPException(status_code=404, detail="profile not found")
+    return profile
+
+
+@app.patch("/users/{user_id}")
+def update_user_endpoint(user_id: str, req: UpdateUserRequest):
+    """Update a profile. Only the fields you send are changed.
+
+    Changing the username enforces uniqueness (409 if the handle is taken).
+    Everything except the username is optional and may be left blank.
+    """
+    # exclude_unset so omitting a field means "leave it as-is", while explicitly
+    # sending contactable=false is still recorded as a real decision.
+    fields = req.model_dump(exclude_unset=True)
+    try:
+        return update_user(user_id, fields)
+    except UsernameTakenError:
+        raise HTTPException(status_code=409, detail="that username is already taken")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 @app.get("/skills/{id}")
