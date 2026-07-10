@@ -2,11 +2,58 @@ import { useState } from "react";
 import { PlusIcon, ArrowLeftIcon } from "@primer/octicons-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { draftSkill, refineSkill, saveSkill } from "../api";
+import { draftSkill, refineSkill, saveSkill, matchSkills } from "../api";
 import "./AddSkillPage.css";
 
+// If an existing skill scores at/above this cosine similarity, treat it as a
+// near-duplicate. This embedding model scores even an exact phrase match at
+// ~0.69, so the threshold is deliberately low.
+const SIMILAR_THRESHOLD = 0.55;
+
+// Lowercase, strip punctuation to spaces, collapse whitespace so that
+// "Summarize Meeting Notes", "summarize meeting notes" and
+// "summarize-meeting-notes" all compare equal.
+function normalize(s = "") {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().replace(/\s+/g, " ");
+}
+
+function tokenSet(s = "") {
+  return new Set(normalize(s).split(" ").filter(Boolean));
+}
+
+function isSubset(a, b) {
+  if (a.size === 0) return false;
+  for (const t of a) if (!b.has(t)) return false;
+  return true;
+}
+
+// Given the drafted skill and ranked matches, find an existing near-duplicate.
+// Returns { skill, kind: "exact" | "similar", score } or null.
+function findDuplicate(draft, ranked) {
+  const nameNorm = normalize(draft.name);
+  const idNorm = normalize(draft.id);
+  const nameTokens = tokenSet(draft.name);
+
+  for (const r of ranked) {
+    if (normalize(r.skill.name) === nameNorm || normalize(r.skill.id) === idNorm) {
+      return { skill: r.skill, kind: "exact", score: r.score };
+    }
+  }
+  for (const r of ranked) {
+    const t = tokenSet(r.skill.name);
+    if (isSubset(nameTokens, t) || isSubset(t, nameTokens)) {
+      return { skill: r.skill, kind: "similar", score: r.score };
+    }
+  }
+  const top = ranked[0];
+  if (top && top.score >= SIMILAR_THRESHOLD) {
+    return { skill: top.skill, kind: "similar", score: top.score };
+  }
+  return null;
+}
+
 // The very first step: one box where the user types a plain-English description.
-function StartForm({ value, onChange, onSubmit, loading }) {
+function StartForm({ value, onChange, onSubmit, loading, busyLabel = "Working..." }) {
   return (
     <form className="add-skill-page__input-row" onSubmit={onSubmit}>
       <input
@@ -19,7 +66,7 @@ function StartForm({ value, onChange, onSubmit, loading }) {
         disabled={loading}
       />
       <button className="add-skill-page__start-btn" type="submit" disabled={loading}>
-        {loading ? "Drafting..." : "Start"}
+        {loading ? busyLabel : "Start"}
       </button>
     </form>
   );
@@ -35,22 +82,49 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile }) {
   const [savedId, setSavedId] = useState(null);         // set once the skill is saved
   const [error, setError] = useState(null);             // any error message to show
   const [bodyPreview, setBodyPreview] = useState(false); // show rendered markdown vs raw editor
+  const [duplicate, setDuplicate] = useState(null);     // near-duplicate found before saving
+  const [checkingDup, setCheckingDup] = useState(false); // running the duplicate check?
+  const [preDup, setPreDup] = useState(null);           // near-duplicate found from the description
+  const [startChecking, setStartChecking] = useState(false); // checking before drafting?
 
-  // --- Turn 1: description -> first draft ------------------------------------
-  async function handleStart(e) {
-    e.preventDefault();
-    if (!description.trim()) return;
+  // --- Draft: turn the plain-English description into a first draft ----------
+  async function runDraft() {
     setLoading(true);
     setError(null);
     try {
       const res = await draftSkill(description);
       setSessionId(res.session_id);   // remember who we're talking to
       setSkill(res.skill);            // show the draft in the editable boxes
+      setPreDup(null);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  }
+
+  // --- Turn 1: description -> duplicate check, then first draft ---------------
+  async function handleStart(e) {
+    e.preventDefault();
+    if (!description.trim()) return;
+    // Before drafting, check whether the user is describing a skill that already
+    // exists. Their own words are the strongest signal, so we match on those.
+    setStartChecking(true);
+    setError(null);
+    try {
+      const ranked = await matchSkills(description, 8);
+      const dup = findDuplicate({ name: description, id: "" }, ranked);
+      if (dup) {
+        setPreDup(dup);
+        setStartChecking(false);
+        return; // warn first; the user can still "Draft anyway"
+      }
+    } catch {
+      // If the check fails, don't block drafting.
+    } finally {
+      setStartChecking(false);
+    }
+    await runDraft();
   }
 
   // --- Turn 2+: ask the AI to change the current draft -----------------------
@@ -63,6 +137,7 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile }) {
       const res = await refineSkill(sessionId, refineText);
       setSkill(res.skill);     // replace the boxes with the updated draft
       setRefineText("");       // clear the chat box
+      setDuplicate(null);      // new draft -> re-check duplicates on next save
     } catch (err) {
       setError(err.message);
     } finally {
@@ -73,9 +148,10 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile }) {
   // --- Hand-edit: update one field of the draft locally (no AI) ---------------
   function updateField(field, value) {
     setSkill((prev) => ({ ...prev, [field]: value }));
+    setDuplicate(null); // any edit invalidates a previous duplicate check
   }
 
-  // --- Save: persist the approved skill --------------------------------------
+  // --- Duplicate check: search the catalog before saving a possible repeat ----
   async function handleSave() {
     // Gate: you can only publish a skill once your profile is complete enough.
     // The username is auto-generated, but the "may we contact you?" choice must
@@ -86,11 +162,36 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile }) {
       );
       return;
     }
+    // If the user already acknowledged the duplicate, skip straight to saving.
+    if (!duplicate) {
+      setCheckingDup(true);
+      setError(null);
+      try {
+        const query = `${skill.name} ${skill.description}`.trim();
+        const ranked = await matchSkills(query, 8);
+        const dup = findDuplicate(skill, ranked);
+        if (dup) {
+          setDuplicate(dup);
+          setCheckingDup(false);
+          return; // pause and let the user confirm before saving a repeat
+        }
+      } catch {
+        // Don't block saving just because the check failed; fall through to save.
+      } finally {
+        setCheckingDup(false);
+      }
+    }
+    await persistSkill();
+  }
+
+  // --- Save: persist the approved skill --------------------------------------
+  async function persistSkill() {
     setLoading(true);
     setError(null);
     try {
       const saved = await saveSkill(skill, userId);
       setSavedId(saved.id);   // backend may have auto-suffixed the id; trust its answer
+      setDuplicate(null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -106,6 +207,8 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile }) {
     setRefineText("");
     setSavedId(null);
     setError(null);
+    setDuplicate(null);
+    setPreDup(null);
   }
 
   return (
@@ -231,10 +334,55 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile }) {
                 </button>
               </form>
 
+              {duplicate && (
+                <div className="add-skill-page__dup" role="alert">
+                  <p className="add-skill-page__dup-title">
+                    {duplicate.kind === "exact"
+                      ? "A skill with this name already exists"
+                      : "A very similar skill already exists"}
+                    {typeof duplicate.score === "number" &&
+                      ` — “${duplicate.skill.name}” (${Math.round(duplicate.score * 100)}% match)`}
+                  </p>
+                  {duplicate.skill.description && (
+                    <p className="add-skill-page__dup-desc">{duplicate.skill.description}</p>
+                  )}
+                  <p className="add-skill-page__dup-hint">
+                    Saving will add a separate skill (the id is auto-numbered). Refine yours to be
+                    distinct, or save anyway if it&apos;s genuinely different.
+                  </p>
+                </div>
+              )}
+
               <div className="add-skill-page__actions">
-                <button className="add-skill-page__save-btn" type="button" onClick={handleSave} disabled={loading}>
-                  {loading ? "Saving..." : "Save skill"}
-                </button>
+                {duplicate ? (
+                  <>
+                    <button
+                      className="add-skill-page__ghost-btn"
+                      type="button"
+                      onClick={() => setDuplicate(null)}
+                      disabled={loading}
+                    >
+                      Keep editing
+                    </button>
+                    <button
+                      className="add-skill-page__save-btn"
+                      type="button"
+                      onClick={persistSkill}
+                      disabled={loading}
+                    >
+                      {loading ? "Saving..." : "Save anyway"}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="add-skill-page__save-btn"
+                    type="button"
+                    onClick={handleSave}
+                    disabled={loading || checkingDup}
+                  >
+                    {checkingDup ? "Checking for duplicates..." : loading ? "Saving..." : "Save skill"}
+                  </button>
+                )}
               </div>
             </div>
           ) : (
@@ -246,10 +394,51 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile }) {
               </p>
               <StartForm
                 value={description}
-                onChange={setDescription}
+                onChange={(v) => {
+                  setDescription(v);
+                  if (preDup) setPreDup(null);
+                }}
                 onSubmit={handleStart}
-                loading={loading}
+                loading={loading || startChecking}
+                busyLabel={startChecking ? "Checking..." : "Drafting..."}
               />
+
+              {preDup && (
+                <div className="add-skill-page__dup" role="alert">
+                  <p className="add-skill-page__dup-title">
+                    {preDup.kind === "exact"
+                      ? "This skill already exists"
+                      : "A very similar skill already exists"}
+                    {` — “${preDup.skill.name}”`}
+                    {typeof preDup.score === "number" &&
+                      ` (${Math.round(preDup.score * 100)}% match)`}
+                  </p>
+                  {preDup.skill.description && (
+                    <p className="add-skill-page__dup-desc">{preDup.skill.description}</p>
+                  )}
+                  <p className="add-skill-page__dup-hint">
+                    You can use the existing skill instead, or draft a new one anyway if what you
+                    need is genuinely different.
+                  </p>
+                  <div className="add-skill-page__actions">
+                    <button
+                      className="add-skill-page__ghost-btn"
+                      type="button"
+                      onClick={() => setPreDup(null)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="add-skill-page__save-btn"
+                      type="button"
+                      onClick={runDraft}
+                      disabled={loading}
+                    >
+                      {loading ? "Drafting..." : "Draft anyway"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </section>
