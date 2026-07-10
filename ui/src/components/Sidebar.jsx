@@ -9,6 +9,7 @@ import {
   CommentDiscussionIcon,
   ZapIcon,
   PlusIcon,
+  PersonIcon,
 } 
 from "@primer/octicons-react";
 import "./Sidebar.css";
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { label: "Saved", icon: BookmarkIcon },
   { label: "Copilot", icon: CommentDiscussionIcon },
   { label: "Spark", icon: ZapIcon },
+  { label: "Profile", icon: PersonIcon },
 ];
 
 const TOP_SKILLS = [

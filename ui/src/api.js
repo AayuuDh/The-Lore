@@ -6,7 +6,19 @@ const BASE_URL =
 async function request(path, options) {
   const res = await fetch(`${BASE_URL}${path}`, options);
   if (!res.ok) {
-    throw new Error(`Request failed (${res.status}): ${path}`);
+    // Try to surface the backend's human-readable "detail" message; fall back
+    // to a generic one. We attach the HTTP status so callers can branch on it
+    // (e.g. 409 = username already taken).
+    let detail = `Request failed (${res.status}): ${path}`;
+    try {
+      const body = await res.json();
+      if (body && body.detail) detail = body.detail;
+    } catch {
+      // response had no JSON body; keep the generic message
+    }
+    const err = new Error(detail);
+    err.status = res.status;
+    throw err;
   }
   return res.json();
 }
@@ -55,10 +67,41 @@ export function refineSkill(sessionId, message) {
 // POST /skills -> the saved skill (with its final id)
 // Persists an approved skill and makes it searchable. `skill` is just the
 // { id, name, description, body } object -- no session_id needed.
-export function saveSkill(skill) {
+// `userId` is the signed-in author's stable id; the backend uses it to stamp
+// the skill with the author's anonymous username and to enforce that the
+// author has completed the required profile fields.
+export function saveSkill(skill, userId) {
   return request("/skills", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(skill),
+    body: JSON.stringify({ ...skill, user_id: userId }),
+  });
+}
+
+// POST /users -> { profile, is_new }
+// Fetch-or-create the signed-in user's profile. On the very first call for a
+// user the backend mints a unique anonymous username; is_new tells us to show
+// first-time onboarding.
+export function ensureProfile(userId) {
+  return request("/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId }),
+  });
+}
+
+// GET /users/{userId} -> profile
+export function getProfile(userId) {
+  return request(`/users/${encodeURIComponent(userId)}`);
+}
+
+// PATCH /users/{userId} -> updated profile
+// Send only the fields you want to change. Renaming to a taken username throws
+// (the backend responds 409); the caller should surface that to the user.
+export function updateProfile(userId, fields) {
+  return request(`/users/${encodeURIComponent(userId)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(fields),
   });
 }

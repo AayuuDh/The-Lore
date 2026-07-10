@@ -31,7 +31,13 @@ export const msalConfig = {
     // match a Redirect URI registered in Entra character-for-character
     // (protocol, host, port, path). This is the security whitelist that stops
     // an attacker redirecting the login result to their own site.
-    redirectUri: "http://localhost:5173",
+    //
+    // We use window.location.origin (the URL the app is currently served from)
+    // so the same build works everywhere: http://localhost:5173 in dev, the
+    // real https://… domain in production. Each origin must still be registered
+    // as a Redirect URI in the Entra app registration.
+    redirectUri:
+      import.meta.env.VITE_MSAL_REDIRECT_URI || window.location.origin,
   },
 
   // --- cache: WHERE the browser stores the signed-in session ---

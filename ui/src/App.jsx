@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { useIsAuthenticated } from "@azure/msal-react";
+import { useIsAuthenticated, useMsal } from "@azure/msal-react";
 import { ThemeProvider, BaseStyles } from "@primer/react";
 import Sidebar from "./components/Sidebar";
 import TopNav from "./components/TopNav";
@@ -8,11 +8,13 @@ import TopNav from "./components/TopNav";
 import HomePage from "./components/HomePage";
 import SkillsPage from "./components/SkillsPage";
 import AddSkillPage from "./components/AddSkillPage";
+import ProfilePage from "./components/ProfilePage";
 import Footer from "./components/Footer";
 import Login from "./components/Login";
 import "./App.css";
 import PurpleCubeBackground from "./components/PurpleCubeBackground";
 import { recordVisit } from "./streaks";
+import { ensureProfile } from "./api";
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -29,6 +31,18 @@ function App() {
   // for the real app below.
   const isAuthenticated = useIsAuthenticated();
 
+  // The signed-in account. localAccountId is a stable per-user GUID we use as
+  // the profile key; it is NOT the person's email/alias, so it stays private.
+  const { accounts } = useMsal();
+  const userId = accounts[0]?.localAccountId ?? null;
+
+  // The user's profile (anonymous username + optional contact info). null until
+  // we've fetched/created it. `profileReason` carries a message when we bounce
+  // someone to the profile page (e.g. they tried to add a skill first).
+  const [profile, setProfile] = useState(null);
+  const [isOnboarding, setIsOnboarding] = useState(false);
+  const [profileReason, setProfileReason] = useState(null);
+
   // The daily streak (how many days in a row you've used The Lore). We record
   // today's visit once, right after sign-in, and keep the result in state so the
   // TopNav can show the flame counter. recordVisit() is safe to call every load:
@@ -40,9 +54,32 @@ function App() {
     }
   }, [isAuthenticated]);
 
+  // Right after sign-in, fetch-or-create the profile. On the very first sign-in
+  // the backend mints an anonymous username and returns is_new=true, which sends
+  // the user straight to the onboarding profile screen.
+  useEffect(() => {
+    if (!isAuthenticated || !userId) return;
+    let cancelled = false;
+    ensureProfile(userId)
+      .then(({ profile: p, is_new }) => {
+        if (cancelled) return;
+        setProfile(p);
+        if (is_new) {
+          setIsOnboarding(true);
+          setCurrentPage("Profile");
+        }
+      })
+      .catch((err) => console.error("Could not load profile:", err));
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, userId]);
+
   const handleNavSelect = (page) => {
     // Normal navigation always opens a page fresh, so forget any pending skill.
     setPendingSkillId(null);
+    setProfileReason(null);
+    if (page !== "Profile") setIsOnboarding(false);
     setCurrentPage(page);
     setSidebarOpen(false);
   };
@@ -52,6 +89,14 @@ function App() {
   const openSkill = (skillId) => {
     setPendingSkillId(skillId);
     setCurrentPage("Skills");
+    setSidebarOpen(false);
+  };
+
+  // Called by AddSkillPage when the user still needs to make the "may we contact
+  // you" decision before publishing. Bounce them to the profile page with a note.
+  const requireProfile = (reason) => {
+    setProfileReason(reason);
+    setCurrentPage("Profile");
     setSidebarOpen(false);
   };
 
@@ -105,6 +150,8 @@ function App() {
               onMenuClick={() => setSidebarOpen(true)}
               currentPage={currentPage}
               streak={streak}
+              username={profile?.username}
+              onOpenProfile={() => handleNavSelect("Profile")}
             />
 
             <div className="content-area">
@@ -116,7 +163,26 @@ function App() {
                     initialSkillId={pendingSkillId}
                   />
                 ) : currentPage === "Add Skill" ? (
-                  <AddSkillPage onBackHome={() => handleNavSelect("Home")} />
+                  <AddSkillPage
+                    onBackHome={() => handleNavSelect("Home")}
+                    userId={userId}
+                    profile={profile}
+                    onRequireProfile={requireProfile}
+                  />
+                ) : currentPage === "Profile" ? (
+                  <ProfilePage
+                    profile={profile}
+                    userId={userId}
+                    isOnboarding={isOnboarding}
+                    reason={profileReason}
+                    onSaved={(updated) => {
+                      setProfile(updated);
+                      setIsOnboarding(false);
+                      setProfileReason(null);
+                      handleNavSelect("Home");
+                    }}
+                    onSkip={() => handleNavSelect("Home")}
+                  />
                 ) : (
                   <HomePage
                     onDiscoverSkills={() => handleNavSelect("Skills")}

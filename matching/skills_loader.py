@@ -37,7 +37,7 @@ def load_skills() -> list:
     """Read every skill document from Cosmos."""
     container = get_container()
     items = container.query_items(
-        query="SELECT c.id, c.name, c.description, c.body FROM c",
+        query="SELECT c.id, c.name, c.description, c.body, c.created_by FROM c",
         enable_cross_partition_query=True,
     )
     return [
@@ -46,6 +46,7 @@ def load_skills() -> list:
             "name": item.get("name", item["id"]),
             "description": item.get("description", ""),
             "body": item.get("body", ""),
+            "created_by": item.get("created_by"),
         }
         for item in items
     ]
@@ -137,7 +138,8 @@ def save_skill(skill: dict) -> dict:
         "name": skill.get("name") or skill_id,
         "description": skill.get("description", ""),
         "body": skill.get("body", ""),
-        "created_by": skill.get("created_by"),  # nullable for now
+        "created_by": skill.get("created_by"),        # anonymous username, if known
+        "created_by_id": skill.get("created_by_id"),  # stable author key, for future lookups
     }
     container.create_item(doc)
 
@@ -146,4 +148,5 @@ def save_skill(skill: dict) -> dict:
         "name": doc["name"],
         "description": doc["description"],
         "body": doc["body"],
+        "created_by": doc["created_by"],
     }

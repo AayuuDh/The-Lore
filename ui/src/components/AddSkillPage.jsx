@@ -25,7 +25,7 @@ function StartForm({ value, onChange, onSubmit, loading }) {
   );
 }
 
-function AddSkillPage({ onBackHome }) {
+function AddSkillPage({ onBackHome, userId, profile, onRequireProfile }) {
   // --- State: the moving parts of this screen --------------------------------
   const [description, setDescription] = useState("");   // the first plain-English line
   const [sessionId, setSessionId] = useState(null);     // conversation handle for the AI
@@ -77,10 +77,19 @@ function AddSkillPage({ onBackHome }) {
 
   // --- Save: persist the approved skill --------------------------------------
   async function handleSave() {
+    // Gate: you can only publish a skill once your profile is complete enough.
+    // The username is auto-generated, but the "may we contact you?" choice must
+    // be made first. If it hasn't been, send the user to the profile page.
+    if (!profile || profile.contactable === null || profile.contactable === undefined) {
+      onRequireProfile(
+        "Before adding a skill, please choose whether you'd like to be contacted."
+      );
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const saved = await saveSkill(skill);
+      const saved = await saveSkill(skill, userId);
       setSavedId(saved.id);   // backend may have auto-suffixed the id; trust its answer
     } catch (err) {
       setError(err.message);
