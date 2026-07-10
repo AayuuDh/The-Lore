@@ -188,6 +188,7 @@ function App() {
                     onDiscoverSkills={() => handleNavSelect("Skills")}
                     onAddSkills={() => handleNavSelect("Add Skill")}
                     onOpenSkill={openSkill}
+                    username={profile?.username}
                   />
                 )}
               </div>

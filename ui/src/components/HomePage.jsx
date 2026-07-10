@@ -28,7 +28,7 @@ const TIPS = [
   },
 ];
 
-function HomePage({ onDiscoverSkills, onAddSkills, onOpenSkill }) {
+function HomePage({ onDiscoverSkills, onAddSkills, onOpenSkill, username }) {
   // Read the recently-opened skills once when the home page renders. It remounts
   // every time you navigate back here, so this stays in sync without extra work.
   const recent = getRecentlyViewed();
@@ -45,7 +45,7 @@ function HomePage({ onDiscoverSkills, onAddSkills, onOpenSkill }) {
       {/* Welcome Card */}
       <div className="homepage__welcome">
         <h1 className="homepage__welcome-heading">
-          <span role="img" aria-label="wave">👋</span> Welcome back, User!
+          <span role="img" aria-label="wave">👋</span> Welcome back, {username || "User"}!
         </h1>
         <p className="homepage__welcome-text">
           Here&rsquo;s what&rsquo;s happening across your skills and projects.
