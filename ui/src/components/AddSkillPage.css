@@ -226,6 +226,44 @@
   transform: translateY(-1px);
 }
 
+/* --- "Create skill now" escape hatch during the interview ----------------- */
+.add-skill-page__force-row {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.add-skill-page__force-btn {
+  border: 1px solid rgba(137, 87, 229, 0.55);
+  border-radius: 12px;
+  background: transparent;
+  color: #c9b6ff;
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.add-skill-page__force-btn:hover:not(:disabled) {
+  border-color: #8957e5;
+  color: #e6edf3;
+  background: rgba(137, 87, 229, 0.12);
+}
+
+.add-skill-page__force-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.add-skill-page__force-hint {
+  color: #8b949e;
+  font-size: 0.86rem;
+  text-align: left;
+}
+
 /* --- Editor (the draft shown in editable boxes) --------------------------- */
 .add-skill-page__card--editor {
   text-align: left;

@@ -70,11 +70,11 @@ export function draftSkill(description) {
 // Later turns: pass back the session_id plus the user's answer (or a change like
 // "make it shorter"). The AI returns the same envelope — another question or the
 // drafted skill — remembering everything said before.
-export function refineSkill(sessionId, message) {
+export function refineSkill(sessionId, message, force = false) {
   return request("/draft-skill/refine", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ session_id: sessionId, message }),
+    body: JSON.stringify({ session_id: sessionId, message, force }),
   });
 }
 

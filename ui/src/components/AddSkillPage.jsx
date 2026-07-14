@@ -115,6 +115,44 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
     sendTurn(input);
   }
 
+  // --- "Create skill now": draft immediately with whatever we have so far -----
+  // The user decides they've said enough. We tell the interviewer to stop asking
+  // and draft. The backend already honors an explicit "draft now" instruction.
+  async function forceDraft() {
+    if (loading || !sessionId) return;
+    setLoading(true);
+    setError(null);
+    setDuplicate(null);
+    pushMessage("user", "Create the skill now with what I've told you.");
+    try {
+      const res = await refineSkill(
+        sessionId,
+        "Draft the skill now with what you have. Do not ask any more questions. " +
+          "Infer reasonable details for anything I didn't cover, and leave honest " +
+          "gaps only where you'd otherwise be guessing wildly.",
+        true
+      );
+      setSessionId(res.session_id);
+      if (res.type === "draft" && res.skill) {
+        if (onGoToEditor) {
+          onGoToEditor(res.skill);
+          return;
+        }
+        setSkill(res.skill);
+        pushMessage(
+          "assistant",
+          "I've drafted your skill from what you told me. Review and edit it below, keep refining it here, or save it when it looks right."
+        );
+      } else {
+        pushMessage("assistant", res.message || "Here's your draft.");
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   // If we arrived here from Discover ("Create this skill"), open the interview
   // automatically with the context the user already gave us — no retyping.
   const seededRef = useRef(false);
@@ -349,6 +387,24 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
                   {loading ? "Working…" : started ? "Send" : "Start"}
                 </button>
               </form>
+
+              {/* Escape hatch: let the user draft as soon as they feel they've
+                  said enough, instead of answering every follow-up. */}
+              {started && sessionId && !skill && (
+                <div className="add-skill-page__force-row">
+                  <button
+                    className="add-skill-page__force-btn"
+                    type="button"
+                    onClick={forceDraft}
+                    disabled={loading}
+                  >
+                    Create skill now
+                  </button>
+                  <span className="add-skill-page__force-hint">
+                    Skip the rest of the questions and draft from what you&apos;ve shared.
+                  </span>
+                </div>
+              )}
 
               {/* Once the AI produces a draft, show the editable profile below. */}
               {skill && (
