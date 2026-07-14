@@ -37,9 +37,73 @@
   line-height: 1.15;
 }
 
+/* ── "What is a skill?" info icon + tooltip ── */
+.discover__info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+.discover__info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid #4935bc;
+  background: rgba(137, 87, 229, 0.15);
+  color: #b98bff;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.discover__info-btn:hover,
+.discover__info-btn:focus-visible {
+  background: rgba(137, 87, 229, 0.32);
+  color: #e6edf3;
+  border-color: #8957e5;
+  outline: none;
+}
+
+.discover__info-pop {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  width: 300px;
+  max-width: 78vw;
+  z-index: 30;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #4935bc;
+  background: #130f2a;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  color: #c9d1d9;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.discover__info:hover .discover__info-pop,
+.discover__info-pop.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
 .discover__sub {
-  font-size: 15px;
-  color: #adb6c2;
+  font-size: 18px;
+  color: #c9d1d9;
   max-width: 460px;
   line-height: 1.5;
 }
@@ -158,10 +222,10 @@
 .discover__chip {
   background: transparent;
   border: 1px solid #30363d;
-  color: #adb6c2;
-  padding: 7px 14px;
+  color: #c9d1d9;
+  padding: 9px 16px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 15px;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
 }
@@ -496,7 +560,7 @@
   max-width: 82%;
   border-radius: 16px;
   padding: 12px 16px;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.55;
 }
 
@@ -602,12 +666,12 @@
   border: none;
   outline: none;
   color: #e6edf3;
-  font-size: 15px;
+  font-size: 16px;
   padding: 12px 4px;
 }
 
 .discover__composer-input::placeholder {
-  color: #6e7681;
+  color: #8b949e;
 }
 
 .discover__send {
@@ -634,13 +698,68 @@
   cursor: default;
 }
 
+/* ── Intro (empty) state: pull the search bar up under the hero instead of
+   pinning it to the bottom, and stack the CTA buttons beneath it. ── */
+.discover--intro .discover__chat {
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+/* Two prominent entry points beneath the search bar: browse the library or
+   jump straight into creating a new skill. */
+.discover__cta-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.discover__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.1s;
+}
+
+.discover__cta:active {
+  transform: translateY(1px);
+}
+
+.discover__cta--secondary {
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+}
+
+.discover__cta--secondary:hover {
+  border-color: #8957e5;
+  color: #e6edf3;
+}
+
+.discover__cta--primary {
+  background: #8957e5;
+  border: 1px solid #8957e5;
+  color: #fff;
+}
+
+.discover__cta--primary:hover {
+  background: #7a47d3;
+  border-color: #7a47d3;
+}
+
 .discover__create-link {
   align-self: center;
   margin-top: 8px;
   background: transparent;
   border: none;
-  color: #7d8590;
-  font-size: 13px;
+  color: #adb6c2;
+  font-size: 15px;
   cursor: pointer;
   transition: color 0.2s;
 }
