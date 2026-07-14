@@ -38,7 +38,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from query_rewriter import rewrite_query
 from draft_skill import start_draft, refine_draft
 from edit_skill import edit_skill as ai_edit_skill
-from events import record_event, skill_metrics
+from events import record_event, skill_metrics, user_history
 from users import get_user, ensure_user, update_user, UsernameTakenError
 
 
@@ -125,6 +125,7 @@ class SaveSkillRequest(BaseModel):
     description: str     # one paragraph used for search matching
     body: str           # markdown body (## Instructions, ## Example, ...)
     user_id: str | None = None  # stable id of the signed-in author (from the UI)
+    forked_from: str | None = None  # id of the skill this was copied/forked from
 
 
 class EnsureUserRequest(BaseModel):
@@ -288,6 +289,20 @@ def user_skills_endpoint(user_id: str):
     skills since skills are public; only counts, never viewers, stay private.
     """
     return load_skills_by_author(user_id)
+
+
+@app.get("/users/{user_id}/history")
+def user_history_endpoint(user_id: str):
+    """This user's OWN recent activity (skills they viewed/used/favorited).
+
+    Returns only their own events — never anyone else's — enriched with each
+    skill's current name for display. This is per-user history/trends data.
+    """
+    names = {s["id"]: s.get("name", s["id"]) for s in skills}
+    return [
+        {**event, "name": names.get(event["skill_id"], event["skill_id"])}
+        for event in user_history(user_id)
+    ]
 
 
 @app.patch("/users/{user_id}")

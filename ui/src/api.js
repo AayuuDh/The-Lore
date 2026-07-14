@@ -128,6 +128,12 @@ export function getMySkills(userId) {
   return request(`/users/${encodeURIComponent(userId)}/skills`);
 }
 
+// GET /users/{userId}/history -> [{ skill_id, name, type, ts }, ...]
+// This user's own recent activity (views/uses/favorites), newest first.
+export function getMyHistory(userId) {
+  return request(`/users/${encodeURIComponent(userId)}/history`);
+}
+
 // POST /events -> 204. Log one usage event (view | use | favorite | unfavorite).
 // Fire-and-forget: swallow errors so metrics never break the UI.
 export function recordEvent(skillId, type, userId) {

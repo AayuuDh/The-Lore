@@ -85,3 +85,26 @@ def skill_metrics(skill_id: str) -> dict:
         "uses": _count(container, skill_id, "use"),
         "favorites": _net_favorites(container, skill_id),
     }
+
+
+def user_history(user_id: str, limit: int = 100) -> list:
+    """One user's OWN recent events (their history / trends).
+
+    Cross-partition (events are partitioned by skill_id), newest first. Returns
+    only this user's rows — never anyone else's. Empty without Cosmos.
+    """
+    if not _USE_COSMOS or not user_id:
+        return []
+    from cosmos_client import get_events_container
+    container = get_events_container()
+    rows = container.query_items(
+        query=(
+            "SELECT c.skill_id, c.type, c.ts FROM c WHERE c.user_id=@u "
+            "ORDER BY c.ts DESC OFFSET 0 LIMIT @n"
+        ),
+        parameters=[{"name": "@u", "value": user_id},
+                    {"name": "@n", "value": limit}],
+        enable_cross_partition_query=True,
+    )
+    return list(rows)
+

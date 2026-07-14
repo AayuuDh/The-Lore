@@ -37,6 +37,7 @@ def _load_skills_local() -> list:
             "name": post.metadata.get("name", path.stem),
             "description": post.metadata.get("description", ""),
             "body": post.content,
+            "forked_from": post.metadata.get("forked_from"),
         })
     return skills
 
@@ -62,6 +63,7 @@ def _save_skill_local(skill: dict) -> dict:
         id=skill_id,
         name=skill.get("name") or skill_id,
         description=skill.get("description", ""),
+        forked_from=skill.get("forked_from"),
     )
     SKILLS_DIR.mkdir(parents=True, exist_ok=True)
     path.write_text(frontmatter.dumps(post), encoding="utf-8")
@@ -71,6 +73,7 @@ def _save_skill_local(skill: dict) -> dict:
         "name": post.metadata["name"],
         "description": post.metadata["description"],
         "body": post.content,
+        "forked_from": post.metadata.get("forked_from"),
     }
 
 
@@ -79,7 +82,7 @@ def _load_skills_cosmos() -> list:
     from cosmos_client import get_container
     container = get_container()
     items = container.query_items(
-        query="SELECT c.id, c.name, c.description, c.body, c.created_by FROM c",
+        query="SELECT c.id, c.name, c.description, c.body, c.created_by, c.forked_from FROM c",
         enable_cross_partition_query=True,
     )
     return [
@@ -89,6 +92,7 @@ def _load_skills_cosmos() -> list:
             "description": item.get("description", ""),
             "body": item.get("body", ""),
             "created_by": item.get("created_by"),
+            "forked_from": item.get("forked_from"),
         }
         for item in items
     ]
@@ -121,6 +125,7 @@ def _save_skill_cosmos(skill: dict) -> dict:
         "body": skill.get("body", ""),
         "created_by": skill.get("created_by"),        # anonymous username, if known
         "created_by_id": skill.get("created_by_id"),  # stable author key, for future lookups
+        "forked_from": skill.get("forked_from"),      # id this was copied from, if a fork
     }
     container.create_item(doc)
 
@@ -130,6 +135,7 @@ def _save_skill_cosmos(skill: dict) -> dict:
         "description": doc["description"],
         "body": doc["body"],
         "created_by": doc["created_by"],
+        "forked_from": doc["forked_from"],
     }
 
 
