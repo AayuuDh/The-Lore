@@ -33,7 +33,7 @@ from pydantic import BaseModel
 
 from matcher import match, precompute_skill_vectors
 from rerank import converse
-from skills_loader import load_skills, save_skill
+from skills_loader import load_skills, save_skill, load_skills_by_author
 from fastapi.middleware.cors import CORSMiddleware
 from query_rewriter import rewrite_query
 from draft_skill import start_draft, refine_draft
@@ -270,6 +270,16 @@ def get_user_endpoint(user_id: str):
     if profile is None:
         raise HTTPException(status_code=404, detail="profile not found")
     return profile
+
+
+@app.get("/users/{user_id}/skills")
+def user_skills_endpoint(user_id: str):
+    """List the skills a user has authored — powers their 'My Skills' view.
+
+    Lightweight shape (id, name, description). Anyone can read a user's authored
+    skills since skills are public; only counts, never viewers, stay private.
+    """
+    return load_skills_by_author(user_id)
 
 
 @app.patch("/users/{user_id}")

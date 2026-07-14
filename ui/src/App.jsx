@@ -220,6 +220,7 @@ function App() {
                     onRequireProfile={requireProfile}
                     initialDescription={addSkillSeed}
                     onGoToEditor={(skill) => openEditor(skill, "new")}
+                    onOpenSkill={openSkill}
                   />
                 ) : currentPage === "Skill Editor" ? (
                   <SkillEditor

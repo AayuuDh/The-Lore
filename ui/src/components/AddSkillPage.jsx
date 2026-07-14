@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { PlusIcon, ArrowLeftIcon } from "@primer/octicons-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { draftSkill, refineSkill, saveSkill, matchSkills } from "../api";
+import { draftSkill, refineSkill, saveSkill, matchSkills, getMySkills } from "../api";
 import "./AddSkillPage.css";
 
 // If an existing skill scores at/above this cosine similarity, treat it as a
@@ -28,7 +28,7 @@ function findSimilar(ranked) {
   return null;
 }
 
-function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDescription = "", onGoToEditor }) {
+function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDescription = "", onGoToEditor, onOpenSkill }) {
   // --- State: the moving parts of this screen --------------------------------
   const [input, setInput] = useState("");               // the chat box
   const [sessionId, setSessionId] = useState(null);     // conversation handle for the AI
@@ -195,6 +195,20 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
     setSimilar(null);
   }
 
+  // "My Skills" sidebar: the skills this user has authored. Refetched whenever a
+  // new skill is saved so the list stays current.
+  const [mySkills, setMySkills] = useState([]);
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    getMySkills(userId)
+      .then((list) => active && setMySkills(Array.isArray(list) ? list : []))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [userId, savedId]);
+
   const placeholder = skill
     ? "Answer, or ask AI to refine — e.g. 'add a real example'"
     : started
@@ -210,7 +224,24 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
             <PlusIcon size={18} />
           </button>
         </div>
-        <div className="add-skill-page__sidebar-empty">Skills you add will appear here</div>
+        {mySkills.length === 0 ? (
+          <div className="add-skill-page__sidebar-empty">Skills you add will appear here</div>
+        ) : (
+          <ul className="add-skill-page__sidebar-list">
+            {mySkills.map((s) => (
+              <li key={s.id}>
+                <button
+                  type="button"
+                  className="add-skill-page__sidebar-item"
+                  onClick={() => onOpenSkill?.(s.id)}
+                  title={s.description || s.name}
+                >
+                  {s.name || s.id}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </aside>
 
       <main className="add-skill-page__main">

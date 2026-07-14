@@ -121,6 +121,12 @@ export function getProfile(userId) {
   return request(`/users/${encodeURIComponent(userId)}`);
 }
 
+// GET /users/{userId}/skills -> [{ id, name, description }, ...]
+// The skills this user has authored, for their "My Skills" list.
+export function getMySkills(userId) {
+  return request(`/users/${encodeURIComponent(userId)}/skills`);
+}
+
 // PATCH /users/{userId} -> updated profile
 // Send only the fields you want to change. Renaming to a taken username throws
 // (the backend responds 409); the caller should surface that to the user.

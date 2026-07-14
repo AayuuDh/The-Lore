@@ -10,6 +10,9 @@ import re
 from pathlib import Path
 
 import frontmatter
+from dotenv import load_dotenv
+
+load_dotenv()  # ensure COSMOS_KEY is available regardless of import order
 
 SKILLS_DIR = Path(__file__).parent.parent / "data" / "skills"
 
@@ -148,6 +151,35 @@ def _safe_id(skill_id: str) -> str:
 def load_skills() -> list:
     """Read every skill from the active store (Cosmos, or local markdown)."""
     return _load_skills_cosmos() if _USE_COSMOS else _load_skills_local()
+
+
+def load_skills_by_author(user_id: str) -> list:
+    """Return the skills one user authored, for their "My Skills" view.
+
+    Cosmos only — the local markdown store doesn't record authorship, so it
+    returns an empty list. Shape is lightweight (id, name, description) since
+    this feeds a list, not a detail page.
+    """
+    if not _USE_COSMOS or not user_id:
+        return []
+    from cosmos_client import get_container
+    container = get_container()
+    items = container.query_items(
+        query=(
+            "SELECT c.id, c.name, c.description FROM c "
+            "WHERE c.created_by_id = @uid"
+        ),
+        parameters=[{"name": "@uid", "value": user_id}],
+        enable_cross_partition_query=True,
+    )
+    return [
+        {
+            "id": item["id"],
+            "name": item.get("name", item["id"]),
+            "description": item.get("description", ""),
+        }
+        for item in items
+    ]
 
 
 def save_skill(skill: dict) -> dict:
