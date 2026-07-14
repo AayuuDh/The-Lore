@@ -6,6 +6,7 @@ import Sidebar from "./components/Sidebar";
 import TopNav from "./components/TopNav";
 // import LeftPanel from "./components/LeftPanel";
 import HomePage from "./components/HomePage";
+import Discover from "./components/Discover";
 import SkillsPage from "./components/SkillsPage";
 import AddSkillPage from "./components/AddSkillPage";
 import ProfilePage from "./components/ProfilePage";
@@ -184,8 +185,7 @@ function App() {
                     onSkip={() => handleNavSelect("Home")}
                   />
                 ) : (
-                  <HomePage
-                    onDiscoverSkills={() => handleNavSelect("Skills")}
+                  <Discover
                     onAddSkills={() => handleNavSelect("Add Skill")}
                     onOpenSkill={openSkill}
                     username={profile?.username}
