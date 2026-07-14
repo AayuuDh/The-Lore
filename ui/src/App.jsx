@@ -211,6 +211,7 @@ function App() {
                     onBackHome={() => handleNavSelect("Home")}
                     initialSkillId={pendingSkillId}
                     onEditSkill={(skill) => openEditor(skill, "fork")}
+                    userId={userId}
                   />
                 ) : currentPage === "Add Skill" ? (
                   <AddSkillPage
@@ -252,6 +253,7 @@ function App() {
                     onEditSkill={(skill) => openEditor(skill, "fork")}
                     onBrowse={() => handleNavSelect("Skills")}
                     username={profile?.username}
+                    userId={userId}
                   />
                 )}
               </div>

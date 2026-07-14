@@ -64,7 +64,7 @@ function loadChat() {
   }
 }
 
-function Discover({ onAddSkills, onEditSkill, onBrowse }) {
+function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
   // The chat. Each message: { role, content, skill?, confidence?, suggestCreate?, error? }
   const [messages, setMessages] = useState(loadChat);
   const [input, setInput] = useState("");
@@ -313,6 +313,7 @@ function Discover({ onAddSkills, onEditSkill, onBrowse }) {
               skillId={previewId}
               onBack={() => setPreviewId(null)}
               onEdit={onEditSkill}
+              userId={userId}
             />
           </div>
         </div>

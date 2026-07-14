@@ -155,6 +155,25 @@
   color: #e6edf3;
 }
 
+.skill-detail__metrics {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 12px;
+}
+
+.skill-detail__metric {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #8b949e;
+}
+
+.skill-detail__metric svg {
+  color: #6e7681;
+}
+
 .skill-detail__title {
   font-size: 30px;
   font-weight: 700;

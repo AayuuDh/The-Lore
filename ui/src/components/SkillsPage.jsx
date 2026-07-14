@@ -23,7 +23,7 @@ function sortByName(skills) {
   );
 }
 
-function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill }) {
+function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId }) {
   const [allSkills, setAllSkills] = useState([]);
   const [results, setResults] = useState(null); // null = showing full catalog
   const [query, setQuery] = useState("");
@@ -123,6 +123,7 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill }) {
         skillId={selectedId}
         onBack={() => setSelectedId(null)}
         onEdit={onEditSkill}
+        userId={userId}
       />
     );
   }

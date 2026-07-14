@@ -38,6 +38,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from query_rewriter import rewrite_query
 from draft_skill import start_draft, refine_draft
 from edit_skill import edit_skill as ai_edit_skill
+from events import record_event, skill_metrics
 from users import get_user, ensure_user, update_user, UsernameTakenError
 
 
@@ -108,6 +109,13 @@ class EditSkillRequest(BaseModel):
     skill: dict                 # the current skill being edited: {name, description, body, ...}
     instruction: str            # plain-English change, e.g. "add a concrete example"
     history: list | None = None # optional prior {role, content} turns for context
+
+
+class EventRequest(BaseModel):
+    """Shape of the JSON body POSTed to /events — one usage event to log."""
+    skill_id: str               # which skill the event is about
+    type: str                   # view | use | favorite | unfavorite
+    user_id: str | None = None  # who (stored privately; never returned in aggregates)
 
 
 class SaveSkillRequest(BaseModel):
@@ -307,6 +315,24 @@ def get_skill(id: str):
         if skill["id"] == id:
             return _public(skill)
     raise HTTPException(status_code=404, detail=f"skill not found: {id}")
+
+
+@app.post("/events", status_code=204)
+def record_event_endpoint(req: EventRequest):
+    """Log one usage event (view / use / favorite / unfavorite). Fire-and-forget:
+    the client doesn't wait on the result. Silently no-ops without Cosmos."""
+    try:
+        record_event(req.skill_id, req.user_id, req.type)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return None
+
+
+@app.get("/skills/{id}/metrics")
+def skill_metrics_endpoint(id: str):
+    """Global usage counts for one skill: { views, uses, favorites }. Counts only
+    — never reveals who did anything."""
+    return skill_metrics(id)
 
 
 @app.post("/draft-skill")

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ArrowLeftIcon, DownloadIcon, CopyIcon, CheckIcon, StarIcon, StarFillIcon, PencilIcon } from "@primer/octicons-react";
-import { getSkill } from "../api";
+import { ArrowLeftIcon, DownloadIcon, CopyIcon, CheckIcon, StarIcon, StarFillIcon, PencilIcon, EyeIcon, ZapIcon } from "@primer/octicons-react";
+import { getSkill, recordEvent, getSkillMetrics } from "../api";
 import { isFavorite, toggleFavorite } from "../favorites";
 import "./SkillDetail.css";
 
@@ -37,12 +37,17 @@ function downloadSkill(skill) {
   URL.revokeObjectURL(url);
 }
 
-function SkillDetail({ skillId, onBack, onEdit }) {
+function SkillDetail({ skillId, onBack, onEdit, userId }) {
   const [skill, setSkill] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   // Tracks the little "Copied!" confirmation after the copy button is pressed.
   const [copied, setCopied] = useState(false);
+  // Global usage counts { views, uses, favorites } for this skill.
+  const [metrics, setMetrics] = useState(null);
+  // Guards against double-logging a view (React StrictMode invokes effects twice
+  // in dev); we only record one view per distinct skill open.
+  const viewedRef = useRef(null);
   // Whether this skill is starred. Seeded from localStorage, and re-checked if
   // we switch to a different skill.
   const [favorited, setFavorited] = useState(() => isFavorite(skillId));
@@ -65,10 +70,32 @@ function SkillDetail({ skillId, onBack, onEdit }) {
     setFavorited(isFavorite(skillId));
   }, [skillId]);
 
+  // On each open: load the current counts and log one view (every open counts).
+  useEffect(() => {
+    let active = true;
+    getSkillMetrics(skillId)
+      .then((m) => active && setMetrics(m))
+      .catch(() => {});
+    if (viewedRef.current !== skillId) {
+      viewedRef.current = skillId;
+      recordEvent(skillId, "view", userId);
+      setMetrics((m) => (m ? { ...m, views: m.views + 1 } : m));
+    }
+    return () => {
+      active = false;
+    };
+  }, [skillId, userId]);
+
   // Star/unstar this skill. toggleFavorite saves to localStorage and returns the
-  // new list, so we just check whether this id is still in it.
+  // new list, so we just check whether this id is still in it. We also log the
+  // toggle so the global favorite count stays accurate.
   function handleToggleFavorite() {
-    setFavorited(toggleFavorite(skillId).includes(skillId));
+    const nowFav = toggleFavorite(skillId).includes(skillId);
+    setFavorited(nowFav);
+    recordEvent(skillId, nowFav ? "favorite" : "unfavorite", userId);
+    setMetrics((m) =>
+      m ? { ...m, favorites: Math.max(0, m.favorites + (nowFav ? 1 : -1)) } : m
+    );
   }
 
   // Copy the skill's body (the actual prompt/instructions) to the clipboard,
@@ -79,9 +106,18 @@ function SkillDetail({ skillId, onBack, onEdit }) {
       await navigator.clipboard.writeText(skill?.body || "");
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      recordEvent(skillId, "use", userId);
+      setMetrics((m) => (m ? { ...m, uses: m.uses + 1 } : m));
     } catch {
       // Clipboard unavailable — nothing we can do, so stay silent.
     }
+  }
+
+  // Download the skill as markdown, and count it as a "use" like copy.
+  function handleDownload() {
+    downloadSkill(skill);
+    recordEvent(skillId, "use", userId);
+    setMetrics((m) => (m ? { ...m, uses: m.uses + 1 } : m));
   }
 
   return (
@@ -129,7 +165,7 @@ function SkillDetail({ skillId, onBack, onEdit }) {
                 </button>
                 <button
                   className="skill-detail__download"
-                  onClick={() => downloadSkill(skill)}
+                  onClick={handleDownload}
                   title="Download this skill as a Markdown file"
                 >
                   <DownloadIcon size={16} />
@@ -139,6 +175,21 @@ function SkillDetail({ skillId, onBack, onEdit }) {
             </div>
             {skill.description && (
               <p className="skill-detail__summary">{skill.description}</p>
+            )}
+            {metrics && (
+              <div className="skill-detail__metrics">
+                <span className="skill-detail__metric" title="Times opened">
+                  <EyeIcon size={14} /> {metrics.views}{" "}
+                  {metrics.views === 1 ? "view" : "views"}
+                </span>
+                <span className="skill-detail__metric" title="Times copied or downloaded">
+                  <ZapIcon size={14} /> {metrics.uses}{" "}
+                  {metrics.uses === 1 ? "use" : "uses"}
+                </span>
+                <span className="skill-detail__metric" title="People who favorited">
+                  <StarFillIcon size={14} /> {metrics.favorites}
+                </span>
+              </div>
             )}
           </header>
 

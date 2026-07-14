@@ -20,6 +20,7 @@ async function request(path, options) {
     err.status = res.status;
     throw err;
   }
+  if (res.status === 204) return null; // no content (e.g. fire-and-forget events)
   return res.json();
 }
 
@@ -125,6 +126,21 @@ export function getProfile(userId) {
 // The skills this user has authored, for their "My Skills" list.
 export function getMySkills(userId) {
   return request(`/users/${encodeURIComponent(userId)}/skills`);
+}
+
+// POST /events -> 204. Log one usage event (view | use | favorite | unfavorite).
+// Fire-and-forget: swallow errors so metrics never break the UI.
+export function recordEvent(skillId, type, userId) {
+  return request("/events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ skill_id: skillId, type, user_id: userId }),
+  }).catch(() => {});
+}
+
+// GET /skills/{id}/metrics -> { views, uses, favorites } (global counts only)
+export function getSkillMetrics(skillId) {
+  return request(`/skills/${encodeURIComponent(skillId)}/metrics`);
 }
 
 // PATCH /users/{userId} -> updated profile

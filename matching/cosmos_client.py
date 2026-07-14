@@ -21,6 +21,7 @@ _ENDPOINT = os.environ.get("COSMOS_ENDPOINT")
 _DATABASE = os.environ.get("COSMOS_DATABASE", "lore")
 _CONTAINER = os.environ.get("COSMOS_CONTAINER", "skills")
 _USERS_CONTAINER = os.environ.get("COSMOS_USERS_CONTAINER", "users")
+_EVENTS_CONTAINER = os.environ.get("COSMOS_EVENTS_CONTAINER", "events")
 _KEY = os.environ.get("COSMOS_KEY") or None
 
 
@@ -51,4 +52,19 @@ def get_users_container():
     return database.create_container_if_not_exists(
         id=_USERS_CONTAINER,
         partition_key=PartitionKey(path="/id"),
+    )
+
+
+@lru_cache(maxsize=1)
+def get_events_container():
+    """Return the events container, creating it on first use if missing.
+
+    Partitioned by /skill_id so counting a single skill's events (its popularity)
+    is a fast single-partition query. Per-user queries go cross-partition, which
+    is fine at this scale. Self-provisions on first run.
+    """
+    database = _client().get_database_client(_DATABASE)
+    return database.create_container_if_not_exists(
+        id=_EVENTS_CONTAINER,
+        partition_key=PartitionKey(path="/skill_id"),
     )
