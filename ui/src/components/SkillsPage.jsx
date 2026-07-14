@@ -23,7 +23,7 @@ function sortByName(skills) {
   );
 }
 
-function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId }) {
+function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, initialFavoritesOnly = false }) {
   const [allSkills, setAllSkills] = useState([]);
   const [results, setResults] = useState(null); // null = showing full catalog
   const [query, setQuery] = useState("");
@@ -39,9 +39,14 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId }) 
   const [favorites, setFavorites] = useState(getFavorites);
   // When true, the grid shows ONLY skills you've starred. Just a view filter,
   // it doesn't change what's saved, it changes what we render.
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(initialFavoritesOnly);
   // The selected category chip (null = All). Only applies in the catalog view.
   const [activeCategory, setActiveCategory] = useState(null);
+
+  // Follow the nav intent: opening via "Favorited" flips the filter on.
+  useEffect(() => {
+    setShowFavoritesOnly(initialFavoritesOnly);
+  }, [initialFavoritesOnly]);
 
   // Star/unstar a skill. We stop the click from bubbling up to the card button
   // (otherwise clicking the star would also open the skill's detail page).

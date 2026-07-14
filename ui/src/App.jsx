@@ -49,6 +49,9 @@ function App() {
   // fresh draft) or "fork" (editing an existing skill, which saves a copy).
   const [editorSkill, setEditorSkill] = useState(null);
   const [editorMode, setEditorMode] = useState("new");
+  // When true, the Skills catalog opens pre-filtered to the user's starred
+  // skills (driven by the "Favorited" nav item).
+  const [skillsFavoritesOnly, setSkillsFavoritesOnly] = useState(false);
   // useIsAuthenticated() is an MSAL hook that returns true whenever there's a
   // signed-in account, false otherwise. We DON'T track this ourselves with
   // useState anymore: MSAL owns the truth about auth, and this hook makes our
@@ -108,7 +111,14 @@ function App() {
     setEditorSkill(null);
     setProfileReason(null);
     if (page !== "Profile") setIsOnboarding(false);
-    setCurrentPage(page);
+    // "Favorited" is just the Skills catalog pre-filtered to your starred skills.
+    if (page === "Favorited") {
+      setSkillsFavoritesOnly(true);
+      setCurrentPage("Skills");
+    } else {
+      setSkillsFavoritesOnly(false);
+      setCurrentPage(page);
+    }
     setSidebarOpen(false);
   };
 
@@ -191,6 +201,8 @@ function App() {
             onClose={() => setSidebarOpen(false)}
             currentPage={currentPage}
             onNavigate={handleNavSelect}
+            userId={userId}
+            onOpenSkill={openSkill}
           />
 
           {/* Main wrapper */}
@@ -212,6 +224,7 @@ function App() {
                     initialSkillId={pendingSkillId}
                     onEditSkill={(skill) => openEditor(skill, "fork")}
                     userId={userId}
+                    initialFavoritesOnly={skillsFavoritesOnly}
                   />
                 ) : currentPage === "Add Skill" ? (
                   <AddSkillPage

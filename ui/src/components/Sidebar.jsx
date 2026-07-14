@@ -1,44 +1,56 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   XIcon,
   HomeIcon,
   HomeFillIcon,
-  TableIcon,
-  GitPullRequestIcon,
-  BookmarkIcon,
-  CommentDiscussionIcon,
-  ZapIcon,
+  StarIcon,
   PlusIcon,
   PersonIcon,
 } 
 from "@primer/octicons-react";
 import "./Sidebar.css";
 import logo from "../assets/logo light.png"
+import { getMySkills, getMyHistory } from "../api";
 
 const NAV_ITEMS = [
   { label: "Home", icon: HomeIcon, activeIcon: HomeFillIcon },
-  { label: "Projects", icon: TableIcon },
-  { label: "Requests", icon: GitPullRequestIcon },
-  { label: "Saved", icon: BookmarkIcon },
-  { label: "Copilot", icon: CommentDiscussionIcon },
-  { label: "Spark", icon: ZapIcon },
+  { label: "Add Skill", icon: PlusIcon },
+  { label: "Favorited", icon: StarIcon },
   { label: "Profile", icon: PersonIcon },
 ];
 
-const TOP_SKILLS = [
-  { name: "Skill 1", color: "#3fb950" },
-  { name: "Skill 2", color: "#1f6feb" },
-  { name: "Skill 3", color: "#8957e5" },
-  { name: "Skill 4", color: "#d29922" },
-];
+function Sidebar({ isOpen, onClose, currentPage, onNavigate, userId, onOpenSkill }) {
+  // Skills you authored + skills you've recently engaged with, from the backend.
+  const [created, setCreated] = useState([]);
+  const [recent, setRecent] = useState([]);
 
-const TOP_PROJECTS = [
-  { name: "Project 1", color: "#3fb950" },
-  { name: "Project 2", color: "#1f6feb" },
-  { name: "Project 3", color: "#d29922" },
-];
+  // Refresh whenever the sidebar opens so newly created/used skills show up.
+  useEffect(() => {
+    if (!isOpen || !userId) return;
+    let active = true;
+    getMySkills(userId)
+      .then((list) => active && setCreated(Array.isArray(list) ? list : []))
+      .catch(() => {});
+    getMyHistory(userId)
+      .then((events) => {
+        if (!active) return;
+        // Collapse the event log to distinct skills, newest first.
+        const seen = new Set();
+        const distinct = [];
+        for (const e of events || []) {
+          if (!seen.has(e.skill_id)) {
+            seen.add(e.skill_id);
+            distinct.push({ id: e.skill_id, name: e.name });
+          }
+        }
+        setRecent(distinct.slice(0, 6));
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [isOpen, userId]);
 
-function Sidebar({ isOpen, onClose, currentPage, onNavigate }) {
   return (
     <aside className={`sidebar ${isOpen ? "sidebar--open" : ""}`}>
       {/* Header */}
@@ -83,10 +95,10 @@ function Sidebar({ isOpen, onClose, currentPage, onNavigate }) {
 
       <div className="sidebar__divider" />
 
-      {/* Top Skills */}
+      {/* Skills you created */}
       <div className="sidebar__section">
         <div className="sidebar__section-header">
-          <span className="sidebar__section-title">Top Skills</span>
+          <span className="sidebar__section-title">Created by you</span>
           <button
             className="sidebar__section-btn"
             aria-label="Add skill"
@@ -95,42 +107,51 @@ function Sidebar({ isOpen, onClose, currentPage, onNavigate }) {
             <PlusIcon size={16} />
           </button>
         </div>
-        <ul className="sidebar__list">
-          {TOP_SKILLS.map((s) => (
-            <li key={s.name} className="sidebar__list-item">
-              <span
-                className="sidebar__dot"
-                style={{ backgroundColor: s.color }}
-              />
-              <span>{s.name}</span>
-            </li>
-          ))}
-          <li className="sidebar__show-more">Show more</li>
-        </ul>
+        {created.length === 0 ? (
+          <p className="sidebar__empty">Skills you add show up here.</p>
+        ) : (
+          <ul className="sidebar__list">
+            {created.slice(0, 6).map((s) => (
+              <li key={s.id}>
+                <button
+                  className="sidebar__skill"
+                  onClick={() => onOpenSkill?.(s.id)}
+                  title={s.description || s.name}
+                >
+                  <span className="sidebar__dot" style={{ backgroundColor: "#8957e5" }} />
+                  <span className="sidebar__skill-name">{s.name || s.id}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="sidebar__divider" />
 
-      {/* Top Projects */}
+      {/* Skills you've recently opened or used */}
       <div className="sidebar__section">
         <div className="sidebar__section-header">
-          <span className="sidebar__section-title">Top Projects</span>
-          <button className="sidebar__section-btn" aria-label="Add project">
-            <PlusIcon size={16} />
-          </button>
+          <span className="sidebar__section-title">Recently used</span>
         </div>
-        <ul className="sidebar__list">
-          {TOP_PROJECTS.map((p) => (
-            <li key={p.name} className="sidebar__list-item">
-              <span
-                className="sidebar__dot"
-                style={{ backgroundColor: p.color }}
-              />
-              <span>{p.name}</span>
-            </li>
-          ))}
-          <li className="sidebar__show-more">Show more</li>
-        </ul>
+        {recent.length === 0 ? (
+          <p className="sidebar__empty">Open a skill and it lands here.</p>
+        ) : (
+          <ul className="sidebar__list">
+            {recent.map((s) => (
+              <li key={s.id}>
+                <button
+                  className="sidebar__skill"
+                  onClick={() => onOpenSkill?.(s.id)}
+                  title={s.name}
+                >
+                  <span className="sidebar__dot" style={{ backgroundColor: "#1f6feb" }} />
+                  <span className="sidebar__skill-name">{s.name || s.id}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </aside>
   );
