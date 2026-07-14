@@ -21,7 +21,11 @@ env/
 *.local
 
 # Editors / OS
-.vscode/
+# Ignore personal editor settings, but SHARE the team's task/extension configs
+# so everyone gets the one-click "Start Dev" task and recommended extensions.
+.vscode/*
+!.vscode/tasks.json
+!.vscode/extensions.json
 .idea/
 .DS_Store
 Thumbs.db

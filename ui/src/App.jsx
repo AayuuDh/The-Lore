@@ -18,6 +18,23 @@ import PurpleCubeBackground from "./components/PurpleCubeBackground";
 import { recordVisit } from "./streaks";
 import { ensureProfile } from "./api";
 
+// ---------------------------------------------------------------------------
+// DEV-ONLY click-to-source inspector.
+// In `npm run dev`, Alt-click (Windows) / Option-click (mac) any element on the
+// page to jump straight to the JSX that made it, opened in VS Code. See how it
+// gets rendered near the bottom of this file. `import.meta.env.DEV` is `true`
+// only for the dev server; Vite compiles it to the literal `false` for a
+// production `npm run build`, so this whole block is dead-code-eliminated and
+// the package never ships to users. We use React.lazy so the code is only ever
+// fetched when the guard is true.
+const ClickToComponent = import.meta.env.DEV
+  ? React.lazy(() =>
+      import("click-to-react-component").then((m) => ({
+        default: m.ClickToComponent,
+      }))
+    )
+  : null;
+
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("Home");
@@ -139,6 +156,7 @@ function App() {
       <ThemeProvider colorMode="dark">
         <BaseStyles>
           <div className="app-container">
+            <DevInspector />
             {/* The animated background behind the login card. */}
             <PurpleCubeBackground />
             {/* No props needed: Login triggers MSAL itself, and this component
@@ -154,6 +172,8 @@ function App() {
     <ThemeProvider colorMode="dark">
       <BaseStyles>
         <div className="app-container">
+
+          <DevInspector />
 
           <PurpleCubeBackground />
           
@@ -241,6 +261,19 @@ function App() {
         </div>
       </BaseStyles>
     </ThemeProvider>
+  );
+}
+
+// DevInspector renders the click-to-source inspector, but ONLY in the dev
+// server. In production `ClickToComponent` is null (see the top of this file),
+// so this returns nothing and adds zero bytes to the shipped bundle. Suspense
+// gives React something to show while the dev-only chunk loads (nothing).
+function DevInspector() {
+  if (!ClickToComponent) return null;
+  return (
+    <React.Suspense fallback={null}>
+      <ClickToComponent />
+    </React.Suspense>
   );
 }
 

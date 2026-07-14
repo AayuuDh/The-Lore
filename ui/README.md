@@ -1,5 +1,22 @@
 # React + Vite
 
+## Find the code behind anything on the page
+
+While the app is running in dev (`npm run dev`), you can jump from anything you
+see in the browser straight to the code that made it:
+
+- **Windows:** hold **Alt** and click the element.
+- **Mac:** hold **Option** and click the element.
+
+VS Code pops open at the exact JSX line for that element, so you can find and
+edit the right file fast. (Tip: hold Alt/Option to highlight what you're about
+to inspect before clicking.)
+
+This only works in dev — it is automatically stripped from `npm run build`, so
+it never ships to real users.
+
+---
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

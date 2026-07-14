@@ -1,0 +1,39 @@
+# .gitattributes
+# Purpose: stop "phantom" diffs and fake merge conflicts caused by Windows and
+# macOS/Linux disagreeing about line endings (CRLF vs LF).
+#
+# Background: Windows editors tend to save files with CRLF line endings, while
+# macOS/Linux use LF. Without this file, the same unchanged line can show up as
+# a change just because someone opened it on a different OS. These rules pin the
+# behavior so everyone gets consistent, clean diffs.
+
+# --- Default for every file ---
+# "text=auto" lets Git detect which files are text and normalize their line
+# endings. "eol=lf" means: store LF in the repo, so history stays consistent no
+# matter who committed. (Git still checks files out in a working form your OS is
+# happy with.)
+* text=auto eol=lf
+
+# --- Shell scripts must always be LF ---
+# Bash scripts break if they contain CRLF (you get "bad interpreter" errors), so
+# force LF on them explicitly.
+*.sh text eol=lf
+
+# --- PowerShell scripts ---
+# These run on Windows. Treat them as text and normalize them too; PowerShell is
+# fine with LF, and this keeps diffs clean.
+*.ps1 text eol=lf
+
+# --- Binary / image files ---
+# These are NOT text. Marking them "binary" tells Git never to touch line
+# endings or try to merge them line-by-line (which would corrupt them).
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+
+# --- SVG is text (it's XML) ---
+# SVGs are actually text, so we let them normalize like other text files. If you
+# ever hit odd diffs on an SVG, you can change this line to "*.svg binary".
+*.svg text eol=lf

@@ -1,0 +1,82 @@
+{
+  // VS Code tasks let you run project commands from a menu instead of typing
+  // them. Run these via: Terminal > Run Task...  (or Ctrl+Shift+P > "Run Task").
+  //
+  // The main one you want is "Start Dev" — it launches BOTH the backend and the
+  // frontend at once, each in its own terminal panel. No juggling two terminals.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      // >>> RUN THIS ONE <<<  Starts backend + frontend together.
+      "label": "Start Dev",
+      "dependsOn": ["Backend", "Frontend"],
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      // FastAPI backend. Runs in the matching/ folder.
+      // The command differs per OS so it's correct on everyone's machine.
+      "label": "Backend",
+      "type": "shell",
+      // Fallback if VS Code can't tell the OS (mac/linux style):
+      "command": "python3 -m uvicorn main:app --reload",
+      "windows": {
+        // On Windows, Python's launcher is "py".
+        "command": "py -m uvicorn main:app --reload"
+      },
+      "osx": {
+        "command": "python3 -m uvicorn main:app --reload"
+      },
+      "linux": {
+        "command": "python3 -m uvicorn main:app --reload"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/matching"
+      },
+      "isBackground": true,
+      "presentation": {
+        // Give the backend its own clearly-labeled terminal panel.
+        "group": "dev-servers",
+        "panel": "dedicated",
+        "reveal": "always",
+        "focus": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      // Vite frontend. Runs in the ui/ folder.
+      "label": "Frontend",
+      "type": "shell",
+      // Fallback (mac/linux style):
+      "command": "npm run dev",
+      "windows": {
+        // On Windows you must call "npm.cmd" (plain "npm" can fail in tasks).
+        "command": "npm.cmd run dev"
+      },
+      "osx": {
+        "command": "npm run dev"
+      },
+      "linux": {
+        "command": "npm run dev"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/ui"
+      },
+      "isBackground": true,
+      "presentation": {
+        // Give the frontend its own clearly-labeled terminal panel.
+        "group": "dev-servers",
+        "panel": "dedicated",
+        "reveal": "always",
+        "focus": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

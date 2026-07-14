@@ -1,0 +1,12 @@
+{
+  // When you open this repo in VS Code, it will offer to install these.
+  // Click "Install" — they make the branch -> PR -> merge workflow self-serve.
+  "recommendations": [
+    // Create, review, and merge Pull Requests without leaving VS Code.
+    "github.vscode-pull-request-github",
+    // Python support for the backend in matching/ (run, debug, IntelliSense).
+    "ms-python.python",
+    // ESLint for the frontend in ui/ (flags code problems as you type).
+    "dbaeumer.vscode-eslint"
+  ]
+}
