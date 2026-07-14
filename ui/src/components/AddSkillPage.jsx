@@ -28,7 +28,7 @@ function findSimilar(ranked) {
   return null;
 }
 
-function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDescription = "" }) {
+function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDescription = "", onGoToEditor }) {
   // --- State: the moving parts of this screen --------------------------------
   const [input, setInput] = useState("");               // the chat box
   const [sessionId, setSessionId] = useState(null);     // conversation handle for the AI
@@ -89,6 +89,12 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
       setSessionId(res.session_id);
 
       if (res.type === "draft" && res.skill) {
+        // Draft is ready — hand straight off to the full editor. It's a cleaner
+        // surface than an inline panel, and its AI side-agent takes it from here.
+        if (onGoToEditor) {
+          onGoToEditor(res.skill);
+          return;
+        }
         setSkill(res.skill);
         pushMessage(
           "assistant",
@@ -424,14 +430,26 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
                         </button>
                       </>
                     ) : (
-                      <button
-                        className="add-skill-page__save-btn"
-                        type="button"
-                        onClick={handleSave}
-                        disabled={loading || checkingDup}
-                      >
-                        {checkingDup ? "Checking for duplicates…" : loading ? "Saving…" : "Save skill"}
-                      </button>
+                      <>
+                        {onGoToEditor && (
+                          <button
+                            className="add-skill-page__ghost-btn"
+                            type="button"
+                            onClick={() => onGoToEditor(skill)}
+                            disabled={loading || checkingDup}
+                          >
+                            Open in editor
+                          </button>
+                        )}
+                        <button
+                          className="add-skill-page__save-btn"
+                          type="button"
+                          onClick={handleSave}
+                          disabled={loading || checkingDup}
+                        >
+                          {checkingDup ? "Checking for duplicates…" : loading ? "Saving…" : "Save skill"}
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>

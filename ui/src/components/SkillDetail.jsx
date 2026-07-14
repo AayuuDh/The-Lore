@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ArrowLeftIcon, DownloadIcon, CopyIcon, CheckIcon, StarIcon, StarFillIcon } from "@primer/octicons-react";
+import { ArrowLeftIcon, DownloadIcon, CopyIcon, CheckIcon, StarIcon, StarFillIcon, PencilIcon } from "@primer/octicons-react";
 import { getSkill } from "../api";
 import { isFavorite, toggleFavorite } from "../favorites";
 import "./SkillDetail.css";
@@ -37,7 +37,7 @@ function downloadSkill(skill) {
   URL.revokeObjectURL(url);
 }
 
-function SkillDetail({ skillId, onBack }) {
+function SkillDetail({ skillId, onBack, onEdit }) {
   const [skill, setSkill] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -100,6 +100,16 @@ function SkillDetail({ skillId, onBack }) {
             <div className="skill-detail__header-top">
               <h1 className="skill-detail__title">{skill.name || skill.id}</h1>
               <div className="skill-detail__actions">
+                {onEdit && (
+                  <button
+                    className="skill-detail__edit"
+                    onClick={() => onEdit(skill)}
+                    title="Edit this skill (saves a copy)"
+                  >
+                    <PencilIcon size={16} />
+                    <span>Edit skill</span>
+                  </button>
+                )}
                 <button
                   className={`skill-detail__fav${favorited ? " is-active" : ""}`}
                   onClick={handleToggleFavorite}

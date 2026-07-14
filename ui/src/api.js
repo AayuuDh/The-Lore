@@ -91,6 +91,19 @@ export function saveSkill(skill, userId) {
   });
 }
 
+// POST /edit-skill -> { name, description, body, note }
+// The skill editor's AI side-agent. Send the current skill and one plain-English
+// instruction ("make the workflow tighter", "add a real example"); get back the
+// full updated skill plus a short note describing what changed. Optionally pass
+// prior { role, content } turns as `history` for a little conversational memory.
+export function editSkill(skill, instruction, history) {
+  return request("/edit-skill", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ skill, instruction, history }),
+  });
+}
+
 // POST /users -> { profile, is_new }
 // Fetch-or-create the signed-in user's profile. On the very first call for a
 // user the backend mints a unique anonymous username; is_new tells us to show

@@ -51,11 +51,29 @@ function confidenceLabel(c) {
   return "A stretch";
 }
 
-function Discover({ onAddSkills, onBrowse }) {
-  // The chat. Each message: { role: "user"|"assistant", content, skill?, confidence?, error? }
-  const [messages, setMessages] = useState([]);
+// Chat survives navigating away (e.g. to create a skill) and back, within the
+// browser session, so a conversation is never lost mid-flow.
+const CHAT_KEY = "discover.chat";
+const NEED_KEY = "discover.need";
+
+function loadChat() {
+  try {
+    return JSON.parse(sessionStorage.getItem(CHAT_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function Discover({ onAddSkills, onEditSkill, onBrowse }) {
+  // The chat. Each message: { role, content, skill?, confidence?, suggestCreate?, error? }
+  const [messages, setMessages] = useState(loadChat);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  // The agent's clean one-line summary of the specific need — carried into Add
+  // Skill so the draft starts from a tidy description, not the raw transcript.
+  const [latestNeed, setLatestNeed] = useState(
+    () => sessionStorage.getItem(NEED_KEY) || ""
+  );
   // A skill opened as a modal OVER the chat — so the conversation is never lost.
   const [previewId, setPreviewId] = useState(null);
   const endRef = useRef(null);
@@ -64,6 +82,14 @@ function Discover({ onAddSkills, onBrowse }) {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  // Persist the conversation (and the clean need) for this browser session.
+  useEffect(() => {
+    sessionStorage.setItem(CHAT_KEY, JSON.stringify(messages));
+  }, [messages]);
+  useEffect(() => {
+    sessionStorage.setItem(NEED_KEY, latestNeed);
+  }, [latestNeed]);
 
   // Send a message and get the guide's reply (with a recommended skill, maybe).
   async function send(text) {
@@ -79,6 +105,7 @@ function Discover({ onAddSkills, onBrowse }) {
       // Send the whole conversation so the guide keeps full context.
       const convo = history.map((m) => ({ role: m.role, content: m.content }));
       const data = await discoverSkill(convo);
+      if (data.need) setLatestNeed(data.need);
       setMessages((prev) => [
         ...prev,
         {
@@ -113,6 +140,10 @@ function Discover({ onAddSkills, onBrowse }) {
       .filter((m) => m.role === "user")
       .map((m) => m.content)
       .join(". ");
+
+  // Prefer the agent's clean summary of the need; fall back to the raw turns
+  // only if the agent hasn't distilled one yet.
+  const createSeed = () => latestNeed || userNeed();
 
   return (
     <div className={`discover${started ? "" : " discover--intro"}`}>
@@ -179,7 +210,7 @@ function Discover({ onAddSkills, onBrowse }) {
                 <div className="discover__create-cta">
                   <button
                     className="discover__create-btn"
-                    onClick={() => onAddSkills?.(userNeed())}
+                    onClick={() => onAddSkills?.(createSeed())}
                   >
                     <PlusIcon size={16} /> Create this skill
                   </button>
@@ -258,7 +289,7 @@ function Discover({ onAddSkills, onBrowse }) {
       {started && (
         <button
           className="discover__create-link"
-          onClick={() => onAddSkills?.(userNeed())}
+          onClick={() => onAddSkills?.(createSeed())}
         >
           None of these fit? Create a new skill →
         </button>
@@ -278,7 +309,11 @@ function Discover({ onAddSkills, onBrowse }) {
             >
               <XIcon size={18} />
             </button>
-            <SkillDetail skillId={previewId} onBack={() => setPreviewId(null)} />
+            <SkillDetail
+              skillId={previewId}
+              onBack={() => setPreviewId(null)}
+              onEdit={onEditSkill}
+            />
           </div>
         </div>
       )}

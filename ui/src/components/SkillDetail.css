@@ -134,6 +134,27 @@
   border-color: #7a47d3;
 }
 
+.skill-detail__edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid #8957e5;
+  color: #b892ff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+}
+
+.skill-detail__edit:hover {
+  background: rgba(137, 87, 229, 0.15);
+  color: #e6edf3;
+}
+
 .skill-detail__title {
   font-size: 30px;
   font-weight: 700;

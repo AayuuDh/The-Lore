@@ -37,6 +37,7 @@ from skills_loader import load_skills, save_skill
 from fastapi.middleware.cors import CORSMiddleware
 from query_rewriter import rewrite_query
 from draft_skill import start_draft, refine_draft
+from edit_skill import edit_skill as ai_edit_skill
 from users import get_user, ensure_user, update_user, UsernameTakenError
 
 
@@ -100,6 +101,13 @@ class RefineSkillRequest(BaseModel):
     """Shape of the JSON body POSTed to /draft-skill/refine."""
     session_id: str     # the conversation to continue (from a previous response)
     message: str        # the change to apply, e.g. "make the instructions shorter"
+
+
+class EditSkillRequest(BaseModel):
+    """Shape of the JSON body POSTed to /edit-skill — the editor's AI side-agent."""
+    skill: dict                 # the current skill being edited: {name, description, body, ...}
+    instruction: str            # plain-English change, e.g. "add a concrete example"
+    history: list | None = None # optional prior {role, content} turns for context
 
 
 class SaveSkillRequest(BaseModel):
@@ -185,6 +193,7 @@ async def discover_endpoint(req: DiscoverRequest):
         "best": best,
         "confidence": agent.get("confidence", "low"),
         "suggest_create": bool(agent.get("suggest_create")),
+        "need": agent.get("need") or None,
     }
 
 
@@ -319,4 +328,19 @@ async def refine_skill_endpoint(req: RefineSkillRequest):
         return {"session_id": session_id, **result}
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"refine failed: {exc}")
+
+
+@app.post("/edit-skill")
+async def edit_skill_endpoint(req: EditSkillRequest):
+    """The skill editor's AI side-agent: apply one instruction to the current skill.
+
+    Body: { "skill": { name, description, body, ... }, "instruction": "...",
+            "history": [ {role, content}, ... ] (optional) }
+    Returns the full updated skill: { name, description, body, note }.
+    Stateless — the frontend holds the working copy and sends it each turn.
+    """
+    try:
+        return await ai_edit_skill(req.skill, req.instruction, req.history)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"edit failed: {exc}")
 

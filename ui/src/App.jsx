@@ -9,6 +9,7 @@ import HomePage from "./components/HomePage";
 import Discover from "./components/Discover";
 import SkillsPage from "./components/SkillsPage";
 import AddSkillPage from "./components/AddSkillPage";
+import SkillEditor from "./components/SkillEditor";
 import ProfilePage from "./components/ProfilePage";
 import Footer from "./components/Footer";
 import Login from "./components/Login";
@@ -27,6 +28,10 @@ function App() {
   // Context carried from Discover into Add Skill: when the guide says "nothing
   // fits, create it", we seed the draft with what the person was looking for.
   const [addSkillSeed, setAddSkillSeed] = useState("");
+  // The skill currently open in the editor, plus how we got there: "new" (a
+  // fresh draft) or "fork" (editing an existing skill, which saves a copy).
+  const [editorSkill, setEditorSkill] = useState(null);
+  const [editorMode, setEditorMode] = useState("new");
   // useIsAuthenticated() is an MSAL hook that returns true whenever there's a
   // signed-in account, false otherwise. We DON'T track this ourselves with
   // useState anymore: MSAL owns the truth about auth, and this hook makes our
@@ -83,6 +88,7 @@ function App() {
     // Normal navigation always opens a page fresh, so forget any pending state.
     setPendingSkillId(null);
     setAddSkillSeed("");
+    setEditorSkill(null);
     setProfileReason(null);
     if (page !== "Profile") setIsOnboarding(false);
     setCurrentPage(page);
@@ -102,6 +108,16 @@ function App() {
   const openAddSkill = (seed) => {
     setAddSkillSeed(typeof seed === "string" ? seed : "");
     setCurrentPage("Add Skill");
+    setSidebarOpen(false);
+  };
+
+  // Open the skill editor. mode "new" = editing a fresh draft; mode "fork" =
+  // editing an existing skill, where saving publishes a copy and leaves the
+  // original untouched.
+  const openEditor = (skill, mode = "new") => {
+    setEditorSkill(skill);
+    setEditorMode(mode);
+    setCurrentPage("Skill Editor");
     setSidebarOpen(false);
   };
 
@@ -174,6 +190,7 @@ function App() {
                   <SkillsPage
                     onBackHome={() => handleNavSelect("Home")}
                     initialSkillId={pendingSkillId}
+                    onEditSkill={(skill) => openEditor(skill, "fork")}
                   />
                 ) : currentPage === "Add Skill" ? (
                   <AddSkillPage
@@ -182,6 +199,16 @@ function App() {
                     profile={profile}
                     onRequireProfile={requireProfile}
                     initialDescription={addSkillSeed}
+                    onGoToEditor={(skill) => openEditor(skill, "new")}
+                  />
+                ) : currentPage === "Skill Editor" ? (
+                  <SkillEditor
+                    initialSkill={editorSkill}
+                    mode={editorMode}
+                    userId={userId}
+                    profile={profile}
+                    onRequireProfile={requireProfile}
+                    onBack={() => handleNavSelect("Home")}
                   />
                 ) : currentPage === "Profile" ? (
                   <ProfilePage
@@ -201,6 +228,7 @@ function App() {
                   <Discover
                     onAddSkills={openAddSkill}
                     onOpenSkill={openSkill}
+                    onEditSkill={(skill) => openEditor(skill, "fork")}
                     onBrowse={() => handleNavSelect("Skills")}
                     username={profile?.username}
                   />
