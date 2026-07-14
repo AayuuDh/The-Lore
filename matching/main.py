@@ -102,6 +102,7 @@ class RefineSkillRequest(BaseModel):
     """Shape of the JSON body POSTed to /draft-skill/refine."""
     session_id: str     # the conversation to continue (from a previous response)
     message: str        # the change to apply, e.g. "make the instructions shorter"
+    force: bool = False  # "Create skill now": draft immediately, skip the question floor
 
 
 class EditSkillRequest(BaseModel):
@@ -375,7 +376,7 @@ async def refine_skill_endpoint(req: RefineSkillRequest):
     Returns the same envelope shape as /draft-skill (a question or a draft).
     """
     try:
-        session_id, result = await refine_draft(req.session_id, req.message)
+        session_id, result = await refine_draft(req.session_id, req.message, req.force)
         return {"session_id": session_id, **result}
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"refine failed: {exc}")

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useMsal } from "@azure/msal-react";
 import {
   ThreeBarsIcon,
-  SearchIcon,
   PersonIcon,
   FlameIcon,
   GearIcon,
@@ -80,19 +79,6 @@ function TopNav({ onMenuClick, currentPage, streak, username, onOpenProfile }) {
 
         <span className="topnav__separator">/</span>
         <span className="topnav__page-name">{currentPage}</span>
-      </div>
-
-      {/* Center — Search */}
-      <div className="topnav__center">
-        <div className="topnav__search">
-          <SearchIcon size={16} className="topnav__search-icon" />
-          <input
-            type="text"
-            className="topnav__search-input"
-            placeholder="Type / to search"
-          />
-          <span className="topnav__search-shortcut">/</span>
-        </div>
       </div>
 
       {/* Right group */}

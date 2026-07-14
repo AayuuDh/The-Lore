@@ -79,6 +79,16 @@ def _ask_ollama(messages: list) -> str:
 # session_id -> full chat history (the conversation so far)
 _sessions: dict[str, list] = {}
 
+# session_id -> number of real user answers given so far. Used to enforce a
+# minimum number of interview questions before the model is allowed to draft on
+# its own (the "Create skill now" button bypasses this).
+_answer_counts: dict[str, int] = {}
+
+# Don't let the model draft on its own until the user has answered at least this
+# many questions. Keeps the interview substantive even with small local models
+# that like to draft too early. The explicit "draft now" button overrides it.
+MIN_ANSWERS_BEFORE_DRAFT = 4
+
 
 SYSTEM_PROMPT = """You are a knowledge-extraction interviewer. Your mission is
 NOT to write a generic AI prompt -- it is to INTERVIEW a person and capture the
@@ -90,16 +100,22 @@ Act as if you know NOTHING about this person's team, tools, or domain. Be
 genuinely curious. Dig for the tacit knowledge people forget to write down.
 
 === HOW THE CONVERSATION WORKS ===
-This is a two-phase, multi-turn conversation:
+This is a two-phase, multi-turn conversation. RESPECT THE USER'S TIME: the whole
+interview should take about 1-3 minutes. The user gives a good general
+background and YOU do the heavy lifting of turning it into an excellent skill.
 
-PHASE 1 -- INTERVIEW. You ask questions, ONE at a time, to uncover the knowledge
-below. Ask natural, specific follow-ups that react to what they just said. Never
-dump the whole checklist at once. Probe for stories, specifics, names of real
-tools/systems/repos, and the "why" behind decisions. Keep asking until you have
-substantive answers covering EVERY required area (a short or vague answer is a
-cue to follow up, not to move on).
+PHASE 1 -- INTERVIEW. Ask about 5 to 7 questions total (never more than 8), ONE
+at a time. Make each question count: it's fine to bundle a couple of related
+topics into one natural question (e.g. "Who is this for, and what team or
+workflow did it come out of?"). React to what the user just said. A solid
+general answer is ENOUGH -- accept it and move on. Do NOT keep re-drilling the
+same point for the "insider" version of every detail. Aim to understand the
+handful of things that genuinely make this skill valuable and non-obvious
+(usually: the real problem, the audience, the team/workflow it came from, the
+inputs and outputs, and any hard-won lessons or common pitfalls).
 
-Required knowledge to extract before you may draft:
+Topics that CAN inform the skill (ask only about the few that matter most for
+this particular skill; INFER reasonable defaults for the rest at draft time):
   1.  What the skill is called.
   2.  What problem it solves.
   3.  Who it is for (audience/role).
@@ -116,16 +132,19 @@ Required knowledge to extract before you may draft:
   14. A concrete real-world example.
   15. How another team could adapt it.
 
-Prioritize organizational and experiential knowledge over prompt text. If an
-answer sounds like something a public chatbot already knows, push for the
-insider version: "What would a new hire get wrong here?", "What isn't written
-down anywhere?", "Which internal system does that actually run against?".
+Once you have a general understanding of the skill and its context, STOP asking
+and move on to drafting. You do NOT need answers to every topic above.
 
-PHASE 2 -- DRAFT. Only once you have real, specific answers across all required
-areas (or the user explicitly tells you to draft now / stop asking), produce the
-structured skill profile. If the user forces an early draft, fill what you can
-and leave honest gaps rather than inventing details. After the first draft, treat
-every further message as a refinement request and re-emit the COMPLETE profile.
+PHASE 2 -- DRAFT. Once you have a general understanding -- typically after about
+5-7 questions, or immediately whenever the user tells you to draft now / stop
+asking -- produce the structured skill profile. EVERY field in the profile MUST
+be filled with concrete, specific content: never return empty strings, blank
+lists, or placeholders like "...". For topics the user didn't cover, infer
+sensible, clearly-reasonable details from everything they told you so the skill
+feels complete and useful. Do not fabricate specific internal tool names,
+acronyms, or teams the user never mentioned -- describe them generically
+instead. After the first draft, treat every further message as a refinement
+request and re-emit the COMPLETE profile.
 
 === OUTPUT PROTOCOL (STRICT) ===
 EVERY reply is exactly ONE JSON object and nothing else -- no prose, no code
@@ -223,7 +242,11 @@ def profile_to_body(profile: dict) -> str:
     for key, heading, is_list in _PROFILE_SECTIONS:
         value = profile.get(key)
         if is_list:
-            items = [str(v).strip() for v in (value or []) if str(v).strip()]
+            items = [
+                str(v).strip()
+                for v in (value or [])
+                if str(v).strip() and str(v).strip().strip(".…") != ""
+            ]
             if not items:
                 continue
             body = "\n".join(f"- {item}" for item in items)
@@ -286,6 +309,84 @@ async def _ask(messages: list) -> str:
     return resp.choices[0].message.content
 
 
+# Instruction we send when a draft came back with an empty/near-empty body, to
+# nudge the model to actually populate every profile field. Small local models
+# sometimes emit a draft envelope with blank fields; one corrective pass fixes it.
+_FILL_INSTRUCTION = (
+    "Your last reply was a draft, but its profile fields were empty or missing. "
+    "Re-emit the skill as ONE JSON object of type \"draft\", and this time FILL "
+    "EVERY profile field with concrete, specific content inferred from our whole "
+    "conversation. No empty strings, no blank lists, no placeholders like '...'. "
+    "Every list must contain at least one real item."
+)
+
+# Sent when the model tries to draft before we've asked enough questions. Pushes
+# it to keep interviewing for one more turn instead of drafting early.
+_ASK_MORE_INSTRUCTION = (
+    "Not yet — we don't have enough to build a strong skill. Do NOT draft. Ask me "
+    "ONE more interview question instead, reacting to what I've said, as a single "
+    'JSON object: {"type": "question", "message": "..."}.'
+)
+
+
+# A focused, easier request for small models: emit ONLY the profile object with
+# every field filled. Used as a second repair attempt when the full-envelope
+# refill still comes back blank.
+_PROFILE_ONLY_INSTRUCTION = (
+    "Output ONLY a JSON object with a single key \"profile\". Its value must fill "
+    "EVERY one of these fields with concrete, specific content based on our whole "
+    "conversation (infer sensible details where I didn't say): problem, audience, "
+    "team_context, workspace_context, embedded_knowledge, required_inputs (list), "
+    "workflow, expected_outputs (list), internal_dependencies (list), "
+    "common_pitfalls (list), example_usage, adaptation_notes, tags (list). "
+    "No empty values, no placeholders like '...'. Every list needs a real item."
+)
+
+
+async def _ask_and_finalize(messages: list) -> dict:
+    """Ask the model, normalize the reply, and repair an empty draft.
+
+    Small local models sometimes emit a draft envelope with a blank/missing
+    profile. If that happens we try to repair it: first by asking for the full
+    envelope again, then (if still blank) by asking for JUST the profile object,
+    which is an easier generation for a small model.
+    """
+    reply = await _ask(messages)
+    messages.append({"role": "assistant", "content": reply})
+    result = _finalize(extract_json(reply))
+
+    if result.get("type") != "draft" or result["skill"]["body"].strip():
+        return result
+
+    # Repair attempt 1: re-emit the whole draft with every field filled.
+    messages.append({"role": "user", "content": _FILL_INSTRUCTION})
+    retry = await _ask(messages)
+    messages.append({"role": "assistant", "content": retry})
+    try:
+        repaired = _finalize(extract_json(retry))
+        if repaired.get("type") == "draft" and repaired["skill"]["body"].strip():
+            return repaired
+    except (ValueError, json.JSONDecodeError):
+        pass
+
+    # Repair attempt 2: ask for only the profile object and graft it onto the
+    # draft we already have (keeps the id/name/description from the first draft).
+    messages.append({"role": "user", "content": _PROFILE_ONLY_INSTRUCTION})
+    profile_reply = await _ask(messages)
+    messages.append({"role": "assistant", "content": profile_reply})
+    try:
+        data = extract_json(profile_reply)
+        profile = data.get("profile") or data
+        body = profile_to_body(profile)
+        if body.strip():
+            result["skill"]["profile"] = profile
+            result["skill"]["body"] = body
+    except (ValueError, json.JSONDecodeError):
+        pass  # keep the original (blank-bodied) draft rather than fail the request
+
+    return result
+
+
 async def start_draft(description: str) -> tuple[str, dict]:
     """Turn 1: open a new interview conversation.
 
@@ -298,18 +399,60 @@ async def start_draft(description: str) -> tuple[str, dict]:
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": START_MESSAGE.format(description=opening)},
     ]
-    reply = await _ask(messages)
-    messages.append({"role": "assistant", "content": reply})
+    result = await _ask_and_finalize(messages)
     _sessions[session_id] = messages
-    return session_id, _finalize(extract_json(reply))
+    _answer_counts[session_id] = 0
+    return session_id, result
 
 
-async def refine_draft(session_id: str, message: str) -> tuple[str, dict]:
-    """Later turns: resume the interview — answer a question or refine the draft."""
+async def refine_draft(
+    session_id: str, message: str, force: bool = False
+) -> tuple[str, dict]:
+    """Later turns: resume the interview — answer a question or refine the draft.
+
+    `force=True` (the "Create skill now" button) tells the model to draft
+    immediately and skips the minimum-question floor.
+    """
     messages = _sessions.get(session_id)
     if messages is None:
         raise KeyError(f"unknown session_id: {session_id}")
+
+    already_drafted = _has_draft(messages)
+    _answer_counts[session_id] = _answer_counts.get(session_id, 0) + 1
+
     messages.append({"role": "user", "content": REFINE_MESSAGE.format(message=message)})
-    reply = await _ask(messages)
-    messages.append({"role": "assistant", "content": reply})
-    return session_id, _finalize(extract_json(reply))
+    result = await _ask_and_finalize(messages)
+
+    # Floor: if the model tries to draft too early (and the user didn't force it,
+    # and we aren't refining an existing draft), push it to ask one more question.
+    too_early = (
+        not force
+        and not already_drafted
+        and result.get("type") == "draft"
+        and _answer_counts.get(session_id, 0) < MIN_ANSWERS_BEFORE_DRAFT
+    )
+    if too_early:
+        messages.append({"role": "user", "content": _ASK_MORE_INSTRUCTION})
+        retry = await _ask(messages)
+        messages.append({"role": "assistant", "content": retry})
+        try:
+            question = _finalize(extract_json(retry))
+            if question.get("type") == "question" and question["message"].strip():
+                result = question
+        except (ValueError, json.JSONDecodeError):
+            pass  # fall back to the early draft rather than fail the request
+
+    return session_id, result
+
+
+def _has_draft(messages: list) -> bool:
+    """True if any assistant turn in this session already produced a draft."""
+    for m in messages:
+        if m.get("role") != "assistant":
+            continue
+        try:
+            if extract_json(m.get("content", "")).get("type") == "draft":
+                return True
+        except (ValueError, json.JSONDecodeError):
+            continue
+    return False
