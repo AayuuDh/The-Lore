@@ -1,19 +1,48 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowRightIcon, PaperAirplaneIcon, PlusIcon, XIcon } from "@primer/octicons-react";
+import { ArrowRightIcon, SearchIcon, InfoIcon, PlusIcon, XIcon } from "@primer/octicons-react";
 import { discoverSkill } from "../api";
 import SkillDetail from "./SkillDetail";
 import "./Discover.css";
 
 // Starter prompts so the first message is one click away — no blank-page stare.
+// Workplace-specific and skill-oriented so the value is obvious at a glance.
 const STARTERS = [
-  "Summarize a meeting into action items",
-  "Review my code for bugs",
-  "Draft a professional email",
-  "Turn notes into a project plan",
+  "Prepare for a customer escalation meeting",
+  "Create a sprint plan",
+  "Analyze customer feedback",
+  "Draft a project status update",
 ];
 
 const GREETING =
-  "Hey! Tell me what you're trying to get done — in your own words — and I'll find the skill that fits (or help you make one).";
+  "Search a growing library of AI skills. Describe what you're trying to accomplish, and we'll find the best skill for the job or help you create a new one.";
+
+// Plain-English definition of a "skill" for first-time users, shown in the hero.
+const SKILL_DEFINITION =
+  "A skill is a reusable AI workflow that helps you complete a specific task like summarizing meetings, drafting documents, analyzing feedback, or creating project plans. Search for what you want to accomplish, and we'll find the right skill for you.";
+
+// Small circular info icon + tooltip that explains what a "skill" means. Opens
+// on hover and on click/focus (keyboard + touch friendly), and is announced to
+// screen readers via its aria-label.
+function SkillInfo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="discover__info">
+      <button
+        type="button"
+        className="discover__info-btn"
+        aria-label="What is a skill?"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        onBlur={() => setOpen(false)}
+      >
+        <InfoIcon size={16} />
+      </button>
+      <span className={`discover__info-pop${open ? " is-open" : ""}`} role="tooltip">
+        {SKILL_DEFINITION}
+      </span>
+    </span>
+  );
+}
 
 // The AI judges fit in words, not a misleading similarity number.
 function confidenceLabel(c) {
@@ -22,7 +51,7 @@ function confidenceLabel(c) {
   return "A stretch";
 }
 
-function Discover({ onAddSkills }) {
+function Discover({ onAddSkills, onBrowse }) {
   // The chat. Each message: { role: "user"|"assistant", content, skill?, confidence?, error? }
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -86,12 +115,15 @@ function Discover({ onAddSkills }) {
       .join(". ");
 
   return (
-    <div className="discover">
+    <div className={`discover${started ? "" : " discover--intro"}`}>
       <div className="discover__chat">
         {/* Empty state: a warm greeting + one-click starters. */}
         {!started && (
           <div className="discover__greeting">
-            <h1 className="discover__headline">The Skills You Need</h1>
+            <h1 className="discover__headline">
+              Find the Right Skill
+              <SkillInfo />
+            </h1>
             <p className="discover__sub">{GREETING}</p>
             <div className="discover__starters">
               {STARTERS.map((s) => (
@@ -184,7 +216,7 @@ function Discover({ onAddSkills }) {
         <input
           className="discover__composer-input"
           placeholder={
-            started ? "Reply…" : "e.g. summarize a meeting into action items"
+            started ? "Reply…" : "What are you trying to accomplish?"
           }
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -195,11 +227,32 @@ function Discover({ onAddSkills }) {
           className="discover__send"
           type="submit"
           disabled={loading || !input.trim()}
-          aria-label="Send"
+          aria-label="Search"
         >
-          <PaperAirplaneIcon size={18} />
+          <SearchIcon size={18} />
         </button>
       </form>
+
+      {/* Three clear entry points on the home page: search (above), browse the
+          library, or jump straight into creating a new skill. */}
+      {!started && (
+        <div className="discover__cta-row">
+          <button
+            type="button"
+            className="discover__cta discover__cta--secondary"
+            onClick={() => onBrowse?.()}
+          >
+            <SearchIcon size={16} /> Browse Skills
+          </button>
+          <button
+            type="button"
+            className="discover__cta discover__cta--primary"
+            onClick={() => onAddSkills?.()}
+          >
+            <PlusIcon size={16} /> Create Skill
+          </button>
+        </div>
+      )}
 
       {/* An escape hatch that never leaves them stuck. */}
       {started && (

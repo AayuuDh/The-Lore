@@ -201,6 +201,7 @@ function App() {
                   <Discover
                     onAddSkills={openAddSkill}
                     onOpenSkill={openSkill}
+                    onBrowse={() => handleNavSelect("Skills")}
                     username={profile?.username}
                   />
                 )}

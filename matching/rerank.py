@@ -14,15 +14,27 @@ Auth mirrors draft_skill.py: API key if set, else Entra RBAC.
 import os
 import json
 
+import requests
 from dotenv import load_dotenv
 from openai import AsyncAzureOpenAI
 
 load_dotenv()
 
-_ENDPOINT = os.environ["AZURE_OPENAI_ENDPOINT"]
-_DEPLOYMENT = os.environ["AZURE_OPENAI_DEPLOYMENT"]
+_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
+_DEPLOYMENT = os.environ.get("AZURE_OPENAI_DEPLOYMENT")
 _API_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION", "2024-10-21")
 _KEY = os.environ.get("AZURE_OPENAI_API_KEY") or None
+
+# Local fallback: when Azure OpenAI isn't configured, reason with a local Ollama
+# model instead so discovery still works for local development/demos. Mirrors the
+# same fallback in draft_skill.py.
+_OLLAMA_URL = "http://localhost:11434/api/chat"
+_OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
+
+# Use Azure only when we have an endpoint, a deployment, and an API key.
+# Otherwise fall back to Ollama. (The Entra/RBAC path needs azure-identity,
+# which isn't installed for local ARM dev.)
+_USE_AZURE = bool(_ENDPOINT) and bool(_DEPLOYMENT) and bool(_KEY)
 
 
 def _make_client() -> AsyncAzureOpenAI:
@@ -42,7 +54,25 @@ def _make_client() -> AsyncAzureOpenAI:
     )
 
 
-_client = _make_client()
+# Only build the Azure client when we're actually going to use it.
+_client = _make_client() if _USE_AZURE else None
+
+
+def _ask_ollama(messages: list) -> str:
+    """Local fallback chat completion via Ollama. Returns the reply text."""
+    resp = requests.post(
+        _OLLAMA_URL,
+        json={
+            "model": _OLLAMA_MODEL,
+            "messages": messages,
+            "stream": False,
+            "format": "json",
+            "options": {"temperature": 0.4},
+        },
+        timeout=180,
+    )
+    resp.raise_for_status()
+    return resp.json()["message"]["content"]
 
 
 _SYSTEM = """You are a DISCERNING guide inside a company's private library of
@@ -108,6 +138,8 @@ async def converse(messages: list, candidates: list) -> dict:
         {"role": "system", "content": _SYSTEM.format(candidates=listing)},
         *messages,
     ]
+    if not _USE_AZURE:
+        return _extract_json(_ask_ollama(llm_messages))
     resp = await _client.chat.completions.create(
         model=_DEPLOYMENT,
         messages=llm_messages,
