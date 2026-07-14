@@ -201,6 +201,88 @@
   gap: 18px;
 }
 
+/* --- Interview transcript ------------------------------------------------- */
+.add-skill-page__transcript {
+  width: 100%;
+  max-height: 340px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 4px;
+  text-align: left;
+}
+
+.add-skill-page__msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 88%;
+}
+
+.add-skill-page__msg--assistant {
+  align-self: flex-start;
+}
+
+.add-skill-page__msg--user {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.add-skill-page__msg-role {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #7d8896;
+}
+
+.add-skill-page__msg-text {
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.add-skill-page__msg--assistant .add-skill-page__msg-text {
+  border: 1px solid rgba(76, 139, 245, 0.28);
+  background: rgba(73, 53, 188, 0.16);
+  color: #e6ebf2;
+  border-top-left-radius: 4px;
+}
+
+.add-skill-page__msg--user .add-skill-page__msg-text {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(3, 8, 16, 0.9);
+  color: #c9d1d9;
+  border-top-right-radius: 4px;
+}
+
+.add-skill-page__msg-text--typing {
+  color: #9aa4b2;
+  font-style: italic;
+}
+
+.add-skill-page__editor-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #e6ebf2;
+}
+
+/* Informational variant of the duplicate banner (blue, non-blocking). */
+.add-skill-page__dup--info {
+  border-color: rgba(76, 139, 245, 0.4);
+  background: rgba(76, 139, 245, 0.1);
+}
+
+.add-skill-page__dup--info .add-skill-page__dup-title {
+  color: #79b8ff;
+}
+
 .add-skill-page__field {
   display: flex;
   flex-direction: column;

@@ -24,6 +24,9 @@ function App() {
   // "Jump back in" row), we stash its id here and switch to the Skills page,
   // which reads it and opens that skill on mount. null = open the catalog.
   const [pendingSkillId, setPendingSkillId] = useState(null);
+  // Context carried from Discover into Add Skill: when the guide says "nothing
+  // fits, create it", we seed the draft with what the person was looking for.
+  const [addSkillSeed, setAddSkillSeed] = useState("");
   // useIsAuthenticated() is an MSAL hook that returns true whenever there's a
   // signed-in account, false otherwise. We DON'T track this ourselves with
   // useState anymore: MSAL owns the truth about auth, and this hook makes our
@@ -77,8 +80,9 @@ function App() {
   }, [isAuthenticated, userId]);
 
   const handleNavSelect = (page) => {
-    // Normal navigation always opens a page fresh, so forget any pending skill.
+    // Normal navigation always opens a page fresh, so forget any pending state.
     setPendingSkillId(null);
+    setAddSkillSeed("");
     setProfileReason(null);
     if (page !== "Profile") setIsOnboarding(false);
     setCurrentPage(page);
@@ -90,6 +94,14 @@ function App() {
   const openSkill = (skillId) => {
     setPendingSkillId(skillId);
     setCurrentPage("Skills");
+    setSidebarOpen(false);
+  };
+
+  // Open Add Skill, optionally seeded with context from a Discover conversation
+  // so the draft starts from what the person was actually looking for.
+  const openAddSkill = (seed) => {
+    setAddSkillSeed(typeof seed === "string" ? seed : "");
+    setCurrentPage("Add Skill");
     setSidebarOpen(false);
   };
 
@@ -169,6 +181,7 @@ function App() {
                     userId={userId}
                     profile={profile}
                     onRequireProfile={requireProfile}
+                    initialDescription={addSkillSeed}
                   />
                 ) : currentPage === "Profile" ? (
                   <ProfilePage
@@ -186,7 +199,7 @@ function App() {
                   />
                 ) : (
                   <Discover
-                    onAddSkills={() => handleNavSelect("Add Skill")}
+                    onAddSkills={openAddSkill}
                     onOpenSkill={openSkill}
                     username={profile?.username}
                   />

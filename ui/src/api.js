@@ -42,9 +42,21 @@ export function matchSkills(query, topK = 30) {
   });
 }
 
-// POST /draft-skill -> { session_id, skill }
-// Turn 1 of the AI conversation: turn a plain-English description into a first
-// draft. Keep the returned session_id to continue the conversation.
+// POST /discover -> { reply, best: {…skill}|null, confidence }
+// Conversational discovery: send the whole chat; an AI guide replies and names
+// the best-fit skill (no misleading similarity numbers).
+export function discoverSkill(messages) {
+  return request("/discover", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages }),
+  });
+}
+
+// POST /draft-skill -> { session_id, type, message?, skill? }
+// Turn 1 of the interview: send the user's opening description. The AI replies
+// with either { type: "question", message } to keep interviewing, or
+// { type: "draft", skill } once it has enough. Keep the session_id to continue.
 export function draftSkill(description) {
   return request("/draft-skill", {
     method: "POST",
@@ -53,9 +65,10 @@ export function draftSkill(description) {
   });
 }
 
-// POST /draft-skill/refine -> { session_id, skill }
-// Later turns: pass back the session_id plus a change ("make it shorter") and
-// the AI returns the updated skill, remembering everything said before.
+// POST /draft-skill/refine -> { session_id, type, message?, skill? }
+// Later turns: pass back the session_id plus the user's answer (or a change like
+// "make it shorter"). The AI returns the same envelope — another question or the
+// drafted skill — remembering everything said before.
 export function refineSkill(sessionId, message) {
   return request("/draft-skill/refine", {
     method: "POST",

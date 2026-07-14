@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { SearchIcon, ArrowRightIcon, PlusIcon } from "@primer/octicons-react";
-import { matchSkills } from "../api";
+import { useState, useRef, useEffect } from "react";
+import { ArrowRightIcon, PaperAirplaneIcon, PlusIcon, XIcon } from "@primer/octicons-react";
+import { discoverSkill } from "../api";
+import SkillDetail from "./SkillDetail";
 import "./Discover.css";
 
-// Starter prompts kill "blank-page paralysis" (funnel stage 3): people don't
-// have to think of what to type — they can just click a real example.
+// Starter prompts so the first message is one click away — no blank-page stare.
 const STARTERS = [
   "Summarize a meeting into action items",
   "Review my code for bugs",
@@ -12,150 +12,222 @@ const STARTERS = [
   "Turn notes into a project plan",
 ];
 
-// A cosine score (0–1) shown as a friendlier percentage.
-function matchPercent(score) {
-  return Math.max(1, Math.round((score || 0) * 100));
+const GREETING =
+  "Hey! Tell me what you're trying to get done — in your own words — and I'll find the skill that fits (or help you make one).";
+
+// The AI judges fit in words, not a misleading similarity number.
+function confidenceLabel(c) {
+  if (c === "high") return "Strong match";
+  if (c === "medium") return "Might be a fit";
+  return "A stretch";
 }
 
-// Trim a long backend description to a short "why it fits" line.
-function shortWhy(description = "") {
-  const clean = description.trim();
-  if (!clean) return "";
-  return clean.length > 160 ? `${clean.slice(0, 160).trimEnd()}…` : clean;
-}
-
-function Discover({ onOpenSkill, onAddSkills }) {
-  const [query, setQuery] = useState("");
+function Discover({ onAddSkills }) {
+  // The chat. Each message: { role: "user"|"assistant", content, skill?, confidence?, error? }
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState(null); // null = haven't searched yet
-  const [error, setError] = useState("");
+  // A skill opened as a modal OVER the chat — so the conversation is never lost.
+  const [previewId, setPreviewId] = useState(null);
+  const endRef = useRef(null);
 
-  async function runSearch(q) {
-    const text = (q ?? query).trim();
-    if (!text) return;
-    setQuery(text);
+  // Keep the newest message in view as the conversation grows.
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  // Send a message and get the guide's reply (with a recommended skill, maybe).
+  async function send(text) {
+    const content = (text ?? input).trim();
+    if (!content || loading) return;
+
+    const history = [...messages, { role: "user", content }];
+    setMessages(history);
+    setInput("");
     setLoading(true);
-    setError("");
+
     try {
-      const ranked = await matchSkills(text);
-      setResults(ranked.map((r) => ({ ...r.skill, score: r.score })));
+      // Send the whole conversation so the guide keeps full context.
+      const convo = history.map((m) => ({ role: m.role, content: m.content }));
+      const data = await discoverSkill(convo);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.reply || "Here's what I found.",
+          skill: data.best || null,
+          confidence: data.confidence,
+          suggestCreate: Boolean(data.suggest_create),
+        },
+      ]);
     } catch {
-      setError("Couldn't reach the search service. Is the backend running?");
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "I couldn't reach the discovery service — is the backend running?",
+          error: true,
+        },
+      ]);
     } finally {
       setLoading(false);
     }
   }
 
-  const best = results && results.length ? results[0] : null;
-  const alternatives = results ? results.slice(1, 3) : [];
+  const started = messages.length > 0;
+
+  // A one-line summary of what the person was looking for — carried into Add
+  // Skill so the draft starts from their actual need, not a blank box.
+  const userNeed = () =>
+    messages
+      .filter((m) => m.role === "user")
+      .map((m) => m.content)
+      .join(". ");
 
   return (
     <div className="discover">
-      {/* ── HERO: the one thing on screen (funnel stage 2→3) ── */}
-      <section className={`discover__hero${results ? " discover__hero--compact" : ""}`}>
-        <h1 className="discover__headline">The Skills You Need</h1>
-        <p className="discover__sub">
-          Describe what you&rsquo;re trying to do — we&rsquo;ll match you to the
-          right skill.
-        </p>
-
-        <form
-          className="discover__search"
-          onSubmit={(e) => {
-            e.preventDefault();
-            runSearch();
-          }}
-        >
-          <SearchIcon size={20} className="discover__search-icon" />
-          <input
-            className="discover__input"
-            placeholder="e.g. summarize a meeting into action items"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            aria-label="Describe what you need a skill for"
-            autoFocus
-          />
-          <button className="discover__go" type="submit" disabled={loading}>
-            {loading ? "Finding…" : "Find"}
-          </button>
-        </form>
-
-        {/* Starters only before the first search, so they don't clutter results. */}
-        {!results && (
-          <div className="discover__starters">
-            <span className="discover__starters-label">Try:</span>
-            {STARTERS.map((s) => (
-              <button
-                key={s}
-                type="button"
-                className="discover__chip"
-                onClick={() => runSearch(s)}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {error && <div className="discover__error">{error}</div>}
-
-      {/* ── RESULT: a reasoned recommendation, not a wall (funnel 4→5→6) ── */}
-      {best && (
-        <section className="discover__result">
-          <div className="discover__best">
-            <div className="discover__best-top">
-              <span className="discover__badge">Best fit</span>
-              <span className="discover__match">{matchPercent(best.score)}% match</span>
-            </div>
-            <h2 className="discover__best-name">{best.name || best.id}</h2>
-            <p className="discover__best-why">{shortWhy(best.description)}</p>
-            <div className="discover__actions">
-              <button
-                className="discover__use"
-                onClick={() => onOpenSkill?.(best.id)}
-              >
-                Use this skill <ArrowRightIcon size={16} />
-              </button>
-              <button
-                className="discover__create"
-                onClick={() => onAddSkills?.()}
-              >
-                Not quite — create one
-              </button>
-            </div>
-          </div>
-
-          {alternatives.length > 0 && (
-            <div className="discover__alts">
-              <h3 className="discover__alts-title">Other close matches</h3>
-              {alternatives.map((s) => (
+      <div className="discover__chat">
+        {/* Empty state: a warm greeting + one-click starters. */}
+        {!started && (
+          <div className="discover__greeting">
+            <h1 className="discover__headline">The Skills You Need</h1>
+            <p className="discover__sub">{GREETING}</p>
+            <div className="discover__starters">
+              {STARTERS.map((s) => (
                 <button
-                  key={s.id}
-                  className="discover__alt"
-                  onClick={() => onOpenSkill?.(s.id)}
+                  key={s}
+                  type="button"
+                  className="discover__chip"
+                  onClick={() => send(s)}
                 >
-                  <span className="discover__alt-name">{s.name || s.id}</span>
-                  <span className="discover__alt-match">
-                    {matchPercent(s.score)}%
-                  </span>
+                  {s}
                 </button>
               ))}
             </div>
-          )}
-        </section>
+          </div>
+        )}
+
+        {/* The conversation. */}
+        {messages.map((m, i) => (
+          <div key={i} className={`discover__msg discover__msg--${m.role}`}>
+            <div
+              className={`discover__bubble${
+                m.error ? " discover__bubble--error" : ""
+              }`}
+            >
+              <p className="discover__bubble-text">{m.content}</p>
+
+              {/* When the guide names a skill, show it as a card in-line. */}
+              {m.skill && (
+                <div className="discover__skillcard">
+                  <div className="discover__skillcard-top">
+                    <span className="discover__skillcard-name">
+                      {m.skill.name || m.skill.id}
+                    </span>
+                    {m.confidence && (
+                      <span
+                        className={`discover__conf discover__conf--${m.confidence}`}
+                      >
+                        {confidenceLabel(m.confidence)}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    className="discover__use"
+                    onClick={() => setPreviewId(m.skill.id)}
+                  >
+                    Open this skill <ArrowRightIcon size={14} />
+                  </button>
+                </div>
+              )}
+
+              {/* Nothing fit — a clear, breathable call to create it. */}
+              {m.suggestCreate && !m.skill && (
+                <div className="discover__create-cta">
+                  <button
+                    className="discover__create-btn"
+                    onClick={() => onAddSkills?.(userNeed())}
+                  >
+                    <PlusIcon size={16} /> Create this skill
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {/* The guide is thinking. */}
+        {loading && (
+          <div className="discover__msg discover__msg--assistant">
+            <div className="discover__bubble discover__bubble--thinking">
+              <span className="discover__thinking-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </span>
+            </div>
+          </div>
+        )}
+
+        <div ref={endRef} />
+      </div>
+
+      {/* Composer, pinned at the bottom — always ready for the next message. */}
+      <form
+        className="discover__composer"
+        onSubmit={(e) => {
+          e.preventDefault();
+          send();
+        }}
+      >
+        <input
+          className="discover__composer-input"
+          placeholder={
+            started ? "Reply…" : "e.g. summarize a meeting into action items"
+          }
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          aria-label="Message the discovery guide"
+          autoFocus
+        />
+        <button
+          className="discover__send"
+          type="submit"
+          disabled={loading || !input.trim()}
+          aria-label="Send"
+        >
+          <PaperAirplaneIcon size={18} />
+        </button>
+      </form>
+
+      {/* An escape hatch that never leaves them stuck. */}
+      {started && (
+        <button
+          className="discover__create-link"
+          onClick={() => onAddSkills?.(userNeed())}
+        >
+          None of these fit? Create a new skill →
+        </button>
       )}
 
-      {/* No dead ends: if nothing matched, offer the create path. */}
-      {results && !best && !error && (
-        <section className="discover__empty">
-          <p className="discover__empty-text">
-            No skill fits that yet — want to be the one who makes it?
-          </p>
-          <button className="discover__use" onClick={() => onAddSkills?.()}>
-            <PlusIcon size={16} /> Create this skill
-          </button>
-        </section>
+      {/* Skill preview modal — opens over the chat so the conversation stays put. */}
+      {previewId && (
+        <div className="discover__modal" onClick={() => setPreviewId(null)}>
+          <div
+            className="discover__modal-inner"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="discover__modal-close"
+              onClick={() => setPreviewId(null)}
+              aria-label="Close"
+            >
+              <XIcon size={18} />
+            </button>
+            <SkillDetail skillId={previewId} onBack={() => setPreviewId(null)} />
+          </div>
+        </div>
       )}
     </div>
   );

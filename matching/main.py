@@ -32,6 +32,7 @@ from pydantic import BaseModel
 # from contextlib import asynccontextmanager
 
 from matcher import match, precompute_skill_vectors
+from rerank import converse
 from skills_loader import load_skills, save_skill
 from fastapi.middleware.cors import CORSMiddleware
 from query_rewriter import rewrite_query
@@ -85,6 +86,11 @@ class MatchRequest(BaseModel):
     rewrite: bool = False
 
 
+class DiscoverRequest(BaseModel):
+    """Shape of the JSON body POSTed to /discover — the discovery conversation."""
+    messages: list      # [{role: "user" | "assistant", content: str}] so far
+
+
 class DraftSkillRequest(BaseModel):
     """Shape of the JSON body POSTed to /draft-skill."""
     description: str    # plain-English description of the skill the user wants
@@ -135,6 +141,51 @@ def match_endpoint(req: MatchRequest):
         }
         for skill, score in results
     ]
+
+
+@app.post("/discover")
+async def discover_endpoint(req: DiscoverRequest):
+    """Conversational discovery. The whole chat drives retrieval (cosine over the
+    joined user turns), then the AI agent (rerank.py) replies like a guide, names
+    the best-fit skill, and judges the fit in words. Returns { reply, best,
+    confidence } — no misleading similarity numbers."""
+    user_text = " ".join(
+        m.get("content", "") for m in req.messages if m.get("role") == "user"
+    ).strip()
+    if not user_text:
+        return {
+            "reply": "Tell me what you're trying to do and I'll find a skill for it.",
+            "best": None,
+            "confidence": "low",
+        }
+
+    results = match(user_text, skills_with_vectors, 8)
+    candidates = [
+        {
+            "id": skill["id"],
+            "name": skill.get("name", ""),
+            "description": skill.get("description", ""),
+        }
+        for skill, _score in results
+    ]
+    try:
+        agent = await converse(req.messages, candidates)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"discovery agent failed: {exc}")
+
+    best_id = agent.get("best_id")
+    best = None
+    for skill, _score in results:
+        if skill["id"] == best_id:
+            best = _public(skill)
+            break
+
+    return {
+        "reply": agent.get("reply", ""),
+        "best": best,
+        "confidence": agent.get("confidence", "low"),
+        "suggest_create": bool(agent.get("suggest_create")),
+    }
 
 
 @app.get("/skills")
@@ -241,14 +292,16 @@ def get_skill(id: str):
 
 @app.post("/draft-skill")
 async def draft_skill_endpoint(req: DraftSkillRequest):
-    """Turn 1 of the conversation: draft a skill from a plain-English description.
+    """Turn 1 of the interview: open a conversation from a plain-English description.
 
-    Returns { "session_id": ..., "skill": { id, name, description, body } }.
-    Keep the session_id and pass it to /draft-skill/refine to ask for changes.
+    Returns an envelope:
+      - { "session_id": ..., "type": "question", "message": "..." }  (usual case)
+      - { "session_id": ..., "type": "draft", "skill": { id, name, description, body, profile } }
+    Keep the session_id and pass it to /draft-skill/refine to answer or refine.
     """
     try:
-        session_id, skill = await start_draft(req.description)
-        return {"session_id": session_id, "skill": skill}
+        session_id, result = await start_draft(req.description)
+        return {"session_id": session_id, **result}
     except Exception as exc:
         # The model reply could be unparseable, or the SDK runtime could fail.
         raise HTTPException(status_code=502, detail=f"draft failed: {exc}")
@@ -256,14 +309,14 @@ async def draft_skill_endpoint(req: DraftSkillRequest):
 
 @app.post("/draft-skill/refine")
 async def refine_skill_endpoint(req: RefineSkillRequest):
-    """Later turns: continue the same conversation and apply a change.
+    """Later turns: continue the interview — answer a question or refine the draft.
 
-    Body: { "session_id": ..., "message": "make the instructions shorter" }
-    Returns the same shape as /draft-skill, with the updated skill.
+    Body: { "session_id": ..., "message": "the user's answer or change request" }
+    Returns the same envelope shape as /draft-skill (a question or a draft).
     """
     try:
-        session_id, skill = await refine_draft(req.session_id, req.message)
-        return {"session_id": session_id, "skill": skill}
+        session_id, result = await refine_draft(req.session_id, req.message)
+        return {"session_id": session_id, **result}
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"refine failed: {exc}")
 
