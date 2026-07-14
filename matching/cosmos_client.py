@@ -13,7 +13,11 @@ from azure.cosmos import CosmosClient, PartitionKey
 
 load_dotenv()  # reads matching/.env
 
-_ENDPOINT = os.environ["COSMOS_ENDPOINT"]
+# Read with .get() so importing this module never crashes on a machine with no
+# Cosmos configured. The client is built lazily (see _client below), and
+# skills_loader only calls into Cosmos when COSMOS_KEY is set — otherwise the app
+# uses local markdown files. So a missing endpoint here is fine for local dev.
+_ENDPOINT = os.environ.get("COSMOS_ENDPOINT")
 _DATABASE = os.environ.get("COSMOS_DATABASE", "lore")
 _CONTAINER = os.environ.get("COSMOS_CONTAINER", "skills")
 _USERS_CONTAINER = os.environ.get("COSMOS_USERS_CONTAINER", "users")

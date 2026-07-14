@@ -1,9 +1,12 @@
 {
-  // VS Code tasks let you run project commands from a menu instead of typing
-  // them. Run these via: Terminal > Run Task...  (or Ctrl+Shift+P > "Run Task").
+  // VS Code tasks run project commands from a menu: Terminal > Run Task...
   //
-  // The main one you want is "Start Dev" — it launches BOTH the backend and the
-  // frontend at once, each in its own terminal panel. No juggling two terminals.
+  // FIRST TIME on a machine: run "Setup (run once)" — it creates an isolated
+  // Python virtual environment in .venv/ (nothing installed globally) and
+  // installs the backend and frontend packages.
+  //
+  // DAY TO DAY: run "Start Dev" — it launches the backend and frontend together,
+  // each in its own terminal panel.
   "version": "2.0.0",
   "tasks": [
     {
@@ -18,28 +21,25 @@
       "problemMatcher": []
     },
     {
-      // FastAPI backend. Runs in the matching/ folder.
-      // The command differs per OS so it's correct on everyone's machine.
+      // FastAPI backend, run from matching/ using the project's venv Python
+      // (.venv) rather than a global interpreter.
       "label": "Backend",
       "type": "shell",
-      // Fallback if VS Code can't tell the OS (mac/linux style):
-      "command": "python3 -m uvicorn main:app --reload",
+      "command": "${workspaceFolder}/.venv/bin/python -m uvicorn main:app --reload",
       "windows": {
-        // On Windows, Python's launcher is "py".
-        "command": "py -m uvicorn main:app --reload"
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe -m uvicorn main:app --reload"
       },
       "osx": {
-        "command": "python3 -m uvicorn main:app --reload"
+        "command": "${workspaceFolder}/.venv/bin/python -m uvicorn main:app --reload"
       },
       "linux": {
-        "command": "python3 -m uvicorn main:app --reload"
+        "command": "${workspaceFolder}/.venv/bin/python -m uvicorn main:app --reload"
       },
       "options": {
         "cwd": "${workspaceFolder}/matching"
       },
       "isBackground": true,
       "presentation": {
-        // Give the backend its own clearly-labeled terminal panel.
         "group": "dev-servers",
         "panel": "dedicated",
         "reveal": "always",
@@ -49,13 +49,12 @@
       "problemMatcher": []
     },
     {
-      // Vite frontend. Runs in the ui/ folder.
+      // Vite frontend, run from ui/.
       "label": "Frontend",
       "type": "shell",
-      // Fallback (mac/linux style):
       "command": "npm run dev",
       "windows": {
-        // On Windows you must call "npm.cmd" (plain "npm" can fail in tasks).
+        // On Windows call npm.cmd (plain "npm" can fail inside tasks).
         "command": "npm.cmd run dev"
       },
       "osx": {
@@ -69,13 +68,66 @@
       },
       "isBackground": true,
       "presentation": {
-        // Give the frontend its own clearly-labeled terminal panel.
         "group": "dev-servers",
         "panel": "dedicated",
         "reveal": "always",
         "focus": false,
         "clear": true
       },
+      "problemMatcher": []
+    },
+
+    // --- One-time setup -----------------------------------------------------
+    {
+      // Run once per machine. Runs the two installs below, in order.
+      "label": "Setup (run once)",
+      "dependsOn": ["Install backend deps", "Install frontend deps"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      // Creates the isolated environment in .venv/ (safe to re-run; reuses an
+      // existing .venv). Keeps Python packages out of the global interpreter.
+      "label": "Create Python venv",
+      "type": "shell",
+      "command": "python3 -m venv .venv",
+      "windows": { "command": "py -m venv .venv" },
+      "osx": { "command": "python3 -m venv .venv" },
+      "linux": { "command": "python3 -m venv .venv" },
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      // Installs backend packages into .venv (never the global interpreter).
+      "label": "Install backend deps",
+      "type": "shell",
+      "dependsOn": ["Create Python venv"],
+      "dependsOrder": "sequence",
+      "command": "${workspaceFolder}/.venv/bin/python -m pip install -r matching/requirements.txt",
+      "windows": {
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe -m pip install -r matching\\requirements.txt"
+      },
+      "osx": {
+        "command": "${workspaceFolder}/.venv/bin/python -m pip install -r matching/requirements.txt"
+      },
+      "linux": {
+        "command": "${workspaceFolder}/.venv/bin/python -m pip install -r matching/requirements.txt"
+      },
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      // Installs frontend packages into ui/node_modules.
+      "label": "Install frontend deps",
+      "type": "shell",
+      "command": "npm install",
+      "windows": { "command": "npm.cmd install" },
+      "osx": { "command": "npm install" },
+      "linux": { "command": "npm install" },
+      "options": { "cwd": "${workspaceFolder}/ui" },
+      "presentation": { "reveal": "always", "panel": "shared" },
       "problemMatcher": []
     }
   ]

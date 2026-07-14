@@ -1,7 +1,7 @@
 # Collaborating on this repo
 
-A beginner-friendly guide to working together without stepping on each other.
-No prior git or Pull Request experience needed.
+How we work in the same repo without stepping on each other: short branches and
+Pull Requests.
 
 ## Why can't I push to `main` anymore?
 
@@ -56,9 +56,8 @@ git pull
 
 ## When two of you edit the same file (merge conflicts)
 
-**Don't panic — this is normal and expected.** A "merge conflict" just means two
-people changed the same lines, and git wants a human to pick what stays. Nothing
-is broken or lost.
+A "merge conflict" just means two people changed the same lines, and git wants a
+human to pick what stays. Nothing is broken or lost.
 
 If your PR (or a `git pull`) reports a conflict:
 

@@ -18,9 +18,9 @@ The repo's READMEs are written for Windows (`py`, `npm.cmd`). On macOS/Linux use
 
 ```bash
 # Backend — http://localhost:8000  (Swagger UI at /docs)
-cd matching
-pip install -r requirements.txt      # first time
-uvicorn main:app --reload
+python3 -m venv .venv                                          # first time (isolated; nothing global)
+.venv/bin/python -m pip install -r matching/requirements.txt   # first time
+cd matching && ../.venv/bin/python -m uvicorn main:app --reload
 
 # Frontend — http://localhost:5173
 cd ui
@@ -28,7 +28,9 @@ npm install                          # first time
 npm run dev
 ```
 
-First backend boot downloads a ~60MB embedding model from Hugging Face (needs internet once, then cached). The frontend needs `ui/.env` (copy `ui/.env.example`) with two Entra GUIDs for Microsoft sign-in — the app is gated behind MSAL login and won't render past the login screen without them. Restart Vite after editing `.env`.
+In VS Code: **Run Task → "Setup (run once)"** then **"Start Dev"** (see `.vscode/tasks.json`) — it builds the venv, installs both sides, and launches both servers, with the correct commands per OS.
+
+The backend **boots with no cloud credentials**: Cosmos DB and the Azure-OpenAI features (discovery, drafting, editing) auto-disable or fall back to a local Ollama model when their env vars are unset, and skills come from local `data/skills/*.md`. Copy `matching/.env.example` → `matching/.env` to turn cloud features on. First backend boot downloads a ~60MB embedding model from Hugging Face (needs internet once, then cached). The frontend needs `ui/.env` (copy `ui/.env.example`) with two Entra GUIDs for Microsoft sign-in — the app is gated behind MSAL login and won't render past the login screen without them. Restart Vite after editing `.env`.
 
 Other commands:
 - `npm run lint` (in `ui/`) — ESLint
@@ -44,13 +46,15 @@ There is no automated test suite; `evaluate.py` is the closest thing (a recall m
 FastAPI app in `main.py`. The catalog is loaded **once at import time** and held in memory — `skills` and `skills_with_vectors` are the *same list*, so mutating one (e.g. appending a newly-saved skill) is immediately visible to `/match` with no restart. The `vector` field is stripped from every skill before it leaves an endpoint (`_public()`).
 
 Module boundaries are deliberate:
-- `skills_loader.py` — the storage layer, with **two backends chosen at runtime by the `COSMOS_KEY` env var**: if set, reads/writes **Azure Cosmos DB** (via `cosmos_client.py`); if unset (the default for local dev), transparently falls back to markdown-with-frontmatter files in `data/skills/*.md` (files starting with `_` are ignored). So interns can run locally with no cloud credentials. `save_skill()` is the write path; on the local backend `_safe_id()` enforces kebab-case so a skill id can never become a path like `../secrets`, and `_unique_path()` auto-suffixes collisions (`meeting-notes-2`) so a save never overwrites.
+- `skills_loader.py` — the storage layer, with **two backends chosen at runtime by the `COSMOS_KEY` env var**: if set, reads/writes **Azure Cosmos DB** (via `cosmos_client.py`); if unset (the default for local dev), transparently falls back to markdown-with-frontmatter files in `data/skills/*.md` (files starting with `_` are ignored). So it runs locally with no cloud credentials. `save_skill()` is the write path; on the local backend `_safe_id()` enforces kebab-case so a skill id can never become a path like `../secrets`, and `_unique_path()` auto-suffixes collisions (`meeting-notes-2`) so a save never overwrites.
 - `matcher.py` — ranking only (cosine similarity). Knows about vectors, not how they're made. `precompute_skill_vectors()` attaches vectors in place.
 - `embeddings.py` — the only place that produces vectors. Uses `model2vec` (`potion-base-8M`) locally; comments note an intended swap to Azure OpenAI.
-- `draft_skill.py` — AI skill drafting via the **GitHub Copilot SDK**. Multi-turn: `start_draft()` opens a session, `refine_draft(session_id, ...)` continues it. Conversation memory lives in the Copilot runtime (persisted to disk, resumed by `session_id`), *not* in this server. One shared `CopilotClient` subprocess boots lazily and is stopped on app shutdown (`lifespan`).
-- `query_rewriter.py` — optional query preprocessing via a **local Ollama** server (`llama3.2:3b` at `localhost:11434`). Off by default; enabled per-request with `rewrite: true` on `/match` or `--rewrite` on `evaluate.py`. Requires Ollama running or it will error.
+- `rerank.py` — the **discovery guide** behind `POST /discover`: after `matcher.py` narrows the catalog by cosine similarity, this reasons over the top candidates with an LLM to recommend the best fit, ask a clarifying question, or suggest creating a new skill. Uses **Azure OpenAI** when `AZURE_OPENAI_*` is set, else falls back to a **local Ollama** model.
+- `draft_skill.py` — AI skill drafting run as a multi-turn knowledge-extraction interview (`start_draft`/`refine_draft`, per-`session_id` history held in memory). Same Azure-OpenAI-or-Ollama backend as `rerank.py`. (`edit_skill.py` is the editor's AI side-agent behind `POST /edit-skill`; `draft_skill_with_copilot_sdk.py` is an unused earlier version.)
+- `cosmos_client.py` / `users.py` — Cosmos DB client and the user-profile store (`/users` endpoints). Config is read with `.get()` and clients build lazily, so missing `COSMOS_*` / `AZURE_OPENAI_*` disables that feature instead of crashing the server at import.
+- `query_rewriter.py` — optional query preprocessing via a local Ollama server. Off by default; enabled per-request with `rewrite: true` on `/match` or `--rewrite` on `evaluate.py`. Requires Ollama running or it will error.
 
-Key endpoints: `POST /match`, `GET /skills`, `GET /skills/{id}`, `POST /skills` (save + embed live), `POST /draft-skill`, `POST /draft-skill/refine`. CORS is wide open (`allow_origins=["*"]`) — prototype only.
+Key endpoints: `POST /match`, `POST /discover`, `GET /skills`, `GET /skills/{id}`, `POST /skills` (save + embed live), `POST /users` + `GET/PATCH /users/{id}`, `POST /draft-skill`, `POST /draft-skill/refine`, `POST /edit-skill`. CORS is wide open (`allow_origins=["*"]`) — prototype only.
 
 ## Frontend architecture (`ui/`)
 
