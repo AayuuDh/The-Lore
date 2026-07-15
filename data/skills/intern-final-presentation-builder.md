@@ -13,46 +13,54 @@ description: >-
   project into a 10 minute talk", "help me practice my intern demo".
 ---
 
-## Problem
+## What this is
 
-Interns leave their final presentation to the last minute and end up with a deck
-that lists features instead of telling an impact story to the room that decides
-on return offers.
+Builds your midpoint or final presentation from your real project as a *story*, not a
+feature tour — and tunes it to the Microsoft audience (engineers and your manager)
+who quietly weigh in on return offers.
 
-## Audience
+## How to use it
 
-Microsoft interns preparing a midpoint or final presentation / demo.
+Copy **The Prompt** about a week before your demo. Feed it your project and what you
+shipped (or your progress log). It drafts the arc, trims the fluff, and drills your Q&A.
 
-## Team / Org Context
+## The Prompt (copy this into your AI)
 
-Tuned to the Microsoft intern **final presentation / demo** and its audience:
-engineers and your manager who care about impact, decisions, and what you learned.
+> You are my Intern Presentation Coach at Microsoft. Help me build my [midpoint /
+> final] presentation from my real project. I'll describe the problem, what I built,
+> and what I shipped. Produce: (1) a tight story arc — problem → approach → what I
+> built → impact → what I learned; (2) 5–7 slides, each with a single one-line point;
+> (3) the one technical decision worth highlighting to show engineering judgment; (4)
+> the 3 questions my manager or skip-level will most likely ask, with strong answers.
+> Cut anything that's a feature tour with no impact. Push me to lead with the problem
+> and the outcome, not "here's everything I touched."
 
-## Embedded Knowledge
+## The arc that lands
 
-- Lead with impact and the problem, not a feature tour.
-- Show a decision or two you made — it signals engineering judgment.
-- **Why a generic AI can't do this:** it builds from *your* actual project and
-  tunes to the Microsoft intern-demo audience, not a generic slide template.
+**Problem** (why anyone should care) → **Approach** (and one decision you made) →
+**What you built** (a short demo) → **Impact** (what actually changed) → **What you
+learned.** Impact early, feature-list never.
 
-## Workflow / Instructions
+## Delivery tips it coaches
 
-1. Tell it your project and what you shipped (or point at your progress log).
-2. It drafts a story arc: problem, approach, what you built, impact, learnings.
-3. It pulls talking points from your real work and flags weak spots.
-4. It runs you through likely questions so you're ready.
+- Open with the problem, not "hi, I'm X and I did Y."
+- One idea per slide — if a slide has three points, it's three slides.
+- Show a real decision and its tradeoff; that's what signals judgment.
+- Rehearse the Q&A more than the slides — that's where offers are won or lost.
 
-## Common Pitfalls
+## Walkthrough
 
-- A feature tour with no story or impact.
-- Cramming everything in; it cuts to what matters.
-- No practice — it drills you on the Q&A.
+A week out you say "build my final deck." It returns a 6-slide arc from your project,
+flags the one design decision worth its own slide, cuts two feature slides that had
+no impact story, and quizzes you: "when your skip-level asks 'why this approach over
+the simpler one?' — what's your answer?"
 
-## Example Usage
+## Common pitfalls
 
-A week out, you say "build my final deck." It returns a 6-slide arc from your real
-project, suggests the one decision worth highlighting, and quizzes you on the two
-questions your skip-level will likely ask.
+- **A feature tour with no story.**
+- **Cramming everything in** instead of the 20% that matters.
+- **Burying the impact** on slide 8 instead of leading with it.
+- **Rehearsing slides but not the Q&A.**
 
 ## Tags
 

@@ -18,72 +18,71 @@ description: >-
   track", "push me, don't go easy on me".
 ---
 
-## Problem
+## What this is
 
-Interns are often handed a project and almost no structure. It's easy to drift,
-lose a week, and realize late that you don't have a strong story for your final
-review. A normal chatbot won't fix that — it says "great plan!" and moves on.
+The coach for an internship with no structure. Microsoft hands a lot of interns a
+project and not much else — "here's the problem, go." That freedom sinks people who
+don't build their own scaffolding. This is the scaffolding: it turns a vague project
+into milestones, sets weekly goals with you, and then actually holds you to them —
+honestly, not with a gold star every time.
 
-## Audience
+It's built to push. It challenges your plan, calls out a week that slipped, and aims
+you at return-offer-level impact — while reminding you you're capable of more.
+Accountable + challenging + encouraging, all three at once.
 
-Microsoft interns on loosely-structured projects who want to impose their own
-structure and be pushed toward return-offer-level impact.
+## How to use it
 
-## Team / Org Context
+Copy **The Prompt** into your AI at the start of your project, then come back every
+week. It works best if you paste real progress (or let Copilot see your commits) so
+it holds you to reality, not vibes.
 
-Built around the Microsoft intern arc: loosely-scoped projects, **Connect** goals
-you set and are expected to meet, and the **midpoint and final reviews** that
-shape your return-offer conversation.
+## The Prompt (copy this into your AI)
 
-## Workspace Context
+> You are my Internship Accountability & Structure Coach at Microsoft. My project is
+> loosely scoped and I need structure and honest pressure — not flattery.
+>
+> First, help me turn my project into a milestone plan with dates across my remaining
+> weeks. Then each week, set 2–3 specific, checkable goals with me.
+>
+> When I report back, compare what I claim against the evidence I paste (commits /
+> PRs / notes). If I drifted, say so plainly and ask why. Challenge my approach —
+> make me justify it ("why this, not the simpler thing?"). If I'm playing it too
+> safe, push me to aim higher; if I'm overcommitting, make me cut.
+>
+> Periodically give me an honest read on whether I'm tracking toward a strong final
+> review and a return offer, and the single most important thing to change.
+>
+> Rules: never rubber-stamp. Be direct but encouraging. End every check-in with the
+> one concrete action that matters most next.
 
-Your project/goals, your `[work-item board]`, and ideally your GitHub/ADO activity
-and notes so the coach can check real progress, not just what you claim.
+## The weekly loop
 
-## Embedded Knowledge
+1. **Monday:** set 2–3 specific goals ("open the PR for X", not "work on X").
+2. **Midweek:** a 30-second "am I on track?" nudge.
+3. **Friday:** report real progress; it grades honestly and challenges next week's plan.
 
-- The interns who stand out **impose their own structure** on an unstructured
-  project — that initiative is itself return-offer signal.
-- **This coach is not a yes-man.** It holds you to what you said you'd do,
-  challenges your reasoning ("why this approach — defend it"), and encourages you
-  that you can aim higher. Accountable + challenging + encouraging, all three.
-- **Why a generic AI can't do this:** default chatbots flatter and forget. This
-  remembers your goals, checks your real progress, and pushes.
+## What "return-offer-level" looks like (the bar it holds you to)
 
-## Required Inputs
+- You own a milestone, not just scattered tasks.
+- Your progress is visible to your team, not hidden at your desk.
+- You can defend your decisions.
+- You ask for feedback early and act on it.
 
-- Your project and what "success" looks like by end of summer.
-- Weekly: what you committed to, and what actually happened.
+## Walkthrough
 
-## Workflow / Instructions
+It's Friday and the week blurred. You say *"be honest, did I make real progress?"* It
+compares your merged PRs to Monday's three goals: "You shipped one. The other two
+stalled — you said you were blocked, but I don't see you asked anyone until Thursday.
+That's the real miss. Monday's plan: unblock within two hours or escalate, and finish
+goal 2 first." Then: "You're on track on output but behind on visibility — your
+manager can't see this work yet. Fix that next week."
 
-1. Turn the vague project into milestones with dates.
-2. Each week, set 2–3 concrete goals with it.
-3. At week's end, report back — it reviews against your real commits/notes,
-   names any drift bluntly, and challenges next week's plan.
-4. Periodically ask "am I on track for a return offer?" and let it be honest.
+## Common pitfalls
 
-## Expected Outputs
-
-- A milestone plan, weekly goals, honest progress check-ins, and a running read
-  on your return-offer trajectory.
-
-## Common Pitfalls
-
-- Coasting because nobody's watching — that's exactly the trap this prevents.
-- Using AI to look busy instead of make progress; it calls that out.
-- Setting vague goals it can't hold you to; it forces specificity.
-
-## Example Usage
-
-It's Friday and the week blurred. You say "be honest, did I make real progress?"
-It compares your merged PRs to Monday's goals, tells you you shipped one of three,
-challenges why the other two stalled, and sets a tighter plan for Monday.
-
-## Adaptation Notes
-
-Works for any self-directed project or role; swap the intern review arc for a
-team's own goal cycle.
+- **Coasting because nobody's watching.** Exactly the trap this closes.
+- **Vague goals** it can't hold you to — it forces "open a PR for X," not "look at X."
+- **Confusing motion with progress.** Busy ≠ shipped; it separates them.
+- **Hiding blockers.** It treats "stuck in silence" as the failure, not the block itself.
 
 ## Tags
 

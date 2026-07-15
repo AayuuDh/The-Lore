@@ -15,64 +15,51 @@ description: >-
   "help me lighten the mood in my quiet pod".
 ---
 
-## Problem
+## What this is
 
-Intern pods can be silent and heads-down, and teams ship real wins that go
-uncelebrated. A little humor and culture goes a long way — but generic meme
-generators don't know your team's inside jokes.
+The fun one. Intern pods can be silent and heads-down, and teams ship real wins that go
+uncelebrated. This turns your sprint's inside jokes, wins, and painful bugs into memes,
+celebration posts, and demo hype your teammates actually laugh at — riffing on your
+team's real context, kept kind and work-appropriate.
 
-## Audience
+## How to use it
 
-Microsoft interns (and teams) who want to build culture, celebrate wins, and hype
-demos with humor that actually lands.
+Copy **The Prompt**. Give it a real moment (a bug, a win, the demo) and the vibe you
+want.
 
-## Team / Org Context
+## The Prompt (copy this into your AI)
 
-Grounded in your team's real moments — the sprint's bugs and wins, the final
-intern **demo**, celebrating a merged feature — and Microsoft's Teams channels
-where this stuff gets shared.
+> You are my team's meme and hype generator at Microsoft. I'll give you a real moment
+> from my team — a bug that took forever, a feature we shipped, our final demo — and
+> the vibe I want (celebratory, self-deprecating, hype). Riff on our actual context to
+> write a meme concept + caption, a celebration post, or a hype message I can share in
+> our Teams channel. Keep it specific to us, kind, inclusive, and work-appropriate —
+> never punch down or make anyone the butt of the joke.
 
-## Workspace Context
+## What makes team humor land
 
-Teams channels, your sprint history, and demo day.
+**Specific + kind.** The best team humor references the shared experience ("the bug
+that ate three days") and never punches down. Bringing energy and celebrating wins is
+real culture-building — people remember the intern who did it.
 
-## Embedded Knowledge
+## Good moments to riff on
 
-- The best team humor is specific and kind — it references the shared experience,
-  never punches down.
-- Celebrating wins and bringing energy is real culture-building, and people
-  remember the intern who did it.
-- **Why a generic AI can't do this:** it riffs on YOUR team's actual context, not
-  template memes.
+- A bug that took way too long (self-deprecating).
+- A feature you finally shipped (celebration).
+- The final intern demo (hype).
+- A quiet week where the pod needs a lift.
 
-## Required Inputs
+## Walkthrough
 
-- The moment to riff on (a bug, a win, the demo) and any inside-joke context.
+You finally squash a bug that ate three days. You say "make a celebration meme about
+it." It captions your win in a way your teammates instantly get, keeps it kind, and you
+post it to the channel — the quiet pod actually laughs.
 
-## Workflow / Instructions
+## Common pitfalls
 
-1. Tell it the moment and the vibe (celebratory, self-deprecating, hype).
-2. It drafts a meme concept / caption / post tuned to your team.
-3. You tweak and share in your channel.
-
-## Expected Outputs
-
-- Ready-to-post memes, celebration messages, and demo hype tailored to your team.
-
-## Common Pitfalls
-
-- Humor that excludes or punches down — it keeps things inclusive and kind.
-- Forcing it; a light touch beats trying too hard.
-
-## Example Usage
-
-You finally squashed a bug that ate three days. You say "make a celebration meme
-about it." It captions your win in a way your teammates instantly get, and you post
-it to the channel — the pod actually laughs.
-
-## Adaptation Notes
-
-Any team can use it for culture, celebrations, and event hype.
+- **Humor that excludes or punches down** — it keeps things inclusive.
+- **Trying too hard** — a light touch wins.
+- **Forcing it** when the moment isn't there.
 
 ## Tags
 

@@ -12,44 +12,51 @@ description: >-
   I give code feedback nicely", "a review comment upset me, help me respond".
 ---
 
-## Problem
+## What this is
 
-Review feedback can feel personal, and interns either get defensive or don't know
-how to give useful feedback themselves — both hurt how the team sees them.
+Review feedback can feel personal — and how you take it (and later, give it) shapes
+how the team sees you. This teaches the norms: take feedback without getting
+defensive, give it kindly and usefully, and understand what reviewers actually want.
 
-## Audience
+## How to use it
 
-Microsoft interns navigating code reviews, as author or reviewer.
+Copy **The Prompt**. When a review stings or you're unsure how to phrase a comment,
+paste it in and let it coach you.
 
-## Team / Org Context
+## The Prompt (copy this into your AI)
 
-Grounded in Microsoft review culture: direct-but-kind feedback, focusing on the
-code not the person, and responsiveness as a signal of professionalism.
+> You coach me on code review etiquette at Microsoft, as both author and reviewer.
+> When I paste feedback I received: separate the substance from the sting, tell me
+> what's actually being asked, and draft a calm, non-defensive reply. When I'm
+> reviewing someone else's code and paste it: help me write specific, kind, useful
+> comments that explain the "why" and never punch down. Always remind me that
+> feedback is about the code, not the person.
 
-## Embedded Knowledge
+## The mindset
 
-- Feedback is about the code, not you; the best engineers welcome it.
-- Good review comments are specific, kind, and explain the why.
-- **Why a generic AI can't do this:** it coaches the actual review dynamic and
-  team norms, and helps with *your* real comment thread.
+Feedback is about the code, not you. The best engineers *want* it — it's how the work
+gets better and how you grow fastest. A defensive intern is a red flag; a curious one
+is gold.
 
-## Workflow / Instructions
+## Giving good review comments
 
-1. Paste the feedback or the code you're reviewing.
-2. For feedback you received: it helps you separate signal from sting and reply
-   well.
-3. For reviewing: it helps you phrase specific, kind, useful comments.
+- **Specific**, not "this is wrong."
+- **Explain the why**, or link a reason.
+- **Kind and collaborative** — "what if we..." beats "you should have..."
+- **Separate must-fix from nitpick** so the author knows what matters.
 
-## Common Pitfalls
+## Walkthrough
 
-- Taking review personally / getting defensive.
-- Nitpicking or vague "this is wrong" comments when reviewing.
-- Silently ignoring comments.
+A blunt comment stings. You paste it; it strips the sting, tells you the reviewer is
+actually flagging a real edge case, drafts "you're right, hadn't considered that —
+updating," and points out they were helping, not attacking.
 
-## Example Usage
+## Common pitfalls
 
-A blunt comment stings. You paste it; it reframes the substance, drafts a calm
-"you're right, updating" reply, and points out the reviewer was actually helping.
+- **Taking review personally** / getting defensive.
+- **Vague or nitpicky comments** when you're the reviewer.
+- **Silently ignoring comments** instead of replying.
+- **Arguing** when you should just ask a clarifying question.
 
 ## Tags
 

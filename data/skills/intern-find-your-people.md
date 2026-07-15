@@ -18,79 +18,54 @@ description: >-
   "help me not waste the social part of this internship".
 ---
 
-## Problem
+## What this is
 
-The technical part of interning gets all the support; the human part gets none.
-Plenty of interns finish the summer having barely met anyone. A generic chatbot
-can't fix that — it doesn't know the cohort, the events, or the communities here.
+The social side nobody automates. The technical part of interning gets all the
+support; the human part gets none, and plenty of interns finish having barely met
+anyone. This helps you meet people — events, coffee chats, communities — and, because
+the interns who make friends are simply the ones who put themselves out there, it
+*pushes* you to actually go.
 
-## Audience
+## How to use it
 
-Microsoft interns who want to meet people, build a network, and not spend the
-summer isolated — especially those who are shy about making the first move.
+Copy **The Prompt**. Tell it your location, interests, and how outgoing you feel; it
+gives you a small weekly plan and drafts the messages so you just hit send.
 
-## Team / Org Context
+## The Prompt (copy this into your AI)
 
-Tuned to the Microsoft intern program reality: the intern **cohort** and its
-events, **employee resource groups (ERGs)** and interest communities, coffee-chat
-culture, and the hybrid / on-campus rhythm. Location- and calendar-specific
-details are `[placeholders]` you provide.
+> You help me build a social life as a Microsoft intern. I'll tell you my office /
+> location, my interests, and how shy I am. Each week, give me a small, low-pressure
+> plan: one event to go to, one person to reach out to for a coffee chat, and one
+> community / ERG to try. Draft the actual coffee-chat and intro messages so I just
+> hit send. The interns who make friends just put themselves out there, so gently
+> push me to actually do it, and call me out (kindly) if I keep making excuses. Keep
+> it warm and doable, never cringe.
 
-## Workspace Context
+## Why this works
 
-Teams and internal community spaces for reaching people, the intern events
-calendar, and your own calendar for planning.
+Coffee chats are normal and expected here — asking is not weird. Low-pressure openers
+beat perfect ones. A little each week beats one big push. And the real barrier is
+almost always "putting yourself out there" — which is exactly what this nudges you past.
 
-## Embedded Knowledge
+## Your weekly plan (it tailors this)
 
-- Coffee chats are normal and expected here — asking is not weird.
-- Low-pressure openers beat perfect ones; consistency beats intensity.
-- The interns who make friends are simply the ones who put themselves out there.
-  So this doesn't just plan — it *pushes* you to actually go, lowers the barrier
-  when you're not comfortable, and gently calls you out when you keep finding
-  reasons not to.
-- **Why a generic AI can't do this:** it doesn't know the Microsoft intern
-  cohort, the events near you, or the communities. This connector is built for
-  the intern social experience specifically, not generic "networking tips".
+- **1 event** on the intern calendar.
+- **1 coffee chat** (it drafts the message).
+- **1 community or ERG** to check out.
 
-## Required Inputs
+## Walkthrough
 
-- Your office / location and rough schedule.
-- Your interests (hobbies, tech areas, communities you care about).
-- Optional: names of teammates or interns you'd like to reach.
+You say "I'm in `[office]`, I like hiking and ML, and I'm shy — help me meet people." It
+suggests two intern events this week, finds a community to join, drafts three
+coffee-chat messages you can send today, and next week asks "did you actually go? No
+excuses — here's this week's."
 
-## Workflow / Instructions
+## Common pitfalls
 
-1. Tell it your location, interests, and how outgoing you feel.
-2. Ask for a short weekly plan: one event, one coffee chat, one community.
-3. Have it draft the actual messages and openers so you just hit send.
-4. Reflect each week and adjust.
-
-## Expected Outputs
-
-- A weekly "meet people" plan, drafted coffee-chat and intro messages, and a
-  shortlist of events and communities to try.
-
-## Internal Dependencies
-
-- Teams and internal community spaces; the intern events calendar; ERGs.
-
-## Common Pitfalls
-
-- Waiting to feel "ready" — start in week 1 while everyone's new too.
-- Over-polishing the first message; a simple, warm opener is enough.
-- Treating it as one big push instead of a small weekly habit.
-
-## Example Usage
-
-You say, "I'm in `[office]`, I like hiking and ML, and I'm shy — help me meet
-people." It suggests two intern events this week, finds a community to join, and
-drafts three coffee-chat messages you can send today.
-
-## Adaptation Notes
-
-Works for any new employee, not just interns; swap the intern cohort and events
-for a team's or org's own communities.
+- **Waiting to feel "ready"** — start week 1 while everyone's new too.
+- **Over-polishing the first message** instead of just sending a warm one.
+- **Treating it as one big push** instead of a small weekly habit.
+- **Letting shyness win** — it pushes back on that.
 
 ## Tags
 

@@ -15,78 +15,56 @@ description: >-
   "i don't want to look clueless in my first standup, what should I know".
 ---
 
-## Problem
+## What this is
 
-A new intern's first week is a firehose: unfamiliar tools, access you don't have
-yet, acronyms nobody explains, and no idea who owns what. Generic AI can't help
-because it doesn't know your team or how onboarding works here.
+A first-weeks copilot. Your first week at Microsoft is a firehose — unfamiliar tools,
+access you don't have yet, acronyms nobody explains, and no idea who owns what. This
+turns that chaos into a prioritized checklist and drafts the messages and requests so
+you don't have to look lost figuring it out.
 
-## Audience
+## How to use it
 
-Brand-new Microsoft interns in their first days to first few weeks, before things
-feel familiar.
+Copy **The Prompt** into your AI and paste any onboarding email or links you were
+sent. It builds your week-1 plan, decodes anything confusing, and writes your access
+requests and intro messages for you.
 
-## Team / Org Context
+## The Prompt (copy this into your AI)
 
-Grounded in the Microsoft first-week reality: corporate network / VPN, requesting
-**just-in-time (JIT) access** and permissions, your team's `[repo]`, `[build
-pipeline]`, and `[work-item board]`, and the norms of your first standups and
-1:1s. Team-specific names are `[placeholders]` for you or your mentor to fill in.
+> You are my Intern Onboarding Buddy at Microsoft. It's my first week and everything
+> is unfamiliar. I'll paste my onboarding email/links and my team name. Build me a
+> prioritized first-week checklist covering: dev-environment setup, access/permission
+> requests I should file NOW (some take days to approve), key people to meet, and the
+> acronyms/tools I need to follow along. When I paste something confusing (a message,
+> a term), decode it. When I need to ask someone or request access, draft the exact
+> message. Flag anything team-specific I should confirm with my mentor rather than
+> guess at.
 
-## Workspace Context
+## Your first-week checklist (it tailors this to your team)
 
-Your dev machine, your team's source repo and pipelines, the internal access-
-request tooling, and Teams for reaching people.
+1. Dev box set up, repo cloned, first build passing.
+2. Access requests filed early (repo, pipelines, dashboards) — approvals take days.
+3. Meet your mentor + 1–2 teammates; learn "who owns what."
+4. Learn your team's PR flow and where work items live.
+5. Know enough acronyms to follow your first standup.
 
-## Embedded Knowledge
+## The rule that saves you
 
-- The unwritten "ask early, ask specifically" rule — and how to ask without
-  looking lost.
-- Which things need an access request days in advance (so you're not blocked in
-  week 2).
-- **Why a generic AI can't do this:** it doesn't know your team's repo, tools,
-  access process, or people. This buddy is tuned to the Microsoft intern ramp
-  and your team's specifics.
+**Ask early, ask specifically.** A crisp question ("stuck on X, tried Y, is it A or
+B?") makes you look sharp, not lost — and this drafts those for you so asking isn't
+scary.
 
-## Required Inputs
+## Walkthrough
 
-- Your team / org name and, ideally, your mentor's and manager's names.
-- Your team's `[repo]`, `[pipeline]`, and any onboarding doc links you were sent.
+Day 2, you paste your onboarding email and "I'm on `[team]`." It returns a checklist,
+flags two access requests to file *today* (or you're blocked next week), drafts both,
+and gives you a three-line intro to send your mentor.
 
-## Workflow / Instructions
+## Common pitfalls
 
-1. Tell it your team and paste any onboarding links you received.
-2. Ask it to build you a first-week checklist: environment, access, key people.
-3. Have it decode any acronym or tool you hit, and draft the exact access request
-   or the message to the right person.
-4. Check off items and revisit whenever you're blocked.
-
-## Expected Outputs
-
-- A personalized first-week checklist, decoded acronyms, drafted access requests,
-  and a "who to ask for what" map for your team.
-
-## Internal Dependencies
-
-- Access-request tooling; your team's repo, pipeline, and onboarding docs; Teams.
-
-## Common Pitfalls
-
-- Waiting until you're blocked to request access — some approvals take days.
-- Asking vague questions; it helps you ask specific, easy-to-answer ones.
-- Guessing at team-specific specifics — fill the `[placeholders]` with real info
-  from your mentor.
-
-## Example Usage
-
-Day 2, you say "I'm on `[team]`, here's my onboarding email — what do I do this
-week and what access should I request now?" It returns a checklist, flags two
-access requests to file immediately, and drafts both.
-
-## Adaptation Notes
-
-Any team can drop in their own repo, pipeline, access process, and key contacts;
-the ramp structure stays the same.
+- **Waiting until you're blocked** to request access — file on day 1–2.
+- **Vague questions** that are hard to answer; it makes yours specific.
+- **Guessing at team specifics** instead of asking — it flags those.
+- **Trying to learn everything at once** instead of what this week needs.
 
 ## Tags
 

@@ -16,68 +16,66 @@ description: >-
   not the answer", "quiz me on what I just built".
 ---
 
-## Problem
+## What this is
 
-It's easy to let AI do everything — and then you can't actually do it yourself,
-which is a problem when someone asks you to explain your own work. Interns who
-over-rely on AI stop learning right when they should be growing fastest.
+The anti-crutch. Most AI races to hand you the answer, and if you let it, you stop
+learning right when you should be growing fastest. This flips it: it refuses to just
+do it, and instead teaches — hints over solutions, makes you reason, then quizzes you
+so it sticks. It's how you actually learn GitHub, Azure, or anything you keep
+offloading.
 
-## Audience
+The hard truth it's built on: you can't demo it, defend it in a review, or interview
+on it if you never actually learned it. Letting AI do your work quietly hollows out
+your return-offer story.
 
-Microsoft interns who realize they're using AI as a crutch and want to genuinely
-build skills (especially GitHub, Azure, and their team's stack).
+## How to use it
 
-## Team / Org Context
+Copy **The Prompt** into your AI. Then, any time you catch yourself about to paste a
+problem and copy the answer, run this instead — with the actual thing you're stuck on.
 
-Grounded in the intern learning curve here: heavy day-to-day **GitHub**, an
-**Azure** ramp most interns haven't fully climbed, and the reality that your
-return-offer story depends on skills you actually have — not ones AI faked for you.
+## The Prompt (copy this into your AI)
 
-## Workspace Context
+> You are my Learn-It-Don't-Do-It Tutor. I over-rely on AI and I want to actually
+> learn, not be handed answers.
+>
+> Rules you must follow:
+> 1. NEVER give the full solution first. Start by asking what I've already tried and
+>    where exactly I'm stuck.
+> 2. Give the smallest useful hint, then stop and let me try.
+> 3. Escalate hints only if I'm genuinely stuck, one step at a time.
+> 4. Once I get it, make me explain it back in my own words, then quiz me with one
+>    twist to check I really understand.
+> 5. If I ask you to "just do it," say no and redirect me — unless I type the code
+>    word OVERRIDE, in which case explain it fully AND make me summarize it after.
+>
+> Be encouraging but firm. The goal is that next time I don't need you for this.
 
-Your real repo, terminal, and Azure/portal tasks — you do the doing; the tutor
-guides.
+## The learning loop
 
-## Embedded Knowledge
+Stuck → *what have you tried?* → smallest hint → you attempt → nudge → you solve →
+explain it back → quiz. The struggle between hints is the part that makes it stick.
 
-- You can't demo, defend, or interview on a skill you never learned — over-relying
-  on AI quietly hollows out your growth.
-- Socratic beats spoon-feeding: retrieval and struggle are how it sticks.
-- **Why a generic AI can't do this:** most chatbots race to hand you the answer.
-  This one deliberately withholds it, pushes you to try, and makes you learn.
+## Great for
 
-## Required Inputs
+- **GitHub:** rebase vs merge, resolving a conflict, what a PR really is under the hood.
+- **Azure:** resource groups, navigating the portal, your team's services.
+- **Your codebase:** understanding *why* a fix works, not just pasting it in.
 
-- The thing you're tempted to let AI just do for you.
-- What you've already tried (it will ask).
+## Walkthrough
 
-## Workflow / Instructions
+A scary merge conflict pops up. Instead of pasting it for a fix, you say *"teach me,
+don't do it."* It asks, "what do the `<<<<<<<` and `=======` markers mean to you?"
+You guess; it corrects gently, has you resolve one hunk yourself, then asks "why did
+this conflict happen in the first place?" You explain it — and now you actually
+understand rebasing, for every future conflict.
 
-1. Bring a problem and say "teach me, don't do it."
-2. It asks what you've tried and where you're stuck.
-3. It gives the smallest useful hint, not the solution.
-4. You attempt; it nudges until you get there, then quizzes you to lock it in.
+## Common pitfalls
 
-## Expected Outputs
-
-- A solved problem you can actually explain, plus a quick self-check that you
-  learned it.
-
-## Common Pitfalls
-
-- Bailing to another AI for the quick answer — it names that temptation and calls
-  you back.
-- Asking it to "just this once" do it for you; the value is in the "no."
-
-## Example Usage
-
-You hit a scary merge conflict and want to paste it into AI for a fix. Instead you
-say "teach me." It asks what the conflict markers mean, hints at the flow, and
-walks you to resolving it yourself — then asks you to explain rebase back to it.
-
-## Adaptation Notes
-
-Any skill or tool works; point it at whatever you keep offloading to AI.
+- **Bailing to another AI** for the quick answer — it names that temptation; the
+  value is in resisting it.
+- **"Just this once."** That's exactly how the crutch rebuilds itself.
+- **Passive reading.** If you don't actually try between hints, it won't stick — so
+  it makes you try.
 
 ## Tags
 

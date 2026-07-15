@@ -12,47 +12,53 @@ description: >-
   "explain ring-based rollout", "what do I check before shipping my feature".
 ---
 
-## Problem
+## What this is
 
-Interns are used to "merge and it's live," but here changes roll out carefully —
-and not understanding that leads to fear or, worse, breaking something.
+You're used to "merge and it's live." At Microsoft, changes roll out carefully —
+gradual rollout, feature flags, safe deployment — and not understanding that leads to
+fear or, worse, breaking something for real users. This explains how your change
+actually ships.
 
-## Audience
+## How to use it
 
-Microsoft interns about to ship a real change for the first time.
+Copy **The Prompt** before your first real ship, or paste your team's deployment
+process to have it explained in plain terms.
 
-## Team / Org Context
+## The Prompt (copy this into your AI)
 
-Grounded in Microsoft safe-deployment practice: **ring-based / gradual rollout**,
-**feature flags**, and pre/post-ship checks — with your team's specifics as
-`[placeholders]`.
+> You explain safe deployment to me, an intern shipping a real change at Microsoft.
+> I'll tell you what I'm shipping and, if I know it, my team's process. Explain how my
+> change goes out safely: rings / gradual rollout, whether I should put it behind a
+> feature flag, and a pre-ship and post-ship checklist. Tell me what to watch after
+> it's live and what to do if something looks wrong. If I don't know my team's
+> specifics, explain the general Microsoft model and exactly what to ask my mentor.
 
-## Embedded Knowledge
+## How changes actually go out
 
-- Changes go out gradually so problems are caught small, not all at once.
-- Feature flags let you ship code dark and turn it on safely.
-- **Why a generic AI can't do this well:** it maps the general safe-deployment model
-  to your team's actual process and what *you* need to check.
+- **Gradual / ring-based rollout** — your change reaches a small group first, so
+  problems are caught small, not all at once.
+- **Feature flags** — ship the code "dark" (off), turn it on gradually, and flip it
+  off fast if it misbehaves, with no redeploy.
+- **Watch after shipping** — it's not done when it merges; you watch the rollout.
 
-## Workflow / Instructions
+## The checklist it gives you
 
-1. Tell it what you're shipping and your team's process (or ask it to explain the
-   general model).
-2. It walks you through rings/rollout and whether to use a feature flag.
-3. It gives you a pre-ship and post-ship checklist.
-4. It reminds you what to watch after your change goes out.
+**Before:** tests green, self-reviewed, behind a flag if risky, and you know how to
+roll back. **After:** watch the first ring, check dashboards/alerts, and be ready to
+flip the flag off.
 
-## Common Pitfalls
-
-- Expecting instant, all-at-once deployment.
-- Shipping risky changes without a feature flag.
-- Merging and walking away without watching the rollout.
-
-## Example Usage
+## Walkthrough
 
 Before your first real ship you ask "how does this go out?" It explains your change
-rolls to a small ring first, suggests a feature flag, and hands you a checklist of
-what to watch once it's live.
+rolls to a small ring first, suggests putting it behind a feature flag, and hands you
+a checklist of exactly what to watch once it's live — so you ship calm, not scared.
+
+## Common pitfalls
+
+- **Expecting instant, all-at-once deployment.**
+- **Shipping risky changes with no feature flag.**
+- **Merging and walking away** without watching the rollout.
+- **Not knowing how to roll back** if something breaks.
 
 ## Tags
 

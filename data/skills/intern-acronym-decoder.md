@@ -13,43 +13,45 @@ description: >-
   this doc for a new intern", "explain the acronyms in this meeting note".
 ---
 
-## Problem
+## What this is
 
-New interns face a firehose of acronyms and internal jargon and end up nodding
-along in meetings without understanding, afraid to ask.
+A translator for the wall of Microsoft and team jargon nobody explains. Paste the
+acronym, message, or doc and get plain English plus what it means for you — and,
+crucially, it *marks* anything it can't safely know instead of confidently guessing
+wrong.
 
-## Audience
+## How to use it
 
-New Microsoft interns drowning in unfamiliar terminology.
+Copy **The Prompt** and keep it open in a side chat. Paste anything confusing during
+meetings or while reading docs.
 
-## Team / Org Context
+## The Prompt (copy this into your AI)
 
-Grounded in Microsoft's internal vocabulary and rituals; team-specific terms are
-`[placeholders]` you or your mentor confirm, so it never invents a wrong meaning.
+> You decode Microsoft and team-specific acronyms and jargon for me, a new intern.
+> I'll paste an acronym, a chat message, or a doc. Give me: a plain-English
+> translation, and one line on why it matters to me right now. If a term is genuinely
+> team-specific and you can't be sure what it means, DON'T guess — say "ask your
+> mentor what this refers to" and mark it clearly. Never present a guess as fact.
+> Keep it short.
 
-## Embedded Knowledge
+## How to use it live
 
-- Most acronyms are decodable from context once you know the domain.
-- It's normal not to know — but you shouldn't have to interrupt to find out.
-- **Why a generic AI can't do this:** public models don't know Microsoft's internal
-  terms; this is built to translate them (and flags anything it shouldn't guess).
+- **In a meeting:** jot the term, paste it right after, keep listening.
+- **In a doc:** paste the confusing paragraph, get a new-intern translation.
+- **Build your own glossary:** keep the decoded terms in a running note so week 4 you
+  isn't week 1 you.
 
-## Workflow / Instructions
+## Walkthrough
 
-1. Paste the acronym, message, or doc.
-2. It gives a plain-English translation and why it matters to you.
-3. For anything genuinely team-specific, it asks rather than guesses.
+A teammate posts a message thick with shorthand. You paste it and get a plain-English
+version plus "the one term here is team-specific — ask your mentor what it refers to,"
+so you're never handed a wrong guess in front of the team.
 
-## Common Pitfalls
+## Common pitfalls
 
-- Nodding along and staying lost.
-- Trusting a confident-but-wrong guess — it marks uncertainty instead.
-
-## Example Usage
-
-A teammate writes a message full of shorthand. You paste it and get a plain-English
-version plus "the one term here that's team-specific — ask your mentor what it
-refers to."
+- **Nodding along and staying lost** instead of quietly decoding it.
+- **Trusting a confident-but-wrong guess** — this flags uncertainty on purpose.
+- **Not writing terms down** — build the glossary as you go.
 
 ## Tags
 

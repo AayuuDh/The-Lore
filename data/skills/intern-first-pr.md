@@ -13,45 +13,51 @@ description: >-
   code review feedback", "why is my PR too big".
 ---
 
-## Problem
+## What this is
 
-Interns' first PRs are often too big, poorly described, or handled awkwardly in
-review — and first impressions with reviewers stick.
+Your first PR quietly sets your reputation with reviewers. This walks you through
+doing it right — small, clear, well-described, and handled gracefully in review — so
+senior engineers start trusting you instead of dreading your next one.
 
-## Audience
+## How to use it
 
-Microsoft interns opening their first pull requests.
+Copy **The Prompt** before you open your first PR (or when a review stalls). Paste
+your change and your team's PR guidelines if you have them.
 
-## Team / Org Context
+## The Prompt (copy this into your AI)
 
-Grounded in Microsoft PR norms: small focused PRs, clear descriptions, required
-checks/policies `[placeholder]`, and responsive, non-defensive review behavior.
+> You are my PR coach at Microsoft. Help me open my first pull request the right way.
+> I'll describe my change (or paste the diff). First, tell me if it's too big and how
+> to split it. Then write a clear PR description: what changed, why, and how I tested
+> it. Remind me of my team's checks/policies (I'll paste them if I have them). After
+> review, help me respond to each comment gracefully and promptly — not defensively.
+> If my PR is just sitting, help me nudge reviewers politely.
 
-## Embedded Knowledge
+## The anatomy of a PR reviewers love
 
-- Small PRs get reviewed faster and reflect better on you.
-- A good description (what/why/how-to-test) is respect for the reviewer's time.
-- **Why a generic AI can't do this:** it teaches the etiquette and expectations of
-  a Microsoft team's PR flow, not just git mechanics.
+- **Small and focused** — one logical change. If you can't describe it in a sentence, split it.
+- **A real description** — what changed, why, and how you tested it.
+- **Green checks** — run the build and tests *before* asking for review.
+- **Self-review first** — read your own diff and catch the obvious stuff.
 
-## Workflow / Instructions
+## Responding to review like a pro
 
-1. Before opening: it helps you scope the PR small and self-review.
-2. It drafts a clear description (what, why, how you tested).
-3. After review: it helps you respond to comments graciously and promptly.
-4. If it stalls, it helps you nudge reviewers appropriately.
+- "Good catch, fixed." beats arguing the first comment.
+- Ask if you don't understand — reviewers respect curiosity, not silence.
+- Reply to every comment, even just "done."
 
-## Common Pitfalls
-
-- Giant, unfocused PRs.
-- Empty or vague descriptions.
-- Getting defensive in review, or ghosting comments.
-
-## Example Usage
+## Walkthrough
 
 Before your first PR you ask for help. It has you split the change in two, drafts a
 crisp description with test notes, and coaches you to reply "good catch, fixed"
-instead of arguing the first review comment.
+instead of defending your first review comment — and the review sails through.
+
+## Common pitfalls
+
+- **Giant, unfocused PRs** that are painful to review.
+- **Empty or vague descriptions** that make reviewers do the work.
+- **Asking for review with red checks.**
+- **Getting defensive or ghosting** review comments.
 
 ## Tags
 

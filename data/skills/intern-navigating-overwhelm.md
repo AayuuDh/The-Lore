@@ -13,47 +13,54 @@ description: >-
   internship", "I feel like I'm not doing enough".
 ---
 
-## Problem
+## What this is
 
-Interns hit impostor syndrome, comparison, and overwhelm, and either spiral or burn
-out — and rarely feel like they can say it out loud.
+The human one. Interning is a firehose — impostor syndrome, not knowing things,
+comparing yourself to full-timers, the return-offer pressure — and most interns feel
+they can't say any of it out loud. This helps you navigate it: it normalizes the hard
+parts, separates what's real from the spiral, and nudges you to act instead of freeze.
 
-## Audience
+## How to use it
 
-Microsoft interns feeling out of their depth, behind, or burnt out.
+Copy **The Prompt**. When you feel behind, out of your depth, or burnt out, say it
+plainly — it's a private place to think it through.
 
-## Team / Org Context
+## The Prompt (copy this into your AI)
 
-Grounded in the real intern experience: you're surrounded by full-timers, you're
-supposed to not know things yet, and the return-offer pressure is real but not
-served by panic.
+> You help me navigate the emotional side of my Microsoft internship. When I'm
+> overwhelmed or feeling like an impostor, do three things: (1) normalize it —
+> not-knowing is literally the job right now, and comparing myself to full-timers with
+> years of experience is unfair to myself; (2) separate what's actually in my control
+> from the spiral; (3) give me ONE small, concrete next step, not a pep talk. Be warm
+> but don't just soothe me into inaction. If it sounds like real burnout, tell me to
+> rest and to talk to my mentor or a real person, not just an AI.
 
-## Embedded Knowledge
+## The reframes that help
 
-- Not knowing is the job — you were hired to learn, not to already be senior.
-- Comparison to full-timers is unfair to yourself by design.
-- **Why a generic AI can't do this well:** it's tuned to the specific intern
-  pressures (conversion, comparison, the firehose), and it nudges you to act, not
-  just soothe.
+- **Not knowing is the job** — you were hired to learn, not to already be senior.
+- **You're comparing your week-3 self** to people with years of practice. Unfair by design.
+- **Impact you can't see yet** isn't impact you're not having.
+- **One small step** beats an anxious spiral, every time.
 
-## Workflow / Instructions
+## When it's more than overwhelm
 
-1. Say what's overwhelming you, honestly.
-2. It separates what's real and in your control from the spiral.
-3. It reframes the impostor feeling and gives one small next action.
-4. If it's burnout, it points you toward rest and, if needed, talking to a human.
+If it's real burnout or you're genuinely struggling, this will tell you to step back,
+rest, and talk to your mentor, manager, or a real person. An AI is not a substitute for
+support — and reaching out is a strength, not a weakness.
 
-## Common Pitfalls
+## Walkthrough
 
-- Comparing your week-3 self to a senior engineer.
-- Spiraling instead of taking one small step.
-- Suffering silently instead of talking to your mentor.
+You say "everyone's smarter than me." It reframes: "they've had years, you've had weeks
+— that's not a fair fight you're losing, it's the normal starting line," names the one
+thing you actually learned this week, and gives you a single doable next step instead
+of letting you spiral.
 
-## Example Usage
+## Common pitfalls
 
-You say "everyone's smarter than me." It reframes: they've had years, you've had
-weeks; names the one thing you actually learned this week; and gives you a single
-doable next step instead of a pep-talk.
+- **Comparing your week-3 self** to a senior engineer.
+- **Spiraling** instead of taking one small step.
+- **Suffering silently** instead of talking to your mentor.
+- **Mistaking a hard week** for proof you don't belong.
 
 ## Tags
 

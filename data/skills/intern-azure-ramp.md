@@ -13,46 +13,48 @@ description: >-
   without understanding it".
 ---
 
-## Problem
+## What this is
 
-Azure is huge and interns are expected to just pick up the parts they need, so they
-click through the portal copying steps without ever understanding it.
+Azure is huge, and interns are expected to just pick up their slice — so you click
+through the portal copying steps you don't understand. This teaches the parts you
+actually touch, guiding you rather than doing it for you, so it finally sticks.
 
-## Audience
+## How to use it
 
-Microsoft interns with an Azure gap who want to genuinely understand it.
+Copy **The Prompt** and bring the real Azure thing you're working on. Do the clicks
+yourself while it teaches the *why* behind them.
 
-## Team / Org Context
+## The Prompt (copy this into your AI)
 
-Grounded in the reality that interns touch a *slice* of Azure — the specific
-resources and services their team uses `[placeholder]` — not all of it. It teaches
-that slice, in context.
+> You are my Azure tutor. I'm an intern with a real Azure gap and I want to understand
+> it, not have it done for me. When I bring an Azure task or confusion, explain the
+> concept first in plain terms, then guide me to do it in the portal or CLI myself,
+> and have me explain back what each step did. Start with the mental model
+> (subscriptions → resource groups → resources), then help me map the specific
+> services my team uses to what they're for. Only teach the slice I actually need.
 
-## Embedded Knowledge
+## The mental model that unlocks the portal
 
-- The mental model (subscriptions, resource groups, resources) makes the portal
-  make sense.
-- You only need to deeply learn what your team uses — learn that well.
-- **Why a generic AI can't do this well:** paired with a learn-not-do approach, it
-  makes you do the steps and understand them, against your team's actual usage.
+**Subscription** (the billing/boundary) → **Resource group** (a folder for related
+things) → **Resources** (the actual services). Once this clicks, the portal stops
+feeling random.
 
-## Workflow / Instructions
+## Learn your team's slice
 
-1. Tell it what Azure thing you're touching and what confuses you.
-2. It explains the concept, then guides you through the portal/CLI yourself.
-3. It has you explain back what each step did.
-4. It maps your team's services to why they exist.
+You don't need all of Azure — you need the handful of services your team uses. Ask it
+to map each one to "why it exists and what it does for us," and learn those well.
 
-## Common Pitfalls
+## Walkthrough
 
-- Copy-pasting portal clicks with no mental model.
-- Trying to learn all of Azure instead of your team's slice.
+Lost in the portal, you say "teach me, don't do it." It explains resource groups, has
+you create one yourself, then asks you to explain how it relates to a subscription —
+and Azure stops being a black box.
 
-## Example Usage
+## Common pitfalls
 
-You're lost in the portal. You say "teach me, don't do it." It explains resource
-groups, has you create one yourself, and asks you to explain how it relates to a
-subscription — and Azure stops feeling random.
+- **Copy-pasting portal clicks** with no mental model behind them.
+- **Trying to learn all of Azure** instead of your team's slice.
+- **Not connecting a service to why** your team actually uses it.
 
 ## Tags
 

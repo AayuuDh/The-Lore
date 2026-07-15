@@ -18,80 +18,77 @@ description: >-
   remember my wins for my final presentation".
 ---
 
-## Problem
+## What this is
 
-Interns do a huge amount over a summer but forget most of it by the time
-Connects, resume updates, or the final presentation come due. A blank chatbot
-can't help, because it has no idea what you actually did.
+An agent that turns your real internship work into the career artifacts that
+actually matter — your Connect, your resume bullets, your 1:1 talking points, and
+your final-presentation story — built from evidence (your commits, PRs, and notes),
+not from memory three months later.
 
-## Audience
+The trap most interns fall into: your best summer stories fade fast. By August you
+won't remember the gnarly bug you fixed in week 3 or why it mattered. This captures
+it while it's fresh and reframes it as impact when you need it.
 
-Microsoft interns (and early-career engineers) who want their real work captured
-as it happens and turned into career artifacts without scrambling at the end.
+## How to use it
 
-## Team / Org Context
+1. Open Copilot in VS Code (so it can actually see your repo) — or paste your commit
+   list and notes into any AI.
+2. Copy **The Prompt** below to turn it into your companion.
+3. Run it once a week to log progress; run it again at Connect / resume / demo time
+   to synthesize.
 
-Built around real Microsoft rituals: the **Connect** impact narrative, mentor and
-manager **1:1s**, the **midpoint and final intern presentations**, and the
-return-offer conversation. It treats your team's `[work-item board]` and `[repo]`
-as the source of truth for what you shipped.
+## The Prompt (copy this into your AI)
 
-## Workspace Context
+> You are my Internship Progress Companion at Microsoft. Your job is to help me
+> capture what I actually do this summer and later turn it into career artifacts.
+>
+> Sources of truth: my GitHub / Azure DevOps activity (commits, PRs, closed work
+> items) and the 1:1 / meeting notes I paste in. Never invent work I didn't do.
+>
+> When I say "log this week": read my recent commits/PRs and notes and produce a
+> dated entry with (a) what I shipped, (b) the impact / who it helped, (c) what I
+> learned or got better at, (d) any blocker or lesson. Keep it factual and tight.
+>
+> When I say "draft my Connect" / "resume bullets" / "1:1 update" / "presentation
+> points": synthesize from all logged entries into that format. Frame everything as
+> IMPACT, not tasks — [what I did] → [the outcome] → [who benefited]. Point out
+> where I'm underselling and push me to claim my real contribution. If the evidence
+> for a claim is thin, tell me instead of inflating it.
+>
+> Always end by asking me the one question that would make the story stronger (a
+> metric, a name, a before/after).
 
-Connects to your **GitHub / Azure DevOps** (commits, PRs, work items) and a
-folder of your **1:1 and meeting transcript notes**. Optionally your calendar for
-milestone dates.
+## The impact formula
 
-## Embedded Knowledge
+Every strong bullet = **[What you did] → [The outcome] → [Who it helped]**, with
+evidence.
+- Weak: "Fixed bugs in the search feature."
+- Strong: "Fixed 8 reliability bugs in search — the feature users hit most —
+  cutting its error rate and unblocking the team's v2 rollout."
 
-- What "impact" means in a Microsoft Connect: outcomes and who benefited, not a
-  task list.
-- The framing that lands with reviewers here: contribution, collaboration, and
-  growth over the summer.
-- **Why a generic AI can't do this:** it has none of your commits, PRs, or notes,
-  and no memory of your summer. This agent is grounded in your real evidence and
-  persists week over week.
+## Weekly ritual (2 minutes)
 
-## Required Inputs
+- **Friday:** paste the week's PRs + notes → "log this week."
+- **When it's due:** "draft my Connect / resume bullets from everything so far."
+- **Before a 1:1:** "summarize my progress and one thing to raise with my mentor."
 
-- Your GitHub / Azure DevOps handle or repo access.
-- Ongoing transcript notes from 1:1s and key meetings.
-- Optional: your team / project name and your internship goals.
+## Walkthrough
 
-## Workflow / Instructions
+It's week 10 and your final presentation is Monday. You say *"pull my whole summer
+into presentation talking points and a Connect draft."* It reads your merged PRs and
+logged notes, produces a story arc (what you owned → the impact → what you learned),
+drafts impact bullets, and surfaces two wins from week 3 you'd completely forgotten —
+then asks, "do you have a before/after number for the search fix? That would make
+slide 3 land."
 
-1. Point it at your GitHub / ADO activity and your notes folder.
-2. Each week, have it log what you shipped and learned into a running record.
-3. When a Connect, resume update, or presentation is due, ask it to synthesize
-   from that record.
-4. Review the draft, add the human color it can't know, and finalize.
+## Common pitfalls
 
-## Expected Outputs
-
-- A running progress log, a drafted Connect narrative, resume bullet points, and
-  1:1 / presentation talking points.
-
-## Internal Dependencies
-
-- GitHub / Azure DevOps; your meeting notes; your team's `[work-item board]`.
-
-## Common Pitfalls
-
-- Waiting until the end of summer — start logging in week 1.
-- Listing tasks instead of impact; feed it outcomes and it will reframe them.
-- Never paste confidential material into non-approved tools; keep everything in
-  approved surfaces.
-
-## Example Usage
-
-It's week 10. You say, "draft my final presentation talking points and my Connect
-from everything so far." It pulls your merged PRs and notes, produces a first
-draft organized by impact, and surfaces three growth stories you'd forgotten.
-
-## Adaptation Notes
-
-Any team or role can point it at their own repo, board, and notes; swap the
-Connect format for another company's review template.
+- **Starting in August.** The whole point is capturing while it's fresh — start
+  week 1, even a rough log.
+- **Listing tasks.** "Did X, did Y" is a chore list; make it reframe to outcomes.
+- **Underselling.** Interns shrink their impact; let it push you to claim it — honestly.
+- **Inflating.** If the evidence isn't there, it should say so. A modest true win
+  beats an impressive fake one.
 
 ## Tags
 

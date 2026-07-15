@@ -14,46 +14,56 @@ description: >-
   hit my goals", "reframe these tasks as outcomes".
 ---
 
-## Problem
+## What this is
 
-Interns write Connects that read like a to-do list ("did X, did Y") instead of
-impact, and undersell real work because they can't tell what counts.
+A writing agent that turns a pile of "things I did" into a Connect that reads as
+impact. The single insight it's built on: reviewers respond to **outcomes and who
+benefited**, not a task list — and interns chronically undersell, listing chores
+where they should be claiming wins.
 
-## Audience
+## How to use it
 
-Microsoft interns writing a Connect / impact narrative for a check-in or review.
+Copy **The Prompt**, then paste what you did (or hand it your log from the Internship
+Progress Companion). It drafts a Connect and interrogates you until it's strong. Best
+paired with `intern-progress-companion`, which keeps the raw material all summer.
 
-## Team / Org Context
+## The Prompt (copy this into your AI)
 
-Built around the Microsoft **Connect** format and the impact framing reviewers
-look for: outcomes, who benefited, and growth against the goals you set.
+> You help me write my Microsoft Connect. I'll paste what I did this summer (commits,
+> features, learnings, goals I set). Reframe it into IMPACT, not tasks, using the
+> shape [what I did] → [the outcome] → [who benefited]. Group it by theme or by the
+> goals I set. Where I'm underselling, push me to claim more; where the evidence is
+> thin, tell me rather than inflate. Then ask me for the one metric or name that
+> would make each point land harder. Keep it honest and in my voice — no corporate
+> fluff.
 
-## Embedded Knowledge
+## The impact rewrite (before → after)
 
-- Impact = the outcome and who it helped, not the task you performed.
-- Interns chronically undersell; strong Connects claim impact confidently and
-  honestly.
-- **Why a generic AI can't do this:** it's tuned to the Connect format and pushes
-  you to reframe *your* real work as impact, not write generic self-praise.
+- "Fixed bugs" → "Cut the search error rate by clearing 8 reliability bugs,
+  unblocking the team's v2 rollout."
+- "Wrote tests" → "Added tests that caught 3 regressions before they reached users."
+- "Learned React / attended meetings" → frame learning as *applied*: "Ramped on React
+  and shipped the new settings page solo by week 6."
 
-## Workflow / Instructions
+## What a strong Connect shows
 
-1. Paste what you did (or point it at your progress log / commits).
-2. It groups the work by outcome and drafts impact-framed bullets.
-3. It flags where you're underselling and pushes you to claim more.
-4. You add honesty and nuance, then finalize.
+1. **Impact** — what changed because you were here.
+2. **Collaboration** — who you worked with and the feedback you acted on.
+3. **Growth** — what you can do now that you couldn't in week 1.
 
-## Common Pitfalls
+## Walkthrough
 
-- Listing tasks instead of outcomes.
-- Underselling real contributions.
-- Inflating — it keeps you honest, not boastful.
+You paste "fixed 8 bugs, added a search feature, learned the codebase." It returns a
+Connect grouped into Impact / Collaboration / Growth, reframes each line as an
+outcome, and asks: "who used the search feature, and did anything measurable change?"
+— so your headline impact isn't vague.
 
-## Example Usage
+## Common pitfalls
 
-You paste "fixed 8 bugs, added a search feature." It reframes: "Shipped search
-that cut users' time-to-find, and cleared a backlog of 8 reliability bugs" — tied
-to your summer goal — and asks who benefited so it's concrete.
+- **To-do-list phrasing** ("did X, did Y").
+- **Underselling** real contributions out of modesty.
+- **Vague "helped with X"** — it makes you name your specific part.
+- **Inflating** past the evidence — it keeps you honest.
 
 ## Tags
 

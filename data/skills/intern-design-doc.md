@@ -13,46 +13,53 @@ description: >-
   "turn my idea into a one-pager".
 ---
 
-## Problem
+## What this is
 
-Interns dive into code without a design doc, miss early feedback, and lose the
-chance to look thoughtful — or they're asked for a spec and don't know the format.
+Before you build, a short design doc gets you feedback early and makes you look
+thoughtful — and when your manager asks for a spec, you'll know the format. This helps
+you write one and pushes you to *justify* your approach, not just describe it.
 
-## Audience
+## How to use it
 
-Microsoft interns starting a project or asked to write a spec / design doc.
+Copy **The Prompt** at the start of your project. Bring your rough idea; it structures
+the doc and interrogates your thinking before you write a line of code.
 
-## Team / Org Context
+## The Prompt (copy this into your AI)
 
-Grounded in Microsoft design-doc norms: problem statement, proposed approach,
-alternatives, risks, and a rollout/testing plan, in your team's template
-`[placeholder]`.
+> You help me write a design doc / spec for my intern project at Microsoft. I'll give
+> you the problem and my rough idea. Structure it as: Problem, Goals / Non-goals,
+> Proposed approach, Alternatives I considered (and why I rejected them), Risks, and a
+> Testing / rollout plan. As we go, challenge my approach — make me justify "why this,
+> not the simpler thing?" — and surface risks I haven't thought of. Keep it short; a
+> design doc is for thinking and feedback, not ceremony. Flag anything a reviewer will
+> poke at.
 
-## Embedded Knowledge
+## What a design doc is actually for
 
-- A design doc is for *thinking and feedback*, not ceremony — short is fine.
-- Showing alternatives and why you rejected them signals judgment.
-- **Why a generic AI can't do this:** it structures to your team's format and
-  pushes you to justify decisions, not produce a generic template.
+Not ceremony — it's a cheap way to get feedback and catch a bad approach before you've
+written 2,000 lines. Short is fine. The value is in the thinking, not the length.
 
-## Workflow / Instructions
+## The sections that matter
 
-1. Tell it the problem and your rough idea.
-2. It drafts the structure and interrogates your approach (why this, not that?).
-3. It surfaces risks and a testing/rollout plan.
-4. You refine; it flags anything reviewers will poke at.
+- **Problem** — what, and why anyone should care.
+- **Proposed approach** — your plan, concretely.
+- **Alternatives** — what else you considered and why you didn't (this is the part
+  that signals judgment).
+- **Risks** — what could go wrong.
+- **Plan** — how you'll test and roll it out.
 
-## Common Pitfalls
-
-- Skipping the doc and coding straight away.
-- Describing the solution without justifying it.
-- Ignoring alternatives and risks.
-
-## Example Usage
+## Walkthrough
 
 You say "here's my feature idea, help me spec it." It drafts a one-pager, then asks
-"why this approach over the simpler one?" — and you realize you hadn't considered
-it, which is exactly the point.
+"why this approach over the simpler one?" — and you realize you hadn't considered it,
+which is exactly why you write the doc before the code.
+
+## Common pitfalls
+
+- **Skipping the doc** and coding straight away.
+- **Describing the solution** without justifying it.
+- **Ignoring alternatives and risks.**
+- **Writing a novel** when a page will do.
 
 ## Tags
 

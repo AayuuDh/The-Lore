@@ -15,68 +15,48 @@ description: >-
   branches, help me understand".
 ---
 
-## Problem
+## What this is
 
-GitHub is everywhere in the day-to-day here, but interns are expected to just pick
-it up. So you copy commands you don't understand, dread merge conflicts, and never
-feel fluent.
+GitHub is everywhere in the day-to-day here, and nobody sits you down to teach it —
+so you copy commands you don't understand and dread merge conflicts. This teaches the
+parts you actually hit, hands-on with your repo, and (paired with a learn-not-do
+approach) makes *you* do it so it sticks.
 
-## Audience
+## How to use it
 
-Microsoft interns who use GitHub constantly but want to actually understand it end
-to end.
+Copy **The Prompt** into Copilot in VS Code so it can see your repo. Bring the exact
+thing you're unsure about — a real conflict, a confusing command, your team's PR flow.
 
-## Team / Org Context
+## The Prompt (copy this into your AI)
 
-Grounded in how Microsoft teams use GitHub daily: branch-and-PR workflow, code
-review and required checks, your team's specific PR policies `[placeholder]`, and
-Actions/pipelines for CI.
+> You are my GitHub tutor. I use GitHub daily but don't fully understand it, and I
+> want to actually learn — teach, don't just do. When I bring a situation (a merge
+> conflict, a confusing command, my team's PR flow), first explain the concept in
+> plain terms, then guide me to do it myself step by step, and have me explain back
+> what each step did. Over time, cover: branches, pull requests, code review, merge
+> vs rebase, resolving conflicts, and GitHub Actions basics. Tie everything to my
+> actual repo and my team's flow.
 
-## Workspace Context
+## The map (what to actually learn)
 
-Your real repo and terminal — you run the commands, it teaches the "why."
+- **Branches** — why they exist, create/switch, keeping yours up to date.
+- **Pull requests** — small and focused, a description reviewers love, responding to review.
+- **Merge vs rebase** — what each does to history, and when to use which.
+- **Conflicts** — what the `<<<<<<<` / `=======` markers mean, resolving calmly.
+- **Actions** — reading a failed check and the basics of CI.
 
-## Embedded Knowledge
+## Walkthrough
 
-- The mental model behind branches, merge vs. rebase, and what a PR really is —
-  the stuff commands make sense once you get.
-- Your team's PR etiquette (small PRs, clear descriptions, responding to review).
-- **Why a generic AI can't do this well:** it teaches against YOUR repo and your
-  team's flow, and (paired with the Learn-It-Don't-Do-It approach) makes you do
-  the doing so it sticks.
+A conflict pops up mid-PR. You say "walk me through this, teach don't do." It explains
+the markers, has you resolve one hunk yourself, then asks "why did this conflict
+happen in the first place?" — and you finally understand rebasing for every future one.
 
-## Required Inputs
+## Common pitfalls
 
-- Your repo, and whatever git thing you're currently unsure about.
-
-## Workflow / Instructions
-
-1. Bring the exact situation (a conflict, a confusing command, your PR flow).
-2. It explains the concept, then guides you through doing it yourself.
-3. It has you narrate what each step did, so you retain it.
-4. Repeat across branches → PRs → reviews → conflicts → rebases → Actions.
-
-## Expected Outputs
-
-- Real fluency: you can branch, open a clean PR, resolve conflicts, and read
-  Actions without panic.
-
-## Common Pitfalls
-
-- Blindly running `git` commands from AI without understanding them.
-- Giant PRs and vague descriptions; it teaches the etiquette that gets you good
-  reviews.
-- Fearing rebase/conflicts instead of practicing them safely.
-
-## Example Usage
-
-A conflict pops up mid-PR. You say "walk me through this, teach don't do." It
-explains the markers, has you resolve one hunk yourself, then asks you to explain
-why the conflict happened — and you finally get it.
-
-## Adaptation Notes
-
-Swap in any team's PR policies and CI setup; the learning path is the same.
+- **Blindly running git commands** from AI with no understanding.
+- **Giant PRs with vague descriptions** — it teaches the etiquette that earns good reviews.
+- **Fearing rebase and conflicts** instead of practicing them safely.
+- **Ignoring the actual error** in a failed check.
 
 ## Tags
 
