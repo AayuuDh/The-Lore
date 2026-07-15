@@ -1,0 +1,54 @@
+[
+  { "query": "draft my connect from my commits and notes so far", "expected_skill_ids": ["intern-progress-companion"] },
+  { "query": "turn what i did this sprint into resume bullet points", "expected_skill_ids": ["intern-progress-companion"] },
+  { "query": "what have i actually shipped this internship", "expected_skill_ids": ["intern-progress-companion"] },
+  { "query": "track my internship progress from my github", "expected_skill_ids": ["intern-progress-companion"] },
+  { "query": "help me remember my wins for my final presentation", "expected_skill_ids": ["intern-progress-companion"] },
+
+  { "query": "i'm a brand new intern what should i do my first week", "expected_skill_ids": ["intern-onboarding-buddy"] },
+  { "query": "how do i request access to my team's repo", "expected_skill_ids": ["intern-onboarding-buddy"] },
+  { "query": "who do i ask about build failures on my team", "expected_skill_ids": ["intern-onboarding-buddy"] },
+  { "query": "walk me through setting up my dev environment", "expected_skill_ids": ["intern-onboarding-buddy"] },
+
+  { "query": "how do i meet other interns", "expected_skill_ids": ["intern-find-your-people"] },
+  { "query": "i feel lonely as an intern what can i do", "expected_skill_ids": ["intern-find-your-people"] },
+  { "query": "help me write a coffee chat message to someone on my team", "expected_skill_ids": ["intern-find-your-people"] },
+  { "query": "what intern events should i go to", "expected_skill_ids": ["intern-find-your-people"] },
+
+  { "query": "help me structure my internship project into milestones", "expected_skill_ids": ["intern-accountability-coach"] },
+  { "query": "hold me accountable to my goals this week", "expected_skill_ids": ["intern-accountability-coach"] },
+  { "query": "am i on track for a return offer", "expected_skill_ids": ["intern-accountability-coach"] },
+  { "query": "push me and challenge my plan don't go easy", "expected_skill_ids": ["intern-accountability-coach"] },
+
+  { "query": "teach me git rebase don't just do it for me", "expected_skill_ids": ["intern-learn-not-do-tutor"] },
+  { "query": "i keep letting AI do everything make me actually learn", "expected_skill_ids": ["intern-learn-not-do-tutor"] },
+  { "query": "give me a hint not the answer", "expected_skill_ids": ["intern-learn-not-do-tutor"] },
+
+  { "query": "help me ask my teammate for help without sounding dumb", "expected_skill_ids": ["intern-collaborate-from-pod"] },
+  { "query": "draft a teams message to unblock myself", "expected_skill_ids": ["intern-collaborate-from-pod"] },
+
+  { "query": "explain my team's pull request process", "expected_skill_ids": ["intern-github-mastery", "intern-first-pr"] },
+  { "query": "walk me through resolving this merge conflict", "expected_skill_ids": ["intern-github-mastery"] },
+
+  { "query": "make a meme about our three day bug", "expected_skill_ids": ["intern-team-meme-generator"] },
+  { "query": "celebration post for shipping my feature", "expected_skill_ids": ["intern-team-meme-generator"] },
+
+  { "query": "write my connect from what i did this summer", "expected_skill_ids": ["intern-connect-writer"] },
+  { "query": "make my connect sound like impact not tasks", "expected_skill_ids": ["intern-connect-writer"] },
+  { "query": "build my final intern presentation", "expected_skill_ids": ["intern-final-presentation-builder"] },
+  { "query": "structure my demo day deck", "expected_skill_ids": ["intern-final-presentation-builder"] },
+  { "query": "how do i get a return offer", "expected_skill_ids": ["intern-return-offer-coach"] },
+  { "query": "how do i finish my internship strong", "expected_skill_ids": ["intern-return-offer-coach"] },
+  { "query": "what does this acronym mean here", "expected_skill_ids": ["intern-acronym-decoder"] },
+  { "query": "decode this jargon filled message for a new intern", "expected_skill_ids": ["intern-acronym-decoder"] },
+  { "query": "how do i open my first pull request", "expected_skill_ids": ["intern-first-pr"] },
+  { "query": "write a good pull request description", "expected_skill_ids": ["intern-first-pr"] },
+  { "query": "how do i handle harsh code review feedback", "expected_skill_ids": ["intern-code-review-etiquette"] },
+  { "query": "help me finally understand azure", "expected_skill_ids": ["intern-azure-ramp"] },
+  { "query": "teach me the azure portal basics", "expected_skill_ids": ["intern-azure-ramp"] },
+  { "query": "help me write my project design doc", "expected_skill_ids": ["intern-design-doc"] },
+  { "query": "i feel like i don't belong here", "expected_skill_ids": ["intern-navigating-overwhelm"] },
+  { "query": "i'm burnt out halfway through my internship", "expected_skill_ids": ["intern-navigating-overwhelm"] },
+  { "query": "how does my change actually ship", "expected_skill_ids": ["intern-ship-safely"] },
+  { "query": "what's a feature flag and how do i use one", "expected_skill_ids": ["intern-ship-safely"] }
+]
