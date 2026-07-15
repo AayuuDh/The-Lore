@@ -10,27 +10,39 @@ import {
   SignOutIcon,
 } from "@primer/octicons-react";
 import logo from "../assets/logo light.png";
+import { getRecentlyViewed } from "../recentlyViewed";
+import { getAchievements, getAchievementSummary } from "../achievements";
 import "./TopNav.css";
 
-function TopNav({ onMenuClick, currentPage, streak, username, onOpenProfile }) {
+function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, onOpenProfile, onOpenSettings, onOpenSkill }) {
   // The MSAL engine — used to sign the user out.
   const { instance } = useMsal();
   // Whether the profile dropdown is open.
   const [menuOpen, setMenuOpen] = useState(false);
+  // Whether the streak/achievements popup is open.
+  const [activityOpen, setActivityOpen] = useState(false);
   // Ref around the avatar + menu so we can close it when clicking elsewhere.
   const menuRef = useRef(null);
+  // Ref around the activity button + popup, same purpose.
+  const activityRef = useRef(null);
 
-  // Close the dropdown when the user clicks anywhere outside of it, or presses
-  // Escape. Only wire these listeners up while the menu is actually open.
+  // Close either dropdown when the user clicks anywhere outside of it, or
+  // presses Escape. Only wire these listeners up while something is open.
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!menuOpen && !activityOpen) return;
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      if (menuOpen && menuRef.current && !menuRef.current.contains(event.target)) {
         setMenuOpen(false);
+      }
+      if (activityOpen && activityRef.current && !activityRef.current.contains(event.target)) {
+        setActivityOpen(false);
       }
     };
     const handleKeyDown = (event) => {
-      if (event.key === "Escape") setMenuOpen(false);
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        setActivityOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleKeyDown);
@@ -38,12 +50,29 @@ function TopNav({ onMenuClick, currentPage, streak, username, onOpenProfile }) {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [menuOpen]);
+  }, [menuOpen, activityOpen]);
+
+  // Recently-opened skills and badge progress, read fresh each time the popup
+  // renders so it never shows stale numbers.
+  const recentSkills = getRecentlyViewed();
+  const achievements = getAchievements();
+  const achievementSummary = getAchievementSummary();
+
+  // Open a skill from the "Jump back in" row and close the popup behind it.
+  const handleOpenRecentSkill = (skillId) => {
+    setActivityOpen(false);
+    onOpenSkill?.(skillId);
+  };
 
   // Open the existing profile page (the one item with a real destination).
   const handleProfile = () => {
     setMenuOpen(false);
     onOpenProfile();
+  };
+
+  const handleSettings = () => {
+    setMenuOpen(false);
+    onOpenSettings();
   };
 
   // Sign the user out. logoutRedirect clears the MSAL session and sends the
@@ -83,16 +112,89 @@ function TopNav({ onMenuClick, currentPage, streak, username, onOpenProfile }) {
 
       {/* Right group */}
       <div className="topnav__right">
-        {streak && streak.current > 0 && (
-          <div
-            className="topnav__streak"
-            title={`${streak.current}-day streak \u2014 best: ${streak.longest}`}
-            aria-label={`${streak.current} day streak`}
+        {/* Streak + achievements + recently-opened, all behind one button */}
+        <div className="topnav__activity" ref={activityRef}>
+          <button
+            className="topnav__activity-btn"
+            aria-label="Streaks and achievements"
+            aria-haspopup="dialog"
+            aria-expanded={activityOpen}
+            onClick={() => setActivityOpen((open) => !open)}
+            title={
+              streak && streak.current > 0
+                ? `${streak.current}-day streak \u2014 best: ${streak.longest}`
+                : "Streaks & achievements"
+            }
           >
-            <FlameIcon size={16} />
-            <span>{streak.current}</span>
-          </div>
-        )}
+            <FlameIcon
+              size={16}
+              className={`topnav__activity-flame${streak && streak.current > 0 ? " is-active" : ""}`}
+            />
+            {streak && streak.current > 0 && <span>{streak.current}</span>}
+          </button>
+
+          {activityOpen && (
+            <div className="topnav__activity-panel" role="dialog" aria-label="Your progress">
+              <div className="topnav__activity-streak">
+                <FlameIcon
+                  size={22}
+                  className={`topnav__activity-flame${streak && streak.current > 0 ? " is-active" : ""}`}
+                />
+                <div className="topnav__activity-streak-text">
+                  <span className="topnav__activity-streak-current">
+                    {streak?.current > 0 ? `${streak.current}-day streak` : "No streak yet"}
+                  </span>
+                  <span className="topnav__activity-streak-best">
+                    Best: {streak?.longest || 0} {streak?.longest === 1 ? "day" : "days"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="topnav__activity-section">
+                <h3 className="topnav__activity-section-title">
+                  Achievements
+                  <span className="topnav__activity-achievements-count">
+                    {achievementSummary.earned} / {achievementSummary.total}
+                  </span>
+                </h3>
+                <div className="topnav__activity-badges">
+                  {achievements.map((badge) => (
+                    <div
+                      key={badge.id}
+                      className={`topnav__activity-badge${badge.earned ? " is-earned" : " is-locked"}`}
+                      title={badge.description}
+                    >
+                      <span className="topnav__activity-badge-emoji">{badge.emoji}</span>
+                      <div className="topnav__activity-badge-text">
+                        <span className="topnav__activity-badge-title">{badge.title}</span>
+                        <span className="topnav__activity-badge-desc">{badge.description}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {recentSkills.length > 0 && (
+                <div className="topnav__activity-section">
+                  <h3 className="topnav__activity-section-title">Jump back in</h3>
+                  <div className="topnav__activity-recent-row">
+                    {recentSkills.map((skill) => (
+                      <button
+                        key={skill.id}
+                        className="topnav__activity-recent-card"
+                        onClick={() => handleOpenRecentSkill(skill.id)}
+                        title={skill.description}
+                      >
+                        {skill.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Profile avatar + dropdown menu */}
         <div className="topnav__profile" ref={menuRef}>
           <button
@@ -109,12 +211,18 @@ function TopNav({ onMenuClick, currentPage, streak, username, onOpenProfile }) {
 
           {menuOpen && (
             <div className="topnav__menu" role="menu">
-              {username && (
-                <div className="topnav__menu-header">
-                  <span className="topnav__menu-header-label">Signed in as</span>
-                  <span className="topnav__menu-header-name">{username}</span>
+              <div className="topnav__menu-account">
+                <div className="topnav__menu-account-avatar" aria-hidden="true">
+                  <PersonIcon size={20} />
                 </div>
-              )}
+                <div className="topnav__menu-account-details">
+                  <span className="topnav__menu-account-email">{email || "Signed in"}</span>
+                  <span className="topnav__menu-account-username">
+                    {username ? `@${username}` : "Choose a username"}
+                  </span>
+                  {nickname && <span className="topnav__menu-account-nickname">{nickname}</span>}
+                </div>
+              </div>
 
               <button
                 className="topnav__menu-item"
@@ -122,22 +230,13 @@ function TopNav({ onMenuClick, currentPage, streak, username, onOpenProfile }) {
                 onClick={handleProfile}
               >
                 <PersonIcon size={16} />
-                <span>Your profile</span>
+                <span>Profile</span>
               </button>
 
               <button
                 className="topnav__menu-item"
                 role="menuitem"
-                onClick={() => setMenuOpen(false)}
-              >
-                <StarIcon size={16} />
-                <span>Favorites</span>
-              </button>
-
-              <button
-                className="topnav__menu-item"
-                role="menuitem"
-                onClick={() => setMenuOpen(false)}
+                onClick={handleSettings}
               >
                 <GearIcon size={16} />
                 <span>Settings</span>
@@ -148,8 +247,26 @@ function TopNav({ onMenuClick, currentPage, streak, username, onOpenProfile }) {
                 role="menuitem"
                 onClick={() => setMenuOpen(false)}
               >
+                <StarIcon size={16} />
+                <span>Updates</span>
+              </button>
+
+              <button
+                className="topnav__menu-item"
+                role="menuitem"
+                onClick={() => setMenuOpen(false)}
+              >
                 <QuestionIcon size={16} />
-                <span>Help</span>
+                <span>Accessibility</span>
+              </button>
+
+              <button
+                className="topnav__menu-item"
+                role="menuitem"
+                onClick={() => setMenuOpen(false)}
+              >
+                <StarIcon size={16} />
+                <span>Appearance</span>
               </button>
 
               <div className="topnav__menu-divider" />

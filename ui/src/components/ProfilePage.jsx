@@ -1,30 +1,19 @@
 import { useState } from "react";
-import { ArrowLeftIcon, PersonIcon, SyncIcon } from "@primer/octicons-react";
+import { ArrowLeftIcon, PencilIcon, SyncIcon } from "@primer/octicons-react";
 import { updateProfile } from "../api";
 import "./ProfilePage.css";
 
-// The profile / onboarding screen. Shown right after first sign-in (onboarding
-// mode) and any time the user opens "Profile" from the nav.
-//
-// Rules the UI enforces (mirrored by the backend):
-//   - Everyone gets an auto-generated anonymous username they can change.
-//   - Contact details (email / phone / other) are OPTIONAL and can be skipped.
-//   - To ADD skills you must have a username (always true) AND have chosen
-//     whether you're willing to be contacted. So the contact choice is the one
-//     thing we nudge people to set, but they can still skip during onboarding.
-//
-// Props:
-//   profile        - the current profile object from the backend
-//   userId         - the signed-in user's stable id (for PATCH calls)
-//   onSaved(p)     - called with the updated profile after a successful save
-//   onSkip         - leave without saving (goes home)
-//   isOnboarding   - true right after first sign-in; tweaks the copy/buttons
-//   reason         - optional string explaining why they were sent here
-function ProfilePage({ profile, userId, onSaved, onSkip, isOnboarding, reason }) {
+const ACTIVITY_TYPES = [
+  { label: "Skills added", key: "added", color: "#3fb950" },
+  { label: "Skills downloaded", key: "downloaded", color: "#58a6ff" },
+  { label: "Skills edited", key: "edited", color: "#d2a8ff" },
+];
+
+function ProfilePage({ profile, userId, email, onSaved, onSkip, isOnboarding, reason }) {
+  const [editing, setEditing] = useState(isOnboarding);
   const [username, setUsername] = useState(profile?.username ?? "");
-  // contactable is a tri-state: null (undecided) | true | false.
   const [contactable, setContactable] = useState(profile?.contactable ?? null);
-  const [email, setEmail] = useState(profile?.contact_email ?? "");
+  const [emailAddress, setEmailAddress] = useState(profile?.contact_email ?? "");
   const [phone, setPhone] = useState(profile?.contact_phone ?? "");
   const [other, setOther] = useState(profile?.contact_other ?? "");
   const [saving, setSaving] = useState(false);
@@ -42,13 +31,13 @@ function ProfilePage({ profile, userId, onSaved, onSkip, isOnboarding, reason })
       const updated = await updateProfile(userId, {
         username: trimmed,
         contactable,
-        contact_email: email,
+        contact_email: emailAddress,
         contact_phone: phone,
         contact_other: other,
       });
       onSaved(updated);
+      setEditing(false);
     } catch (err) {
-      // 409 = the chosen username is taken; the backend detail already says so.
       setError(err.message || "Could not save your profile.");
     } finally {
       setSaving(false);
@@ -60,137 +49,70 @@ function ProfilePage({ profile, userId, onSaved, onSkip, isOnboarding, reason })
       <main className="profile-page__main">
         {!isOnboarding && (
           <button className="profile-page__back" onClick={onSkip}>
-            <ArrowLeftIcon size={16} />
-            <span>Back to Home</span>
+            <ArrowLeftIcon size={16} /> Back to Home
           </button>
         )}
 
-        <section className="profile-page__hero">
-          <div className="profile-page__avatar">
-            <PersonIcon size={28} />
-          </div>
-          <p className="profile-page__eyebrow">
-            {isOnboarding ? "Welcome" : "Your profile"}
-          </p>
-          <h1 className="profile-page__title">
-            {isOnboarding ? "Set up your profile" : "Profile"}
-          </h1>
-          <p className="profile-page__subtitle">
-            You&apos;re known here by an anonymous handle &mdash; never your real name
-            or alias. Everything except the username is optional and can be skipped.
-          </p>
+        <aside className="profile-page__sidebar">
+          <div className="profile-page__avatar" aria-label="Profile photo placeholder" />
+          <h1>@{profile?.username || "username"}</h1>
+          <p className="profile-page__email">{email || "No account email available"}</p>
+          <button className="profile-page__edit-button" type="button" onClick={() => setEditing(true)}>
+            <PencilIcon size={15} /> Edit profile
+          </button>
+        </aside>
 
+        <div className="profile-page__content">
           {reason && <div className="profile-page__notice">{reason}</div>}
           {error && <div className="profile-page__error">{error}</div>}
 
-          <div className="profile-page__card">
-            <label className="profile-page__field">
-              <span className="profile-page__label">
-                Username <span className="profile-page__required">required</span>
-              </span>
-              <input
-                className="profile-page__input"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="AnonymousPanda"
-                maxLength={40}
-                aria-label="Username"
-              />
-              <span className="profile-page__hint">
-                Auto-generated for you. Change it to any unused handle you like.
-              </span>
-            </label>
-
-            <div className="profile-page__field">
-              <span className="profile-page__label">
-                Would you like to be contacted?
-                <span className="profile-page__required">required to add skills</span>
-              </span>
-              <span className="profile-page__hint">
-                If someone wants to use one of your skills, may we let them reach you?
-              </span>
-              <div className="profile-page__choice-row">
-                <button
-                  type="button"
-                  className={`profile-page__choice ${contactable === true ? "profile-page__choice--active" : ""}`}
-                  onClick={() => setContactable(true)}
-                >
-                  Yes, I&apos;m open to it
-                </button>
-                <button
-                  type="button"
-                  className={`profile-page__choice ${contactable === false ? "profile-page__choice--active" : ""}`}
-                  onClick={() => setContactable(false)}
-                >
-                  No, keep me private
-                </button>
+          <section className="profile-page__summary" aria-label="Skill activity summary">
+            {ACTIVITY_TYPES.map(({ label, key, color }) => (
+              <div className="profile-page__stat" key={key}>
+                <span className="profile-page__stat-dot" style={{ backgroundColor: color }} />
+                <strong>0</strong>
+                <span>{label}</span>
               </div>
-            </div>
+            ))}
+          </section>
 
-            {/* Contact details are only meaningful if they're open to contact. */}
-            {contactable === true && (
-              <>
-                <label className="profile-page__field">
-                  <span className="profile-page__label">Email (optional)</span>
-                  <input
-                    className="profile-page__input"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                  />
-                </label>
+          {editing && (
+            <section className="profile-page__editor" aria-labelledby="profile-editor-title">
+              <div className="profile-page__editor-heading">
+                <div>
+                  <h2 id="profile-editor-title">Edit profile</h2>
+                  <p>Your username is public and can be changed at any time.</p>
+                </div>
+                {!isOnboarding && <button type="button" className="profile-page__close-button" onClick={() => setEditing(false)}>Cancel</button>}
+              </div>
 
-                <label className="profile-page__field">
-                  <span className="profile-page__label">Phone (optional)</span>
-                  <input
-                    className="profile-page__input"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+1 555 123 4567"
-                  />
-                </label>
+              <label className="profile-page__field">
+                <span>Username</span>
+                <input value={username} onChange={(event) => setUsername(event.target.value)} placeholder="your-username" maxLength={40} />
+              </label>
 
-                <label className="profile-page__field">
-                  <span className="profile-page__label">Anything else (optional)</span>
-                  <textarea
-                    className="profile-page__textarea"
-                    rows={2}
-                    value={other}
-                    onChange={(e) => setOther(e.target.value)}
-                    placeholder="Best way / times to reach you, Teams handle, etc."
-                  />
-                </label>
-              </>
-            )}
+              <div className="profile-page__field">
+                <span>Available for collaboration</span>
+                <div className="profile-page__choice-row">
+                  <button type="button" className={contactable === true ? "profile-page__choice profile-page__choice--active" : "profile-page__choice"} onClick={() => setContactable(true)}>Yes, I&apos;m open to it</button>
+                  <button type="button" className={contactable === false ? "profile-page__choice profile-page__choice--active" : "profile-page__choice"} onClick={() => setContactable(false)}>No, keep me private</button>
+                </div>
+              </div>
 
-            <div className="profile-page__actions">
-              <button
-                className="profile-page__save-btn"
-                type="button"
-                onClick={handleSave}
-                disabled={saving}
-              >
-                {saving ? (
-                  <>
-                    <SyncIcon size={16} /> Saving...
-                  </>
-                ) : (
-                  "Save profile"
-                )}
+              {contactable === true && (
+                <div className="profile-page__contact-fields">
+                  <label className="profile-page__field"><span>Contact email</span><input type="email" value={emailAddress} onChange={(event) => setEmailAddress(event.target.value)} /></label>
+                  <label className="profile-page__field"><span>Phone</span><input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} /></label>
+                  <label className="profile-page__field"><span>Other contact details</span><textarea rows={2} value={other} onChange={(event) => setOther(event.target.value)} /></label>
+                </div>
+              )}
+
+              <button className="profile-page__save-button" type="button" onClick={handleSave} disabled={saving}>
+                {saving ? <><SyncIcon size={16} /> Saving...</> : "Save changes"}
               </button>
-              <button
-                className="profile-page__skip-btn"
-                type="button"
-                onClick={onSkip}
-                disabled={saving}
-              >
-                {isOnboarding ? "Skip for now" : "Cancel"}
-              </button>
-            </div>
-          </div>
-        </section>
+            </section>
+          )}
+        </div>
       </main>
     </div>
   );

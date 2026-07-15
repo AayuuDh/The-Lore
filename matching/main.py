@@ -228,14 +228,18 @@ def add_skill_endpoint(req: SaveSkillRequest):
     """
     payload = req.model_dump()
 
-    # Gate: you may only publish a skill once your profile is complete enough,
-    # i.e. you have a username (always true after ensure_user) AND you've said
-    # whether other users may contact you about your skills.
+    # Gate: you may only publish a skill once a public username has been chosen
+    # and the contact preference has been decided.
     if not req.user_id:
         raise HTTPException(status_code=400, detail="sign-in required to add a skill")
     profile = get_user(req.user_id)
     if profile is None:
         raise HTTPException(status_code=400, detail="complete your profile before adding a skill")
+    if not profile.get("username"):
+        raise HTTPException(
+            status_code=400,
+            detail="choose a username before adding a skill",
+        )
     if profile.get("contactable") is None:
         raise HTTPException(
             status_code=400,

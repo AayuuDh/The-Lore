@@ -11,6 +11,7 @@ import SkillsPage from "./components/SkillsPage";
 import AddSkillPage from "./components/AddSkillPage";
 import SkillEditor from "./components/SkillEditor";
 import ProfilePage from "./components/ProfilePage";
+import SettingsPage from "./components/SettingsPage";
 import Footer from "./components/Footer";
 import Login from "./components/Login";
 import "./App.css";
@@ -64,6 +65,7 @@ function App() {
   // the profile key; it is NOT the person's email/alias, so it stays private.
   const { accounts } = useMsal();
   const userId = accounts[0]?.localAccountId ?? null;
+  const accountEmail = accounts[0]?.username ?? "";
 
   // The user's profile (anonymous username + optional contact info). null until
   // we've fetched/created it. `profileReason` carries a message when we bounce
@@ -77,6 +79,7 @@ function App() {
   // TopNav can show the flame counter. recordVisit() is safe to call every load:
   // it only bumps the streak once per calendar day.
   const [streak, setStreak] = useState(null);
+
   useEffect(() => {
     if (isAuthenticated) {
       setStreak(recordVisit());
@@ -211,8 +214,12 @@ function App() {
               onMenuClick={() => setSidebarOpen(true)}
               currentPage={currentPage}
               streak={streak}
+              email={accountEmail}
+              nickname={profile?.nickname}
               username={profile?.username}
               onOpenProfile={() => handleNavSelect("Profile")}
+              onOpenSettings={() => handleNavSelect("Settings")}
+              onOpenSkill={openSkill}
             />
 
             <div className="content-area">
@@ -249,6 +256,7 @@ function App() {
                   <ProfilePage
                     profile={profile}
                     userId={userId}
+                    email={accountEmail}
                     isOnboarding={isOnboarding}
                     reason={profileReason}
                     onSaved={(updated) => {
@@ -258,6 +266,14 @@ function App() {
                       handleNavSelect("Home");
                     }}
                     onSkip={() => handleNavSelect("Home")}
+                  />
+                ) : currentPage === "Settings" ? (
+                  <SettingsPage
+                    key={profile?.id ?? "loading-profile"}
+                    profile={profile}
+                    userId={userId}
+                    email={accountEmail}
+                    onSaved={setProfile}
                   />
                 ) : (
                   <Discover

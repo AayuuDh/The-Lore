@@ -175,11 +175,10 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
   // --- Save: search the catalog for a near-duplicate before publishing --------
   async function handleSave() {
     // Gate: you can only publish a skill once your profile is complete enough.
-    // The username is auto-generated, but the "may we contact you?" choice must
-    // be made first. If it hasn't been, send the user to the profile page.
-    if (!profile || profile.contactable === null || profile.contactable === undefined) {
+    // A public username and contact preference are both required before saving.
+    if (!profile || !profile.username || profile.contactable === null || profile.contactable === undefined) {
       onRequireProfile(
-        "Before adding a skill, please choose whether you'd like to be contacted."
+        "Before adding a skill, choose a username and whether you'd like to be contacted."
       );
       return;
     }

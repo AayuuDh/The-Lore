@@ -5,7 +5,8 @@ container, keyed by the stable id their sign-in provider gives us (the MSAL
 account's localAccountId). The profile holds:
 
     id             - the stable per-user key (partition key)
-    username       - a Reddit-style anonymous handle, e.g. "AnonymousPanda"
+    nickname       - an auto-generated anonymous handle, e.g. "AnonymousPanda"
+    username       - the user's editable, unique public handle
     username_lower - the same, lowercased, so uniqueness checks are case-insensitive
     contactable    - None (undecided) | True | False. Whether other users may be
                      told how to reach this person to ask about their skills.
@@ -102,6 +103,8 @@ def _public(doc: dict) -> dict:
     return {
         "id": doc["id"],
         "username": doc.get("username", ""),
+        # Profiles created before nicknames existed used username for this value.
+        "nickname": doc.get("nickname", doc.get("username", "")),
         "contactable": doc.get("contactable"),
         "contact_email": doc.get("contact_email", ""),
         "contact_phone": doc.get("contact_phone", ""),
@@ -132,15 +135,20 @@ def ensure_user(user_id: str) -> tuple[dict, bool]:
     container = get_users_container()
     try:
         doc = container.read_item(item=user_id, partition_key=user_id)
+        # Preserve the existing generated handle while migrating older profiles.
+        if "nickname" not in doc:
+            doc["nickname"] = doc.get("username", "")
+            container.replace_item(item=doc["id"], body=doc)
         return _public(doc), False
     except CosmosResourceNotFoundError:
         pass
 
-    username = generate_username(container)
+    nickname = generate_username(container)
     doc = {
         "id": user_id,
-        "username": username,
-        "username_lower": username.lower(),
+        "nickname": nickname,
+        "username": "",
+        "username_lower": "",
         "contactable": None,        # undecided until the user chooses
         "contact_email": "",
         "contact_phone": "",

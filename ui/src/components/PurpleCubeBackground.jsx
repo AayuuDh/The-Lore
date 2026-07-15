@@ -107,7 +107,6 @@ export default function PurpleCubeBackground() {
     }
 
     function drawBackground(time) {
-      // base fill
       ctx.clearRect(0, 0, width, height);
 
       const gradient = ctx.createLinearGradient(0, 0, width, height);
