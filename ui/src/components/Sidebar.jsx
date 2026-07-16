@@ -5,7 +5,6 @@ import {
   HomeFillIcon,
   StarIcon,
   PlusIcon,
-  PersonIcon,
 } 
 from "@primer/octicons-react";
 import "./Sidebar.css";
@@ -16,7 +15,6 @@ const NAV_ITEMS = [
   { label: "Home", icon: HomeIcon, activeIcon: HomeFillIcon },
   { label: "Add Skill", icon: PlusIcon },
   { label: "Favorited", icon: StarIcon },
-  { label: "Profile", icon: PersonIcon },
 ];
 
 function Sidebar({ isOpen, onClose, currentPage, onNavigate, userId, onOpenSkill }) {
@@ -99,13 +97,6 @@ function Sidebar({ isOpen, onClose, currentPage, onNavigate, userId, onOpenSkill
       <div className="sidebar__section">
         <div className="sidebar__section-header">
           <span className="sidebar__section-title">Created by you</span>
-          <button
-            className="sidebar__section-btn"
-            aria-label="Add skill"
-            onClick={() => onNavigate("Add Skill")}
-          >
-            <PlusIcon size={16} />
-          </button>
         </div>
         {created.length === 0 ? (
           <p className="sidebar__empty">Skills you add show up here.</p>
