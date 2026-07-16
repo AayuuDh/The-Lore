@@ -77,11 +77,18 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
   // A skill opened as a modal OVER the chat — so the conversation is never lost.
   const [previewId, setPreviewId] = useState(null);
   const endRef = useRef(null);
+  const inputRef = useRef(null);
 
   // Keep the newest message in view as the conversation grows.
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  // On first open, put the cursor in the search bar so it's ready to type into —
+  // no need to click it first. autoFocus alone can be unreliable across renders.
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   // Persist the conversation (and the clean need) for this browser session.
   useEffect(() => {
@@ -156,18 +163,6 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
               <SkillInfo />
             </h1>
             <p className="discover__sub">{GREETING}</p>
-            <div className="discover__starters">
-              {STARTERS.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className="discover__chip"
-                  onClick={() => send(s)}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
           </div>
         )}
 
@@ -246,6 +241,7 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
       >
         <input
           className="discover__composer-input"
+          ref={inputRef}
           placeholder={
             started ? "Reply…" : "What are you trying to accomplish?"
           }
@@ -263,6 +259,22 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
           <SearchIcon size={18} />
         </button>
       </form>
+
+      {/* Suggested starter prompts, shown directly beneath the search bar. */}
+      {!started && (
+        <div className="discover__starters">
+          {STARTERS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              className="discover__chip"
+              onClick={() => send(s)}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Three clear entry points on the home page: search (above), browse the
           library, or jump straight into creating a new skill. */}

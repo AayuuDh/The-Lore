@@ -176,7 +176,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 6px;
+  margin-top: 16px;
 }
 
 .discover__starters-label {
@@ -223,9 +223,9 @@
   background: transparent;
   border: 1px solid #30363d;
   color: #c9d1d9;
-  padding: 9px 16px;
+  padding: 6px 12px;
   border-radius: 999px;
-  font-size: 15px;
+  font-size: 13px;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
 }
@@ -732,25 +732,26 @@
 }
 
 .discover__cta--secondary {
-  background: transparent;
-  border: 1px solid #30363d;
-  color: #c9d1d9;
+  background: rgba(137, 87, 229, 0.18);
+  border: 1px solid #8957e5;
+  color: #d2c4f7;
 }
 
 .discover__cta--secondary:hover {
-  border-color: #8957e5;
-  color: #e6edf3;
+  background: rgba(137, 87, 229, 0.3);
+  border-color: #a371f0;
+  color: #fff;
 }
 
 .discover__cta--primary {
-  background: #8957e5;
-  border: 1px solid #8957e5;
+  background: #7a47d3;
+  border: 1px solid #7a47d3;
   color: #fff;
 }
 
 .discover__cta--primary:hover {
-  background: #7a47d3;
-  border-color: #7a47d3;
+  background: #6b39c4;
+  border-color: #6b39c4;
 }
 
 .discover__create-link {
