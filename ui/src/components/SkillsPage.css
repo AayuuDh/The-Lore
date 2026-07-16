@@ -11,19 +11,20 @@
   align-items: center;
   gap: 8px;
   align-self: flex-start;
-  background: transparent;
-  border: 1px solid #30363d;
-  color: #c9d1d9;
+  background: #6d4dc7;
+  border: 1px solid #8957e5;
+  color: #ffffff;
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 13px;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .skills-page__back:hover {
-  border-color: #8957e5;
-  color: #e6edf3;
+  background: #7d5ee0;
+  border-color: #a371f0;
+  color: #fff;
 }
 
 .skills-page__header {

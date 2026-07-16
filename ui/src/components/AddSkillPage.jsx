@@ -290,10 +290,6 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
         <section className="add-skill-page__hero">
           <p className="add-skill-page__eyebrow">Skill builder</p>
           <h1 className="add-skill-page__title">Add a Skill</h1>
-          <p className="add-skill-page__subtitle">
-            I&apos;ll interview you to capture the knowledge behind this skill &mdash; the
-            context, tools, and hard-won lessons a generic AI could never guess.
-          </p>
 
           {error && <div className="add-skill-page__error">{error}</div>}
 

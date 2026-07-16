@@ -2,19 +2,17 @@
   min-height: calc(100vh - 160px);
   display: grid;
   grid-template-columns: minmax(240px, 0.25fr) minmax(0, 1fr);
-  border: 1px solid #202734;
+  border: 1px solid #2a2340;
   border-radius: 28px;
   overflow: hidden;
-  background:
-    radial-gradient(circle at top left, rgba(76, 139, 245, 0.18), transparent 34%),
-    linear-gradient(180deg, #0a0f19 0%, #070b12 100%);
+  background: #221845;
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.36);
 }
 
 .add-skill-page__sidebar {
   padding: 28px 24px;
-  border-right: 1px solid #1f2531;
-  background: rgba(10, 15, 25, 0.8);
+  border-right: 1px solid #2a2340;
+  background: rgba(20, 15, 32, 0.8);
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -37,9 +35,9 @@
   width: 42px;
   height: 42px;
   border-radius: 999px;
-  border: 1px solid rgba(76, 139, 245, 0.35);
-  background: rgba(76, 139, 245, 0.12);
-  color: #89b4ff;
+  border: 1px solid rgba(137, 87, 229, 0.35);
+  background: rgba(137, 87, 229, 0.12);
+  color: #b9a3ff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -49,8 +47,8 @@
 
 .add-skill-page__plus-btn:hover {
   transform: translateY(-1px);
-  border-color: rgba(76, 139, 245, 0.65);
-  background: rgba(76, 139, 245, 0.18);
+  border-color: rgba(137, 87, 229, 0.65);
+  background: rgba(137, 87, 229, 0.18);
 }
 
 .add-skill-page__sidebar-empty {
@@ -89,8 +87,8 @@
 }
 
 .add-skill-page__sidebar-item:hover {
-  background: rgba(76, 139, 245, 0.12);
-  border-color: rgba(76, 139, 245, 0.35);
+  background: rgba(137, 87, 229, 0.12);
+  border-color: rgba(137, 87, 229, 0.35);
   color: #f0f6fc;
 }
 
@@ -110,19 +108,20 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: transparent;
-  border: 1px solid #30363d;
-  color: #c9d1d9;
+  background: #6d4dc7;
+  border: 1px solid #8957e5;
+  color: #ffffff;
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 13px;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .add-skill-page__back:hover {
-  border-color: #8957e5;
-  color: #e6edf3;
+  background: #7d5ee0;
+  border-color: #a371f0;
+  color: #fff;
 }
 
 .add-skill-page__hero {
@@ -165,7 +164,7 @@
   padding: 28px;
   border-radius: 24px;
   border: 1px solid rgba(125, 133, 144, 0.18);
-  background: rgba(9, 14, 23, 0.86);
+  background: rgba(18, 13, 30, 0.86);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
@@ -191,8 +190,8 @@
   width: 100%;
   border-radius: 18px;
   overflow: hidden;
-  border: 1px solid rgba(76, 139, 245, 0.22);
-  background: rgba(3, 8, 16, 0.9);
+  border: 1px solid rgba(137, 87, 229, 0.22);
+  background: rgba(15, 10, 26, 0.9);
 }
 
 .add-skill-page__input {
@@ -212,7 +211,7 @@
 
 .add-skill-page__start-btn {
   border: 0;
-  background: linear-gradient(180deg, #4935bc 0%, #4935bc 100%);
+  background: #8957e5;
   color: #ffffff;
   font-weight: 700;
   font-size: 0.98rem;
@@ -319,7 +318,7 @@
 }
 
 .add-skill-page__msg--assistant .add-skill-page__msg-text {
-  border: 1px solid rgba(76, 139, 245, 0.28);
+  border: 1px solid rgba(137, 87, 229, 0.28);
   background: rgba(73, 53, 188, 0.16);
   color: #e6ebf2;
   border-top-left-radius: 4px;
@@ -327,7 +326,7 @@
 
 .add-skill-page__msg--user .add-skill-page__msg-text {
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(3, 8, 16, 0.9);
+  background: rgba(15, 10, 26, 0.9);
   color: #c9d1d9;
   border-top-right-radius: 4px;
 }
@@ -346,12 +345,12 @@
 
 /* Informational variant of the duplicate banner (blue, non-blocking). */
 .add-skill-page__dup--info {
-  border-color: rgba(76, 139, 245, 0.4);
-  background: rgba(76, 139, 245, 0.1);
+  border-color: rgba(137, 87, 229, 0.4);
+  background: rgba(137, 87, 229, 0.1);
 }
 
 .add-skill-page__dup--info .add-skill-page__dup-title {
-  color: #79b8ff;
+  color: #b9a3ff;
 }
 
 .add-skill-page__field {
@@ -386,14 +385,14 @@
 }
 
 .add-skill-page__toggle-btn--active {
-  background: rgba(76, 139, 245, 0.18);
+  background: rgba(137, 87, 229, 0.18);
   color: #f0f6fc;
 }
 
 .add-skill-page__preview {
   border: 1px solid rgba(125, 133, 144, 0.28);
   border-radius: 12px;
-  background: rgba(3, 8, 16, 0.9);
+  background: rgba(15, 10, 26, 0.9);
   color: #e6edf3;
   padding: 16px 18px;
   min-height: 160px;
@@ -455,7 +454,7 @@
   box-sizing: border-box;
   border: 1px solid rgba(125, 133, 144, 0.28);
   border-radius: 12px;
-  background: rgba(3, 8, 16, 0.9);
+  background: rgba(15, 10, 26, 0.9);
   color: #f0f6fc;
   font-size: 0.98rem;
   padding: 12px 14px;
@@ -470,7 +469,7 @@
 
 .add-skill-page__text-input:focus,
 .add-skill-page__textarea:focus {
-  border-color: rgba(76, 139, 245, 0.6);
+  border-color: rgba(137, 87, 229, 0.6);
 }
 
 .add-skill-page__refine-row {
@@ -480,8 +479,8 @@
   width: 100%;
   border-radius: 14px;
   overflow: hidden;
-  border: 1px solid rgba(76, 139, 245, 0.22);
-  background: rgba(3, 8, 16, 0.9);
+  border: 1px solid rgba(137, 87, 229, 0.22);
+  background: rgba(15, 10, 26, 0.9);
 }
 
 .add-skill-page__actions {
@@ -585,7 +584,7 @@
 
   .add-skill-page__sidebar {
     border-right: 0;
-    border-bottom: 1px solid #1f2531;
+    border-bottom: 1px solid #2a2340;
   }
 
   .add-skill-page__main {
@@ -623,6 +622,6 @@
 
   .add-skill-page__start-btn {
     min-height: 48px;
-    border-top: 1px solid rgba(76, 139, 245, 0.2);
+    border-top: 1px solid rgba(137, 87, 229, 0.2);
   }
 }
