@@ -15,6 +15,7 @@ DefaultAzureCredential (your `az login` locally, Managed Identity in production)
 
 import os
 import json
+import re
 import uuid
 
 import requests
@@ -84,6 +85,46 @@ _sessions: dict[str, list] = {}
 # its own (the "Create skill now" button bypasses this).
 _answer_counts: dict[str, int] = {}
 
+# session_id -> the genuine skill-related text the user has typed so far. Used to
+# decide whether there's enough real information to draft at all (so "Create
+# skill now" can't fabricate a skill out of a greeting).
+_user_facts: dict[str, list[str]] = {}
+
+# Words that carry no skill information on their own, so they don't count toward
+# the "is there enough to draft?" check.
+_FILLER_WORDS = {
+    "hi", "hello", "hey", "yo", "sup", "hiya", "howdy", "hola", "greetings",
+    "thanks", "thank", "you", "please", "ok", "okay", "yes", "no", "yeah",
+    "nope", "sure", "there", "good", "morning", "afternoon", "evening", "night",
+    "how", "are", "is", "it", "going", "doing", "today", "the", "a", "an",
+    "test", "testing", "hmm", "um", "uh", "well", "so", "and", "im", "i",
+}
+
+# Minimum number of meaningful characters the user must contribute before we'll
+# let the model draft a skill. Below this, a draft would be pure invention.
+MIN_INFO_CHARS = 12
+
+
+def _meaningful_len(text: str) -> int:
+    """Length of the non-filler word characters in text (rough info signal)."""
+    tokens = re.findall(r"[a-z0-9]+", (text or "").lower())
+    return sum(len(t) for t in tokens if t not in _FILLER_WORDS)
+
+
+def _has_enough_info(session_id: str) -> bool:
+    """True once the user has typed enough real content to justify a draft."""
+    combined = " ".join(_user_facts.get(session_id, []))
+    return _meaningful_len(combined) >= MIN_INFO_CHARS
+
+
+# Deterministic reply we return instead of drafting when there's nothing real to
+# draft from (e.g. the user only said "hi" and hit "Create skill now").
+_NEED_DESCRIPTION_MESSAGE = (
+    "Before I can draft anything, tell me in a sentence what skill you'd like to "
+    "capture -- for example, \"summarizing customer feedback\" or \"planning a "
+    "sprint.\" What would you like to build?"
+)
+
 # Don't let the model draft on its own until the user has answered at least this
 # many questions. Keeps the interview substantive even with small local models
 # that like to draft too early. The explicit "draft now" button overrides it.
@@ -146,6 +187,12 @@ acronyms, or teams the user never mentioned -- describe them generically
 instead. After the first draft, treat every further message as a refinement
 request and re-emit the COMPLETE profile.
 
+NEVER invent an entire skill out of nothing. If the user has not actually
+described a real skill yet -- for example they only greeted you, said something
+off-topic, or gave nothing substantive to work with -- you MUST NOT draft, even
+if they say "draft now" or "create it". Instead, reply with a question that
+warmly asks them to describe, in a sentence, the skill they want to capture.
+
 === OUTPUT PROTOCOL (STRICT) ===
 EVERY reply is exactly ONE JSON object and nothing else -- no prose, no code
 fences, no leading or trailing text. It must be one of these two shapes:
@@ -190,13 +237,19 @@ INTERVIEW_KICKOFF = (
     "interview and ask me your first question."
 )
 
-# Turn 1: the user's opening description. We explicitly ask the model to START
-# THE INTERVIEW rather than draft immediately, so it asks a question back.
+# Turn 1: the user's opening message. It may actually describe a skill, or it
+# may just be a greeting / something vague. We tell the model NOT to assume it's
+# a skill description, and to start the interview appropriately either way.
 START_MESSAGE = (
-    "Here is what I want to capture, in my own words:\n{description}\n\n"
-    "Do NOT draft yet. Treat this as the very start of the interview: acknowledge "
-    "briefly and ask me your FIRST question (one question only), following the "
-    "output protocol."
+    "This is my first message to you:\n{description}\n\n"
+    "Do NOT draft yet -- this is the very start of the interview. My message "
+    "might be a real skill description, or it might just be a greeting or "
+    "something vague. If it genuinely describes a skill, acknowledge it briefly "
+    "and ask your FIRST interview question. If it is only a greeting or does NOT "
+    "actually describe a skill, do NOT treat it as the skill and do NOT thank me "
+    "for describing one -- instead greet me back warmly and ask what skill I'd "
+    "like to capture. Either way, reply with ONE question following the output "
+    "protocol."
 )
 
 # Every later turn: the user's answer to your last question, or a refinement of
@@ -382,7 +435,19 @@ async def _ask_and_finalize(messages: list) -> dict:
             result["skill"]["profile"] = profile
             result["skill"]["body"] = body
     except (ValueError, json.JSONDecodeError):
-        pass  # keep the original (blank-bodied) draft rather than fail the request
+        pass  # fall through to the deterministic fallback below
+
+    # Last resort: if the body is STILL blank after both repair attempts, a small
+    # local model just couldn't fill the profile. Rather than return an empty
+    # skill, synthesize a minimal body from the name/description we do have so the
+    # user always gets something concrete to edit and save.
+    if not result["skill"]["body"].strip():
+        desc = result["skill"]["description"].strip()
+        name = result["skill"]["name"].strip()
+        overview = desc or name
+        if overview:
+            result["skill"]["profile"] = {"problem": overview}
+            result["skill"]["body"] = f"## Problem\n\n{overview}"
 
     return result
 
@@ -402,6 +467,9 @@ async def start_draft(description: str) -> tuple[str, dict]:
     result = await _ask_and_finalize(messages)
     _sessions[session_id] = messages
     _answer_counts[session_id] = 0
+    # Seed the info tracker with the opening message so a real one-sentence
+    # description on turn 1 already counts toward "enough to draft".
+    _user_facts[session_id] = [description.strip()] if (description or "").strip() else []
     return session_id, result
 
 
@@ -418,10 +486,29 @@ async def refine_draft(
         raise KeyError(f"unknown session_id: {session_id}")
 
     already_drafted = _has_draft(messages)
+
+    # "Create skill now" with nothing real to go on: don't fabricate a skill.
+    # Short-circuit to a friendly request for a basic description instead.
+    if force and not already_drafted and not _has_enough_info(session_id):
+        return session_id, {"type": "question", "message": _NEED_DESCRIPTION_MESSAGE}
+
     _answer_counts[session_id] = _answer_counts.get(session_id, 0) + 1
+    # A forced "draft now" message is boilerplate, not skill info — don't let it
+    # count toward whether we have enough to draft.
+    if not force:
+        _user_facts.setdefault(session_id, []).append(message)
 
     messages.append({"role": "user", "content": REFINE_MESSAGE.format(message=message)})
     result = await _ask_and_finalize(messages)
+
+    # Guard: never let a draft through when the user hasn't actually described a
+    # skill yet (applies even to a forced draft) — ask for a description instead.
+    if (
+        result.get("type") == "draft"
+        and not already_drafted
+        and not _has_enough_info(session_id)
+    ):
+        return session_id, {"type": "question", "message": _NEED_DESCRIPTION_MESSAGE}
 
     # Floor: if the model tries to draft too early (and the user didn't force it,
     # and we aren't refining an existing draft), push it to ask one more question.
