@@ -110,10 +110,10 @@ export default function PurpleCubeBackground() {
       ctx.clearRect(0, 0, width, height);
 
       const gradient = ctx.createLinearGradient(0, 0, width, height);
-      gradient.addColorStop(0, "#090611");
-      gradient.addColorStop(0.35, "#120C24");
-      gradient.addColorStop(0.7, "#1A1240");
-      gradient.addColorStop(1, "#2A165A");
+      gradient.addColorStop(0, "#1F1636");
+      gradient.addColorStop(0.35, "#2B1E58");
+      gradient.addColorStop(0.7, "#3A2878");
+      gradient.addColorStop(1, "#4E2C95");
 
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
