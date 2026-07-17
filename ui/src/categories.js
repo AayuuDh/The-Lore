@@ -57,3 +57,19 @@ export function getCategory(skill) {
 export function getAllCategories() {
   return [...CATEGORY_RULES.map((r) => r.label), DEFAULT_CATEGORY];
 }
+
+// A stable color per category, for the little dots in the sidebar and cards.
+const CATEGORY_COLORS = {
+  Meetings: "#3fb950",
+  Coding: "#8957e5",
+  Data: "#1f6feb",
+  Planning: "#d29922",
+  Design: "#db61a2",
+  Writing: "#39c5cf",
+  Other: "#7d8590",
+};
+
+// The color for a category label (falls back to the "Other" gray).
+export function getCategoryColor(label) {
+  return CATEGORY_COLORS[label] || CATEGORY_COLORS.Other;
+}

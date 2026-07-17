@@ -149,6 +149,12 @@ export function getSkillMetrics(skillId) {
   return request(`/skills/${encodeURIComponent(skillId)}/metrics`);
 }
 
+// GET /metrics -> { skillId: { views, uses, favorites }, ... } for all skills.
+// Powers the catalog's bento sizing (score every skill by real engagement).
+export function getAllMetrics() {
+  return request("/metrics");
+}
+
 // PATCH /users/{userId} -> updated profile
 // Send only the fields you want to change. Renaming to a taken username throws
 // (the backend responds 409); the caller should surface that to the user.

@@ -100,13 +100,29 @@
 /* Sections */
 .sidebar__section {
   padding: 0 16px;
+  margin-bottom: 4px;
 }
 
 .sidebar__section-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
   margin-bottom: 8px;
+  padding: 4px 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sidebar__section-header svg {
+  color: #7d8590;
+  flex-shrink: 0;
+}
+
+.sidebar__section-header:hover .sidebar__section-title {
+  color: #adb6c2;
 }
 
 .sidebar__section-title {
@@ -115,6 +131,16 @@
   color: #7d8590;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* "New" indicator next to a section that has unseen items. */
+.sidebar__new-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4c8bf5;
+  box-shadow: 0 0 0 3px rgba(76, 139, 245, 0.18);
+  flex-shrink: 0;
 }
 
 .sidebar__section-btn {

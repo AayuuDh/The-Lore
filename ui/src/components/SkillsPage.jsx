@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { SearchIcon, ArrowLeftIcon, XIcon, StarIcon, StarFillIcon, AlertIcon } from "@primer/octicons-react";
-import { getSkills, matchSkills } from "../api";
+import { SearchIcon, ArrowLeftIcon, XIcon, StarIcon, StarFillIcon, AlertIcon, EyeIcon, ZapIcon } from "@primer/octicons-react";
+import { getSkills, matchSkills, getAllMetrics } from "../api";
 import { getFavorites, toggleFavorite } from "../favorites";
 import { recordView } from "../recentlyViewed";
 import { getCategory, getAllCategories } from "../categories";
@@ -9,11 +9,11 @@ import "./SkillsPage.css";
 
 // The backend `description` is a long paragraph with usage hints.
 // Keep only a short, card-friendly snippet (first sentence, capped length).
-function shortDescription(description = "") {
+function shortDescription(description = "", maxLen = 140) {
   const clean = description.trim();
   if (!clean) return "No description available.";
   const firstSentence = clean.split(/(?<=[.!?])\s/)[0];
-  const snippet = firstSentence.length > 140 ? clean.slice(0, 140) : firstSentence;
+  const snippet = firstSentence.length > maxLen ? clean.slice(0, maxLen) : firstSentence;
   return snippet.length < clean.length ? `${snippet.replace(/[.\s]+$/, "")}…` : snippet;
 }
 
@@ -21,6 +21,51 @@ function sortByName(skills) {
   return [...skills].sort((a, b) =>
     (a.name || a.id).localeCompare(b.name || b.id)
   );
+}
+
+// Percentile rank (0..1) of each value in an array — robust to outliers, so one
+// mega-popular skill can't blow out the scale, and sizing stays stable as numbers grow.
+function percentiles(values) {
+  const n = values.length;
+  if (n === 0) return [];
+  const order = values.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]);
+  const pct = new Array(n).fill(0);
+  order.forEach(([, origIdx], rank) => {
+    pct[origIdx] = n <= 1 ? 1 : rank / (n - 1);
+  });
+  return pct;
+}
+
+// Bento layout: order skills by PROMINENCE (view count + description length, as
+// percentiles) so viewed/rich skills lead — then apply a repeating size RHYTHM
+// so a mix of big/medium/small tiles appears across the WHOLE grid, tail
+// included. Sizing the rhythm by position (not by score) is what prevents a
+// smushed run of small tiles at the end. Returns skills tagged _size + _metrics.
+function bentoLayout(skills, metricsMap) {
+  if (skills.length === 0) return [];
+  const views = skills.map((s) => metricsMap[s.id]?.views || 0);
+  const len = skills.map((s) => s.description?.length || 0);
+  const viewsPct = percentiles(views);
+  const lenPct = percentiles(len);
+
+  const items = skills.map((s, i) => ({
+    skill: s,
+    metrics: metricsMap[s.id] || { views: 0, uses: 0, favorites: 0 },
+    prominence: 0.5 * viewsPct[i] + 0.5 * lenPct[i],
+  }));
+
+  // Most prominent (viewed + rich) first, so they lead and land on the big slots.
+  items.sort((a, b) => b.prominence - a.prominence);
+
+  // A repeating rhythm of tile sizes — every 10 tiles has 1 lg, 2 wide, 2 tall,
+  // 5 sm. Because it repeats, every region of the grid stays varied, so there is
+  // no uniform tail.
+  const PATTERN = ["lg", "sm", "tall", "sm", "wide", "sm", "tall", "sm", "wide", "sm"];
+  return items.map((it, i) => ({
+    ...it.skill,
+    _size: PATTERN[i % PATTERN.length],
+    _metrics: it.metrics,
+  }));
 }
 
 function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, initialFavoritesOnly = false }) {
@@ -42,6 +87,9 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(initialFavoritesOnly);
   // The selected category chip (null = All). Only applies in the catalog view.
   const [activeCategory, setActiveCategory] = useState(null);
+  // Global usage counts per skill, used to size the bento grid.
+  // { id: { views, uses, favorites } }
+  const [metrics, setMetrics] = useState({});
 
   // Follow the nav intent: opening via "Favorited" flips the filter on.
   useEffect(() => {
@@ -71,6 +119,17 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
         if (active) setError("Couldn't reach the backend. Is the API running on http://localhost:8000?");
       })
       .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Load global metrics once, to size the bento tiles by real engagement.
+  useEffect(() => {
+    let active = true;
+    getAllMetrics()
+      .then((m) => active && setMetrics(m && typeof m === "object" ? m : {}))
+      .catch(() => {});
     return () => {
       active = false;
     };
@@ -121,6 +180,12 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
       return false;
     return true;
   });
+
+  // Catalog view gets the bento treatment (signal-sized tiles, score-ordered);
+  // search results stay uniform so the ranking reads cleanly.
+  const displaySkills = isSearchView
+    ? visibleSkills.map((s) => ({ ...s, _size: "sm" }))
+    : bentoLayout(visibleSkills, metrics);
 
   if (selectedId) {
     return (
@@ -183,7 +248,7 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
             &nbsp;“{query.trim()}”
           </span>
         ) : (
-          !loading && <span>{alphabetical.length} skills, sorted A–Z</span>
+          !loading && <span>{alphabetical.length} skills</span>
         )}
 
         <button
@@ -249,11 +314,11 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
           ))}
         </div>
       ) : (
-        <div className="skills-page__grid">
-          {visibleSkills.map((skill, i) => (
+        <div className={`skills-page__grid${isSearchView ? "" : " skills-page__grid--bento"}`}>
+          {displaySkills.map((skill, i) => (
             <button
               key={skill.id}
-              className="skill-card"
+              className={`skill-card skill-card--${skill._size || "sm"}`}
               onClick={() => {
                 // Remember this open so it shows up in "Jump back in", then
                 // switch to the detail view.
@@ -282,7 +347,27 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
                 )}
               </span>
               <h3 className="skill-card__title">{skill.name || skill.id}</h3>
-              <p className="skill-card__desc">{shortDescription(skill.description)}</p>
+              <p className="skill-card__desc">
+                {shortDescription(
+                  skill.description,
+                  skill._size === "lg" || skill._size === "tall" ? 260 : 120
+                )}
+              </p>
+              {skill._size !== "sm" &&
+                skill._metrics &&
+                skill._metrics.views + skill._metrics.uses + skill._metrics.favorites > 0 && (
+                  <div className="skill-card__metrics">
+                    <span title="Opens">
+                      <EyeIcon size={12} /> {skill._metrics.views}
+                    </span>
+                    <span title="Uses">
+                      <ZapIcon size={12} /> {skill._metrics.uses}
+                    </span>
+                    <span title="Favorites">
+                      <StarFillIcon size={12} /> {skill._metrics.favorites}
+                    </span>
+                  </div>
+                )}
             </button>
           ))}
           {visibleSkills.length === 0 && !error && (

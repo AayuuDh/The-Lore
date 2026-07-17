@@ -5,11 +5,25 @@ import {
   HomeFillIcon,
   StarIcon,
   PlusIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
 } 
 from "@primer/octicons-react";
 import "./Sidebar.css";
 import logo from "../assets/logo light.png"
-import { getMySkills, getMyHistory } from "../api";
+import { getMySkills, getMyHistory, getSkills } from "../api";
+import { getFavorites } from "../favorites";
+import { getCategory, getCategoryColor } from "../categories";
+
+const SEEN_KEY = "sidebar.seen";
+
+function loadSeen() {
+  try {
+    return JSON.parse(localStorage.getItem(SEEN_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
 
 const NAV_ITEMS = [
   { label: "Home", icon: HomeIcon, activeIcon: HomeFillIcon },
@@ -18,36 +32,118 @@ const NAV_ITEMS = [
 ];
 
 function Sidebar({ isOpen, onClose, currentPage, onNavigate, userId, onOpenSkill }) {
-  // Skills you authored + skills you've recently engaged with, from the backend.
-  const [created, setCreated] = useState([]);
+  // The three lists: skills you made, favorited, and recently used.
+  const [yours, setYours] = useState([]);
+  const [favs, setFavs] = useState([]);
   const [recent, setRecent] = useState([]);
+  // Which sections are expanded.
+  const [open, setOpen] = useState({ yours: true, favs: true, recent: true });
+  // Ids the user has already seen per section — drives the "new" dot.
+  const [seen, setSeen] = useState(loadSeen);
 
-  // Refresh whenever the sidebar opens so newly created/used skills show up.
+  // Refresh whenever the sidebar opens so new skills/activity show up.
   useEffect(() => {
     if (!isOpen || !userId) return;
     let active = true;
-    getMySkills(userId)
-      .then((list) => active && setCreated(Array.isArray(list) ? list : []))
-      .catch(() => {});
-    getMyHistory(userId)
-      .then((events) => {
-        if (!active) return;
-        // Collapse the event log to distinct skills, newest first.
-        const seen = new Set();
-        const distinct = [];
-        for (const e of events || []) {
-          if (!seen.has(e.skill_id)) {
-            seen.add(e.skill_id);
-            distinct.push({ id: e.skill_id, name: e.name });
-          }
+    Promise.all([
+      getSkills().catch(() => []),
+      getMySkills(userId).catch(() => []),
+      getMyHistory(userId).catch(() => []),
+    ]).then(([all, created, history]) => {
+      if (!active) return;
+      // id -> full skill, so favorites/recent get names + categories too.
+      const map = {};
+      (all || []).forEach((s) => {
+        map[s.id] = s;
+      });
+
+      setYours((created || []).map((s) => map[s.id] || s));
+
+      const favIds = getFavorites();
+      setFavs(favIds.map((id) => map[id]).filter(Boolean));
+
+      const seenIds = new Set();
+      const distinct = [];
+      for (const e of history || []) {
+        if (!seenIds.has(e.skill_id)) {
+          seenIds.add(e.skill_id);
+          distinct.push(map[e.skill_id] || { id: e.skill_id, name: e.name });
         }
-        setRecent(distinct.slice(0, 6));
-      })
-      .catch(() => {});
+      }
+      setRecent(distinct.slice(0, 8));
+    });
     return () => {
       active = false;
     };
   }, [isOpen, userId]);
+
+  // Mark a section's items as seen (clears its "new" dot) and remember it.
+  function markSeen(key, ids) {
+    setSeen((prev) => {
+      const next = { ...prev, [key]: ids };
+      try {
+        localStorage.setItem(SEEN_KEY, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }
+
+  function toggleSection(key, items) {
+    setOpen((o) => {
+      const nowOpen = !o[key];
+      if (nowOpen) markSeen(key, items.map((i) => i.id));
+      return { ...o, [key]: nowOpen };
+    });
+  }
+
+  // A section has "new" content if it holds an id the user hasn't seen there.
+  function hasNew(key, items) {
+    const known = seen[key] || [];
+    return items.some((i) => !known.includes(i.id));
+  }
+
+  // One collapsible, chevron-headed section with a "new" dot and color-coded
+  // skill dots (colored by the skill's category).
+  function renderSection(key, title, items, emptyText) {
+    const expanded = open[key];
+    return (
+      <div className="sidebar__section" key={key}>
+        <button
+          className="sidebar__section-header"
+          onClick={() => toggleSection(key, items)}
+          aria-expanded={expanded}
+        >
+          {expanded ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
+          <span className="sidebar__section-title">{title}</span>
+          {hasNew(key, items) && <span className="sidebar__new-dot" title="New" />}
+        </button>
+        {expanded &&
+          (items.length === 0 ? (
+            <p className="sidebar__empty">{emptyText}</p>
+          ) : (
+            <ul className="sidebar__list">
+              {items.map((s) => (
+                <li key={s.id}>
+                  <button
+                    className="sidebar__skill"
+                    onClick={() => onOpenSkill?.(s.id)}
+                    title={s.description || s.name}
+                  >
+                    <span
+                      className="sidebar__dot"
+                      style={{ backgroundColor: getCategoryColor(getCategory(s)) }}
+                    />
+                    <span className="sidebar__skill-name">{s.name || s.id}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ))}
+      </div>
+    );
+  }
 
   return (
     <aside className={`sidebar ${isOpen ? "sidebar--open" : ""}`}>
@@ -93,57 +189,9 @@ function Sidebar({ isOpen, onClose, currentPage, onNavigate, userId, onOpenSkill
 
       <div className="sidebar__divider" />
 
-      {/* Skills you created */}
-      <div className="sidebar__section">
-        <div className="sidebar__section-header">
-          <span className="sidebar__section-title">Created by you</span>
-        </div>
-        {created.length === 0 ? (
-          <p className="sidebar__empty">Skills you add show up here.</p>
-        ) : (
-          <ul className="sidebar__list">
-            {created.slice(0, 6).map((s) => (
-              <li key={s.id}>
-                <button
-                  className="sidebar__skill"
-                  onClick={() => onOpenSkill?.(s.id)}
-                  title={s.description || s.name}
-                >
-                  <span className="sidebar__dot" style={{ backgroundColor: "#8957e5" }} />
-                  <span className="sidebar__skill-name">{s.name || s.id}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div className="sidebar__divider" />
-
-      {/* Skills you've recently opened or used */}
-      <div className="sidebar__section">
-        <div className="sidebar__section-header">
-          <span className="sidebar__section-title">Recently used</span>
-        </div>
-        {recent.length === 0 ? (
-          <p className="sidebar__empty">Open a skill and it lands here.</p>
-        ) : (
-          <ul className="sidebar__list">
-            {recent.map((s) => (
-              <li key={s.id}>
-                <button
-                  className="sidebar__skill"
-                  onClick={() => onOpenSkill?.(s.id)}
-                  title={s.name}
-                >
-                  <span className="sidebar__dot" style={{ backgroundColor: "#1f6feb" }} />
-                  <span className="sidebar__skill-name">{s.name || s.id}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {renderSection("yours", "Yours", yours, "Skills you add show up here.")}
+      {renderSection("favs", "Favorites", favs, "Star a skill and it lands here.")}
+      {renderSection("recent", "Recent", recent, "Open a skill and it lands here.")}
     </aside>
   );
 }

@@ -277,6 +277,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow: hidden;
 }
 
 .skill-card:hover {
@@ -330,12 +331,76 @@
   font-weight: 600;
   color: #e6edf3;
   padding-right: 70px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* Big tiles have more vertical room, so allow one extra title line. */
+.skills-page__grid--bento .skill-card--lg .skill-card__title,
+.skills-page__grid--bento .skill-card--tall .skill-card__title {
+  -webkit-line-clamp: 3;
 }
 
 .skill-card__desc {
   font-size: 13px;
   color: #7d8590;
   line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* ── Bento (catalog view): tiles sized by score, packed densely ── */
+.skills-page__grid--bento {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-auto-rows: 150px;
+  grid-auto-flow: dense;
+}
+
+.skills-page__grid--bento .skill-card--sm {
+  grid-column: span 1;
+  grid-row: span 1;
+}
+.skills-page__grid--bento .skill-card--wide {
+  grid-column: span 2;
+  grid-row: span 1;
+}
+.skills-page__grid--bento .skill-card--tall {
+  grid-column: span 1;
+  grid-row: span 2;
+}
+.skills-page__grid--bento .skill-card--lg {
+  grid-column: span 2;
+  grid-row: span 2;
+  background: linear-gradient(150deg, #1a1436, #130f2a);
+}
+
+/* Bigger tiles get a bigger title and more description room. */
+.skills-page__grid--bento .skill-card--lg .skill-card__title,
+.skills-page__grid--bento .skill-card--wide .skill-card__title {
+  font-size: 18px;
+}
+.skills-page__grid--bento .skill-card--tall .skill-card__desc,
+.skills-page__grid--bento .skill-card--lg .skill-card__desc {
+  -webkit-line-clamp: 6;
+}
+
+/* Usage chips, shown on big tiles that have real engagement. */
+.skill-card__metrics {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 8px;
+  font-size: 11px;
+  color: #7d8590;
+}
+.skill-card__metrics span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 @media (max-width: 768px) {
@@ -345,5 +410,14 @@
 
   .skills-page__grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Only 1 column on mobile, so no tile spans 2 columns. */
+  .skills-page__grid--bento {
+    grid-auto-rows: 140px;
+  }
+  .skills-page__grid--bento .skill-card--wide,
+  .skills-page__grid--bento .skill-card--lg {
+    grid-column: span 1;
   }
 }

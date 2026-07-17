@@ -108,3 +108,42 @@ def user_history(user_id: str, limit: int = 100) -> list:
     )
     return list(rows)
 
+
+def all_metrics() -> dict:
+    """Global counts for EVERY skill in one pass: { skill_id: {views, uses,
+    favorites} }. Counts only, never user ids. Used to size the bento grid.
+    Empty without Cosmos.
+    """
+    if not _USE_COSMOS:
+        return {}
+    from cosmos_client import get_events_container
+    container = get_events_container()
+    rows = container.query_items(
+        query="SELECT c.skill_id, c.type, c.user_id FROM c",
+        enable_cross_partition_query=True,
+    )
+
+    counts: dict[str, dict] = {}
+    fav_net: dict[str, dict] = {}  # skill_id -> {user_id: net favorites}
+    for r in rows:
+        sid = r.get("skill_id")
+        if not sid:
+            continue
+        t = r.get("type")
+        m = counts.setdefault(sid, {"views": 0, "uses": 0, "favorites": 0})
+        if t == "view":
+            m["views"] += 1
+        elif t == "use":
+            m["uses"] += 1
+        elif t in ("favorite", "unfavorite"):
+            uid = r.get("user_id") or "anon"
+            per_user = fav_net.setdefault(sid, {})
+            per_user[uid] = per_user.get(uid, 0) + (1 if t == "favorite" else -1)
+
+    for sid, per_user in fav_net.items():
+        counts.setdefault(sid, {"views": 0, "uses": 0, "favorites": 0})
+        counts[sid]["favorites"] = sum(1 for v in per_user.values() if v > 0)
+
+    return counts
+
+

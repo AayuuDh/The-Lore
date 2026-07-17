@@ -38,7 +38,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from query_rewriter import rewrite_query
 from draft_skill import start_draft, refine_draft
 from edit_skill import edit_skill as ai_edit_skill
-from events import record_event, skill_metrics, user_history
+from events import record_event, skill_metrics, user_history, all_metrics
 from users import get_user, ensure_user, update_user, UsernameTakenError
 
 
@@ -353,6 +353,13 @@ def skill_metrics_endpoint(id: str):
     """Global usage counts for one skill: { views, uses, favorites }. Counts only
     — never reveals who did anything."""
     return skill_metrics(id)
+
+
+@app.get("/metrics")
+def all_metrics_endpoint():
+    """Global usage counts for every skill: { skill_id: {views, uses, favorites} }.
+    Counts only. Used by the catalog to size the bento grid by real engagement."""
+    return all_metrics()
 
 
 @app.post("/draft-skill")
