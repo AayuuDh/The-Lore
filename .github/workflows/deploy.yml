@@ -1,8 +1,13 @@
 # Auto-deploy The Lore to Azure whenever code lands on main.
 #
-# Two independent jobs run in parallel:
+# Two independent jobs run in parallel when their paths change:
 #   backend  -> zips matching/ and deploys to the App Service (Python API)
 #   frontend -> builds ui/ and uploads it to the Static Web App (React SPA)
+#
+# Path-based change detection means a pure frontend commit skips the backend
+# deploy entirely and vice versa, cutting deploy time roughly in half.
+# Both jobs still run on workflow_dispatch (manual trigger) regardless of
+# which files changed, with optional per-job on/off toggles.
 #
 # Auth:
 #   backend  uses OIDC (the managed identity 'the-lore-deploy') — no password.
@@ -15,6 +20,15 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      deploy_backend:
+        description: Deploy backend
+        type: boolean
+        default: true
+      deploy_frontend:
+        description: Deploy frontend
+        type: boolean
+        default: true
 
 # OIDC needs permission to request a login token; reading the code is enough otherwise.
 permissions:
@@ -22,8 +36,32 @@ permissions:
   contents: read
 
 jobs:
+  # -------------- Detect which side(s) actually changed ----------------------
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'matching/**'
+            frontend:
+              - 'ui/**'
+
   # ---------------- Backend: Python FastAPI -> App Service ----------------
   backend:
+    needs: detect-changes
+    # Deploy when matching/ changed on a push, or when manually triggered with
+    # deploy_backend enabled (defaults to true).
+    if: |
+      needs.detect-changes.outputs.backend == 'true' ||
+      (github.event_name == 'workflow_dispatch' && inputs.deploy_backend)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,6 +89,12 @@ jobs:
 
   # ---------------- Frontend: React/Vite -> Static Web Apps ----------------
   frontend:
+    needs: detect-changes
+    # Deploy when ui/ changed on a push, or when manually triggered with
+    # deploy_frontend enabled (defaults to true).
+    if: |
+      needs.detect-changes.outputs.frontend == 'true' ||
+      (github.event_name == 'workflow_dispatch' && inputs.deploy_frontend)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
