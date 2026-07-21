@@ -12,6 +12,7 @@
   "dependencies": {
     "@azure/msal-browser": "^5.13.0",
     "@azure/msal-react": "^5.4.4",
+    "@microsoft/clarity": "^1.0.2",
     "@primer/css": "^22.2.0",
     "@primer/primitives": "^11.9.0",
     "@primer/react": "^38.27.0",
