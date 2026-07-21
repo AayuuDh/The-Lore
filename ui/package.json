@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "config": {
+    "teamsChatUrl": "https://aka.ms/forthelore"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

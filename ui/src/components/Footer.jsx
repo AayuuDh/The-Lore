@@ -2,15 +2,17 @@ import React from "react";
 import "./Footer.css";
 import logo from "../assets/logo light.png"
 
+// Each link needs a real destination in `href`. Links still pointing at the
+// placeholder "#" are filtered out below so we don't show dead links.
 const LINKS = [
-  "Terms",
-  "Privacy",
-  "Security",
-  "Status",
-  "Docs",
-  "Contact",
-  "Manage cookies",
-  "Do not share my personal information",
+  { label: "Terms", href: "#" },
+  { label: "Privacy", href: "#" },
+  { label: "Security", href: "#" },
+  { label: "Status", href: "#" },
+  { label: "GitHub", href: "https://github.com/x3-design/the-lore" },
+  { label: "Contact", href: "#" },
+  { label: "Manage cookies", href: "#" },
+  { label: "Do not share my personal information", href: "#" },
 ];
 
 function Footer() {
@@ -22,10 +24,15 @@ function Footer() {
           <ul className="footer__links">
               
              
-            {LINKS.map((link) => (
-              <li key={link}>
-                <a href="#" className="footer__link">
-                  {link}
+            {LINKS.filter((link) => link.href !== "#").map((link) => (
+              <li key={link.label}>
+                <a
+                  href={link.href}
+                  className="footer__link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {link.label}
                 </a>
               </li>
             ))}

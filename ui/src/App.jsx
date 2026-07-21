@@ -14,6 +14,8 @@ import ProfilePage from "./components/ProfilePage";
 import SettingsPage from "./components/SettingsPage";
 import Footer from "./components/Footer";
 import Login from "./components/Login";
+import FeedbackWidget from "./components/FeedbackWidget";
+import { LeaveGuardContext, useLeaveGuardController } from "./components/LeaveGuard";
 import "./App.css";
 import PurpleCubeBackground from "./components/PurpleCubeBackground";
 import { recordVisit } from "./streaks";
@@ -43,6 +45,9 @@ function App() {
   const [appearancePreview, setAppearancePreview] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
+  // App-wide guard for "leave unsaved work?" navigations (see LeaveGuard.jsx).
+  const { requestLeave, contextValue: leaveGuardValue, modal: leaveGuardModal } =
+    useLeaveGuardController();
   const pathname = location.pathname;
   const skillMatch = matchPath("/browse/:skillId", pathname);
   const skillId = skillMatch?.params.skillId ?? null;
@@ -126,6 +131,18 @@ function App() {
   }, [isAuthenticated, navigate, userId]);
 
   const handleNavSelect = (page) => {
+    // Home is the one destination that may abandon in-progress work (e.g. a live
+    // discovery conversation). Route it through the leave guard: it confirms
+    // first only when a page has registered active abandonable state, and
+    // otherwise navigates straight through.
+    if (page === "Home") {
+      requestLeave(() => {
+        setIsOnboarding(false);
+        navigate("/home");
+        setSidebarOpen(false);
+      });
+      return;
+    }
     if (page !== "Profile") setIsOnboarding(false);
     const routes = {
       Home: "/home",
@@ -210,6 +227,7 @@ function App() {
   return (
     <ThemeProvider colorMode={visibleAppearance.mode}>
       <BaseStyles>
+       <LeaveGuardContext.Provider value={leaveGuardValue}>
         <div
           className="app-container"
           data-theme={visibleAppearance.theme}
@@ -250,6 +268,7 @@ function App() {
               email={accountEmail}
               nickname={profile?.nickname}
               username={profile?.username}
+              onHome={() => handleNavSelect("Home")}
               onOpenProfile={() => handleNavSelect("Profile")}
               onOpenSettings={() => openSettings("general")}
               onOpenAppearance={() => openSettings("appearance")}
@@ -350,7 +369,11 @@ function App() {
 
             <Footer />
           </div>
+
+          {leaveGuardModal}
+          <FeedbackWidget />
         </div>
+       </LeaveGuardContext.Provider>
       </BaseStyles>
     </ThemeProvider>
   );

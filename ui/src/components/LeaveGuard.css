@@ -1,0 +1,71 @@
+/* Confirmation modal for the navigation leave-guard (see LeaveGuard.jsx).
+   Colors come from Primer CSS variables so it follows light/dark mode; the
+   hex fallbacks keep it readable if a variable is ever missing. */
+
+.leaveguard__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.leaveguard__dialog {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  border-radius: 12px;
+  background: var(--bgColor-default, #ffffff);
+  color: var(--fgColor-default, #1f2328);
+  border: 1px solid var(--borderColor-default, #d0d7de);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
+}
+
+.leaveguard__title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.leaveguard__body {
+  margin: 0 0 20px;
+  line-height: 1.5;
+  color: var(--fgColor-muted, #59636e);
+}
+
+.leaveguard__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.leaveguard__btn {
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.leaveguard__btn--ghost {
+  background: var(--bgColor-default, #ffffff);
+  color: var(--fgColor-default, #1f2328);
+  border-color: var(--borderColor-default, #d0d7de);
+}
+
+.leaveguard__btn--ghost:hover {
+  background: var(--bgColor-muted, #f6f8fa);
+}
+
+.leaveguard__btn--danger {
+  background: var(--bgColor-danger-emphasis, #cf222e);
+  color: #ffffff;
+}
+
+.leaveguard__btn--danger:hover {
+  filter: brightness(0.95);
+}

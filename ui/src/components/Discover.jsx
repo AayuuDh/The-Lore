@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowRightIcon, SearchIcon, InfoIcon, PlusIcon, XIcon } from "@primer/octicons-react";
+import { ArrowRightIcon, SearchIcon, PaperAirplaneIcon, InfoIcon, PlusIcon, XIcon } from "@primer/octicons-react";
 import { discoverSkill } from "../api";
 import SkillDetail from "./SkillDetail";
+import { useLeaveGuard, ABANDON_INTENTS } from "./LeaveGuard";
 import "./Discover.css";
 
 // Starter prompts so the first message is one click away — no blank-page stare.
@@ -140,6 +141,23 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
 
   const started = messages.length > 0;
 
+  // Clear the whole conversation and its saved session state — the "start over"
+  // reset the leave guard runs when the user confirms leaving mid-chat.
+  const resetConversation = () => {
+    setMessages([]);
+    setInput("");
+    setLatestNeed("");
+    setPreviewId(null);
+    sessionStorage.removeItem(CHAT_KEY);
+    sessionStorage.removeItem(NEED_KEY);
+  };
+
+  // While a conversation is in progress, any navigation home first confirms via
+  // the shared modal (keyed by DISCOVER_CONVERSATION). When there's no
+  // conversation yet, isActive is false and home navigation passes straight
+  // through with no prompt.
+  useLeaveGuard(ABANDON_INTENTS.DISCOVER_CONVERSATION, started, resetConversation);
+
   // A one-line summary of what the person was looking for — carried into Add
   // Skill so the draft starts from their actual need, not a blank box.
   const userNeed = () =>
@@ -254,9 +272,9 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
           className="discover__send"
           type="submit"
           disabled={loading || !input.trim()}
-          aria-label="Search"
+          aria-label={started ? "Send" : "Search"}
         >
-          <SearchIcon size={18} />
+          {started ? <PaperAirplaneIcon size={18} /> : <SearchIcon size={18} />}
         </button>
       </form>
 

@@ -282,6 +282,13 @@
   margin-bottom: 16px;
   padding: 4px;
   text-align: left;
+  /* Hide the visible scrollbar while keeping scroll functional. */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge / IE */
+}
+
+.add-skill-page__transcript::-webkit-scrollbar {
+  display: none; /* Chrome / Safari */
 }
 
 .add-skill-page__msg {
