@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useMsal } from "@azure/msal-react";
+import { Link } from "react-router-dom";
 import {
   ThreeBarsIcon,
   PersonIcon,
   FlameIcon,
   GearIcon,
+  PaintbrushIcon,
   StarIcon,
   QuestionIcon,
   SignOutIcon,
@@ -14,7 +16,7 @@ import { getRecentlyViewed } from "../recentlyViewed";
 import { getAchievements, getAchievementSummary } from "../achievements";
 import "./TopNav.css";
 
-function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, onOpenProfile, onOpenSettings, onOpenSkill }) {
+function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, onOpenProfile, onOpenSettings, onOpenAppearance, onOpenUpdates, onOpenAccessibility, onOpenSkill }) {
   // The MSAL engine — used to sign the user out.
   const { instance } = useMsal();
   // Whether the profile dropdown is open.
@@ -75,6 +77,11 @@ function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, o
     onOpenSettings();
   };
 
+  const handleAppearance = () => {
+    setMenuOpen(false);
+    onOpenAppearance();
+  };
+
   // Sign the user out. logoutRedirect clears the MSAL session and sends the
   // browser back to our app URL, where the auth gate in App.jsx swaps the whole
   // UI back to the login landing page (the "Sign in with Microsoft" screen).
@@ -98,13 +105,15 @@ function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, o
           <ThreeBarsIcon size={16} />
         </button>
 
-        <img
-          className="topnav__logo"
-          src={logo}
-          width="28"
-          height="40"
-          alt="Logo"
-        />
+        <Link className="topnav__logo-link" to="/home" aria-label="Go to home page">
+          <img
+            className="topnav__logo"
+            src={logo}
+            width="28"
+            height="40"
+            alt=""
+          />
+        </Link>
 
         <span className="topnav__separator">/</span>
         <span className="topnav__page-name">{currentPage}</span>
@@ -245,7 +254,10 @@ function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, o
               <button
                 className="topnav__menu-item"
                 role="menuitem"
-                onClick={() => setMenuOpen(false)}
+                onClick={() => {
+                  setMenuOpen(false);
+                  onOpenUpdates();
+                }}
               >
                 <StarIcon size={16} />
                 <span>Updates</span>
@@ -254,7 +266,10 @@ function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, o
               <button
                 className="topnav__menu-item"
                 role="menuitem"
-                onClick={() => setMenuOpen(false)}
+                onClick={() => {
+                  setMenuOpen(false);
+                  onOpenAccessibility();
+                }}
               >
                 <QuestionIcon size={16} />
                 <span>Accessibility</span>
@@ -263,9 +278,9 @@ function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, o
               <button
                 className="topnav__menu-item"
                 role="menuitem"
-                onClick={() => setMenuOpen(false)}
+                onClick={handleAppearance}
               >
-                <StarIcon size={16} />
+                <PaintbrushIcon size={16} />
                 <span>Appearance</span>
               </button>
 

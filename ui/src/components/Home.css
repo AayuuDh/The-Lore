@@ -1,0 +1,19 @@
+/* Home page layout: history bar (LeftPanel) + discovery chat side by side. */
+
+.home-layout {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.home-layout__main {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .home-layout {
+    gap: 0;
+  }
+}

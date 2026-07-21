@@ -42,9 +42,9 @@
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: #d7c6ff;
-  background: rgba(137, 87, 229, 0.15);
-  border: 1px solid rgba(137, 87, 229, 0.4);
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
   padding: 6px 14px;
   border-radius: 999px;
 }
@@ -53,12 +53,12 @@
   font-size: 54px;
   line-height: 1.05;
   font-weight: 700;
-  color: #f4f1ff;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .login__title-accent {
-  background: linear-gradient(90deg, #b79bff 0%, #8957e5 50%, #6d5df6 100%);
+  background: linear-gradient(90deg, var(--accent-text) 0%, var(--accent) 52%, var(--accent-strong) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -67,13 +67,13 @@
 .login__subtitle {
   font-size: 19px;
   line-height: 1.55;
-  color: #b9b2cf;
+  color: var(--text-secondary);
   margin: 0;
   max-width: 34ch;
 }
 
 .login__subtitle strong {
-  color: #e8e2ff;
+  color: var(--text-secondary);
   font-weight: 700;
 }
 
@@ -90,9 +90,9 @@
   gap: 6px;
   font-size: 14px;
   font-weight: 500;
-  color: #e6e1f5;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--surface-raised) 72%, transparent);
+  border: 1px solid var(--border);
   padding: 7px 13px;
   border-radius: 10px;
   transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
@@ -100,8 +100,8 @@
 
 .login__chip:hover {
   transform: translateY(-2px);
-  background: rgba(137, 87, 229, 0.2);
-  border-color: rgba(137, 87, 229, 0.55);
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
 }
 
 /* Highlights ("what is a skill") */
@@ -128,22 +128,22 @@
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: rgba(137, 87, 229, 0.15);
-  border: 1px solid rgba(137, 87, 229, 0.3);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-soft);
 }
 
 .login__highlight-title {
   margin: 0 0 3px;
   font-size: 16px;
   font-weight: 600;
-  color: #f0ecff;
+  color: var(--text-primary);
 }
 
 .login__highlight-desc {
   margin: 0;
   font-size: 14.5px;
   line-height: 1.5;
-  color: #a89fc4;
+  color: var(--text-muted);
 }
 
 /* Stat strip */
@@ -160,27 +160,27 @@
   gap: 2px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: color-mix(in srgb, var(--surface-raised) 68%, transparent);
+  border: 1px solid var(--border);
 }
 
 .login__stat-value {
   font-size: 22px;
   font-weight: 700;
-  color: #c9b6ff;
+  color: var(--accent-text);
 }
 
 .login__stat-label {
   font-size: 12.5px;
-  color: #9990b5;
+  color: var(--text-muted);
 }
 
 /* ----------------------------- Sign-in card ----------------------------- */
 
 .login__card {
-  background: rgba(19, 15, 42, 0.82);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
   backdrop-filter: blur(14px);
-  border: 1px solid rgba(137, 87, 229, 0.25);
+  border: 1px solid var(--accent-border);
   border-radius: 18px;
   padding: 40px 36px;
   display: flex;
@@ -195,21 +195,21 @@
 .login__logo {
   display: block;
   margin-bottom: 4px;
-  filter: drop-shadow(0 6px 18px rgba(137, 87, 229, 0.4));
+  filter: drop-shadow(0 6px 18px var(--accent-border));
   animation: login-float 4s ease-in-out infinite;
 }
 
 .login__card-title {
   font-size: 26px;
   font-weight: 700;
-  color: #f4f1ff;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .login__card-subtitle {
   font-size: 15px;
   line-height: 1.5;
-  color: #a89fc4;
+  color: var(--text-muted);
   margin: 0;
   max-width: 32ch;
 }
@@ -221,7 +221,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: linear-gradient(90deg, #8957e5, #6d5df6);
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
   border: none;
   color: #ffffff;
   font-size: 16px;
@@ -235,7 +235,7 @@
 .login__button:hover:not(:disabled) {
   transform: translateY(-2px);
   filter: brightness(1.06);
-  box-shadow: 0 12px 30px rgba(137, 87, 229, 0.45);
+  box-shadow: 0 12px 30px var(--accent-border);
 }
 
 .login__button:active:not(:disabled) {
@@ -256,7 +256,7 @@
 
 .login__fineprint {
   font-size: 12.5px;
-  color: #8b83a6;
+  color: var(--text-muted);
   margin: 4px 0 0;
 }
 

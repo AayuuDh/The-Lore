@@ -38,6 +38,10 @@ export const msalConfig = {
     // as a Redirect URI in the Entra app registration.
     redirectUri:
       import.meta.env.VITE_MSAL_REDIRECT_URI || window.location.origin,
+
+    // Stay on the callback URL after MSAL consumes the response. React Router
+    // then sends the authenticated user to /home instead of reloading /login.
+    navigateToLoginRequestUrl: false,
   },
 
   // --- cache: WHERE the browser stores the signed-in session ---
