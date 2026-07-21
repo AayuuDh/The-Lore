@@ -157,7 +157,8 @@ function Login() {
           </button>
 
           <p className="login__fineprint">
-            Want to know more before signing into the lore?{" "}
+            Want to know more before signing into the lore?
+            <br />
             <a
               href={TEAMS_CHAT_URL}
               target="_blank"

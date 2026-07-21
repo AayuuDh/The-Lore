@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ArrowLeftIcon, DownloadIcon, CopyIcon, CheckIcon, StarIcon, StarFillIcon, PencilIcon, EyeIcon, ZapIcon } from "@primer/octicons-react";
@@ -54,6 +54,7 @@ function SkillDetail({ skillId, onBack, onEdit, userId }) {
 
   useEffect(() => {
     let active = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     setError("");
     getSkill(skillId)
@@ -67,6 +68,7 @@ function SkillDetail({ skillId, onBack, onEdit, userId }) {
 
   // Keep the star in sync when the skill changes.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFavorited(isFavorite(skillId));
   }, [skillId]);
 

@@ -36,6 +36,13 @@ if (clarityProjectId) {
   Clarity.init(clarityProjectId);
 }
 
+// Own scroll position ourselves. Without this the browser restores the previous
+// scroll offset on reload — which, on a tall page like /home, lands the user
+// scrolled to the bottom. Components reset to the top on mount instead.
+if ("scrollRestoration" in window.history) {
+  window.history.scrollRestoration = "manual";
+}
+
 // Create ONE MSAL engine for the entire app, configured by our settings.
 // One shared instance matters: it holds the single source of truth for who is
 // signed in. Making more than one would split that state and cause bugs.

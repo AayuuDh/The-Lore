@@ -77,18 +77,31 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
   );
   // A skill opened as a modal OVER the chat — so the conversation is never lost.
   const [previewId, setPreviewId] = useState(null);
+  // The escape-hatch button's dynamic lead-in (see the effect below). Empty at
+  // first so the button starts as just "Create a new skill →".
+  const [createHint, setCreateHint] = useState("");
   const endRef = useRef(null);
   const inputRef = useRef(null);
+  // Skips the newest-message auto-scroll on the very first render so landing on
+  // /home (fresh login or refresh) stays at the top instead of jumping down.
+  const didMountRef = useRef(false);
 
-  // Keep the newest message in view as the conversation grows.
+  // Keep the newest message in view as the conversation grows — but not on the
+  // initial mount, which would scroll the page to the bottom on load.
   useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // On first open, put the cursor in the search bar so it's ready to type into —
-  // no need to click it first. autoFocus alone can be unreliable across renders.
+  // On first open, start at the top and put the cursor in the search bar so it's
+  // ready to type into. preventScroll keeps focusing the (low-on-page) input
+  // from yanking the window down. autoFocus alone can be unreliable across renders.
   useEffect(() => {
-    inputRef.current?.focus();
+    window.scrollTo(0, 0);
+    inputRef.current?.focus({ preventScroll: true });
   }, []);
 
   // Persist the conversation (and the clean need) for this browser session.
@@ -148,6 +161,7 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
     setInput("");
     setLatestNeed("");
     setPreviewId(null);
+    setCreateHint("");
     sessionStorage.removeItem(CHAT_KEY);
     sessionStorage.removeItem(NEED_KEY);
   };
@@ -157,6 +171,28 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
   // conversation yet, isActive is false and home navigation passes straight
   // through with no prompt.
   useLeaveGuard(ABANDON_INTENTS.DISCOVER_CONVERSATION, started, resetConversation);
+
+  // The wording the escape-hatch button *should* show, given how the search is
+  // going. Escalates by how many distinct skills have been surfaced; if none
+  // have after a few turns, it nudges instead. Empty = no lead-in yet.
+  const createHintTarget = (() => {
+    const distinctSkills = new Set(
+      messages.filter((m) => m.skill).map((m) => m.skill.id)
+    ).size;
+    const userTurns = messages.filter((m) => m.role === "user").length;
+    if (distinctSkills > 1) return "None of these fit? ";
+    if (distinctSkills === 1) return "Not a good fit? ";
+    if (userTurns >= 2) return "Not finding it? ";
+    return "";
+  })();
+
+  // Apply the lead-in on a short delay so it eases in a beat after the
+  // conversation moves, rather than snapping in the instant a message lands.
+  // When the target is "" (e.g. conversation cleared) it eases back out too.
+  useEffect(() => {
+    const timer = setTimeout(() => setCreateHint(createHintTarget), 2500);
+    return () => clearTimeout(timer);
+  }, [createHintTarget]);
 
   // A one-line summary of what the person was looking for — carried into Add
   // Skill so the draft starts from their actual need, not a blank box.
@@ -266,7 +302,6 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           aria-label="Message the discovery guide"
-          autoFocus
         />
         <button
           className="discover__send"
@@ -315,13 +350,14 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
         </div>
       )}
 
-      {/* An escape hatch that never leaves them stuck. */}
+      {/* An escape hatch that never leaves them stuck. The lead-in escalates as
+          the conversation goes (see createHint), starting as just the base label. */}
       {started && (
         <button
           className="discover__create-link"
           onClick={() => onAddSkills?.(createSeed())}
         >
-          None of these fit? Create a new skill →
+          {createHint}Create a new skill →
         </button>
       )}
 

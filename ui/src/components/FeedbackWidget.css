@@ -13,9 +13,9 @@
   height: 52px;
   border-radius: 50%;
   cursor: pointer;
-  border: 1px solid var(--borderColor-emphasis, rgba(0, 0, 0, 0.1));
-  background: var(--bgColor-accent-emphasis, #0969da);
-  color: #ffffff;
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
@@ -23,10 +23,12 @@
 .feedback-fab:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  border-color: var(--accent);
+  color: #ffffff;
 }
 
 .feedback-fab:focus-visible {
-  outline: 2px solid var(--fgColor-accent, #0969da);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
