@@ -2,10 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { useIsAuthenticated, useMsal } from "@azure/msal-react";
 import { ThemeProvider, BaseStyles } from "@primer/react";
+import { Navigate, Route, Routes, matchPath, useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import TopNav from "./components/TopNav";
 // import LeftPanel from "./components/LeftPanel";
-import HomePage from "./components/HomePage";
 import Discover from "./components/Discover";
 import SkillsPage from "./components/SkillsPage";
 import AddSkillPage from "./components/AddSkillPage";
@@ -18,6 +18,7 @@ import "./App.css";
 import PurpleCubeBackground from "./components/PurpleCubeBackground";
 import { recordVisit } from "./streaks";
 import { ensureProfile } from "./api";
+import { loadAppearance, saveAppearance } from "./appearance";
 
 // ---------------------------------------------------------------------------
 // DEV-ONLY click-to-source inspector.
@@ -38,21 +39,38 @@ const ClickToComponent = import.meta.env.DEV
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState("Home");
-  // When we want to jump straight into a specific skill (from the home page's
-  // "Jump back in" row), we stash its id here and switch to the Skills page,
-  // which reads it and opens that skill on mount. null = open the catalog.
-  const [pendingSkillId, setPendingSkillId] = useState(null);
-  // Context carried from Discover into Add Skill: when the guide says "nothing
-  // fits, create it", we seed the draft with what the person was looking for.
-  const [addSkillSeed, setAddSkillSeed] = useState("");
-  // The skill currently open in the editor, plus how we got there: "new" (a
-  // fresh draft) or "fork" (editing an existing skill, which saves a copy).
-  const [editorSkill, setEditorSkill] = useState(null);
-  const [editorMode, setEditorMode] = useState("new");
-  // When true, the Skills catalog opens pre-filtered to the user's starred
-  // skills (driven by the "Favorited" nav item).
-  const [skillsFavoritesOnly, setSkillsFavoritesOnly] = useState(false);
+  const [appearance, setAppearance] = useState(loadAppearance);
+  const [appearancePreview, setAppearancePreview] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const pathname = location.pathname;
+  const skillMatch = matchPath("/browse/:skillId", pathname);
+  const skillId = skillMatch?.params.skillId ?? null;
+  const settingsMatch = matchPath("/settings/:section", pathname);
+  const settingsSections = new Set(["general", "appearance", "profile", "privacy"]);
+  const requestedSettingsSection = pathname === "/appearance"
+    ? "appearance"
+    : settingsMatch?.params.section ?? "general";
+  const settingsSection = settingsSections.has(requestedSettingsSection)
+    ? requestedSettingsSection
+    : "general";
+  const isSettingsRoute = pathname === "/appearance" || pathname === "/settings" || pathname.startsWith("/settings/");
+
+  const pageTitle = pathname === "/home" ? "Home"
+    : pathname === "/favorites" ? "Favorited"
+    : pathname.startsWith("/browse") ? "Browse Skills"
+    : pathname === "/create/editor" ? "Skill Editor"
+    : pathname === "/create" ? "Create Skill"
+    : pathname === "/profile" ? "Profile"
+    : pathname === "/appearance" ? "Appearance"
+    : pathname.startsWith("/settings") ? "Settings"
+    : pathname === "/updates" ? "Updates"
+    : pathname === "/accessibility" ? "Accessibility"
+    : "Home";
+  const sidebarPage = pathname === "/home" ? "Home"
+    : pathname === "/favorites" ? "Favorited"
+    : pathname.startsWith("/create") ? "Add Skill"
+    : "";
   // useIsAuthenticated() is an MSAL hook that returns true whenever there's a
   // signed-in account, false otherwise. We DON'T track this ourselves with
   // useState anymore: MSAL owns the truth about auth, and this hook makes our
@@ -68,11 +86,9 @@ function App() {
   const accountEmail = accounts[0]?.username ?? "";
 
   // The user's profile (anonymous username + optional contact info). null until
-  // we've fetched/created it. `profileReason` carries a message when we bounce
-  // someone to the profile page (e.g. they tried to add a skill first).
+  // we've fetched/created it.
   const [profile, setProfile] = useState(null);
   const [isOnboarding, setIsOnboarding] = useState(false);
-  const [profileReason, setProfileReason] = useState(null);
 
   // The daily streak (how many days in a row you've used The Lore). We record
   // today's visit once, right after sign-in, and keep the result in state so the
@@ -81,9 +97,11 @@ function App() {
   const [streak, setStreak] = useState(null);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!isAuthenticated) return;
+    const updateTimer = window.setTimeout(() => {
       setStreak(recordVisit());
-    }
+    }, 0);
+    return () => window.clearTimeout(updateTimer);
   }, [isAuthenticated]);
 
   // Right after sign-in, fetch-or-create the profile. On the very first sign-in
@@ -98,66 +116,68 @@ function App() {
         setProfile(p);
         if (is_new) {
           setIsOnboarding(true);
-          setCurrentPage("Profile");
+          navigate("/profile", { replace: true });
         }
       })
       .catch((err) => console.error("Could not load profile:", err));
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated, userId]);
+  }, [isAuthenticated, navigate, userId]);
 
   const handleNavSelect = (page) => {
-    // Normal navigation always opens a page fresh, so forget any pending state.
-    setPendingSkillId(null);
-    setAddSkillSeed("");
-    setEditorSkill(null);
-    setProfileReason(null);
     if (page !== "Profile") setIsOnboarding(false);
-    // "Favorited" is just the Skills catalog pre-filtered to your starred skills.
-    if (page === "Favorited") {
-      setSkillsFavoritesOnly(true);
-      setCurrentPage("Skills");
-    } else {
-      setSkillsFavoritesOnly(false);
-      setCurrentPage(page);
-    }
+    const routes = {
+      Home: "/home",
+      Skills: "/browse",
+      "Add Skill": "/create",
+      Favorited: "/favorites",
+      Profile: "/profile",
+      Settings: "/settings",
+    };
+    navigate(routes[page] ?? "/home");
     setSidebarOpen(false);
   };
 
-  // Open a specific skill's detail view from anywhere. Unlike handleNavSelect,
-  // this keeps the skill id so SkillsPage opens straight to that skill.
-  const openSkill = (skillId) => {
-    setPendingSkillId(skillId);
-    setCurrentPage("Skills");
+  const openSkill = (nextSkillId) => {
+    navigate(`/browse/${encodeURIComponent(nextSkillId)}`);
     setSidebarOpen(false);
   };
 
-  // Open Add Skill, optionally seeded with context from a Discover conversation
-  // so the draft starts from what the person was actually looking for.
   const openAddSkill = (seed) => {
-    setAddSkillSeed(typeof seed === "string" ? seed : "");
-    setCurrentPage("Add Skill");
+    navigate("/create", {
+      state: { seed: typeof seed === "string" ? seed : "" },
+    });
     setSidebarOpen(false);
   };
 
-  // Open the skill editor. mode "new" = editing a fresh draft; mode "fork" =
-  // editing an existing skill, where saving publishes a copy and leaves the
-  // original untouched.
   const openEditor = (skill, mode = "new") => {
-    setEditorSkill(skill);
-    setEditorMode(mode);
-    setCurrentPage("Skill Editor");
+    navigate("/create/editor", { state: { skill, mode } });
     setSidebarOpen(false);
   };
 
   // Called by AddSkillPage when the user still needs to make the "may we contact
   // you" decision before publishing. Bounce them to the profile page with a note.
   const requireProfile = (reason) => {
-    setProfileReason(reason);
-    setCurrentPage("Profile");
+    navigate("/profile", { state: { profileReason: reason } });
     setSidebarOpen(false);
   };
+
+  const openSettings = (section = "general") => {
+    setAppearancePreview(null);
+    navigate(section === "appearance" ? "/appearance" : section === "general" ? "/settings" : `/settings/${section}`);
+    setSidebarOpen(false);
+  };
+
+  const commitAppearance = (nextAppearance) => {
+    const savedAppearance = saveAppearance(nextAppearance);
+    setAppearance(savedAppearance);
+    setAppearancePreview(null);
+  };
+
+  const visibleAppearance = isSettingsRoute && appearancePreview
+    ? appearancePreview
+    : appearance;
 
   // THE AUTH GATE. If nobody is signed in, render ONLY the login screen and
   // stop here (return exits the function early). Because isAuthenticated comes
@@ -165,16 +185,22 @@ function App() {
   // skips this block, and falls through to the real app below.
   if (!isAuthenticated) {
     return (
-      // ThemeProvider/BaseStyles set up Primer's dark theme + base CSS resets.
-      <ThemeProvider colorMode="dark">
+      <ThemeProvider colorMode={appearance.mode}>
         <BaseStyles>
-          <div className="app-container">
+          <div
+            className="app-container"
+            data-theme={appearance.theme}
+            data-mode={appearance.mode}
+          >
             <DevInspector />
             {/* The animated background behind the login card. */}
-            <PurpleCubeBackground />
+            <PurpleCubeBackground theme={appearance.theme} mode={appearance.mode} />
             {/* No props needed: Login triggers MSAL itself, and this component
                 re-renders automatically when auth state flips. */}
-            <Login />
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
           </div>
         </BaseStyles>
       </ThemeProvider>
@@ -182,13 +208,20 @@ function App() {
   }
 
   return (
-    <ThemeProvider colorMode="dark">
+    <ThemeProvider colorMode={visibleAppearance.mode}>
       <BaseStyles>
-        <div className="app-container">
+        <div
+          className="app-container"
+          data-theme={visibleAppearance.theme}
+          data-mode={visibleAppearance.mode}
+        >
 
           <DevInspector />
 
-          <PurpleCubeBackground />
+          <PurpleCubeBackground
+            theme={visibleAppearance.theme}
+            mode={visibleAppearance.mode}
+          />
           
           {/* Sidebar overlay */}
           {sidebarOpen && (
@@ -202,7 +235,7 @@ function App() {
           <Sidebar
             isOpen={sidebarOpen}
             onClose={() => setSidebarOpen(false)}
-            currentPage={currentPage}
+            currentPage={sidebarPage}
             onNavigate={handleNavSelect}
             userId={userId}
             onOpenSkill={openSkill}
@@ -212,79 +245,106 @@ function App() {
           <div className="main-wrapper">
             <TopNav
               onMenuClick={() => setSidebarOpen(true)}
-              currentPage={currentPage}
+              currentPage={pageTitle}
               streak={streak}
               email={accountEmail}
               nickname={profile?.nickname}
               username={profile?.username}
               onOpenProfile={() => handleNavSelect("Profile")}
-              onOpenSettings={() => handleNavSelect("Settings")}
+              onOpenSettings={() => openSettings("general")}
+              onOpenAppearance={() => openSettings("appearance")}
+              onOpenUpdates={() => navigate("/updates")}
+              onOpenAccessibility={() => navigate("/accessibility")}
               onOpenSkill={openSkill}
             />
 
             <div className="content-area">
               {/* <LeftPanel /> */}
               <div className="main-content">
-                {currentPage === "Skills" ? (
-                  <SkillsPage
-                    onBackHome={() => handleNavSelect("Home")}
-                    initialSkillId={pendingSkillId}
-                    onEditSkill={(skill) => openEditor(skill, "fork")}
-                    userId={userId}
-                    initialFavoritesOnly={skillsFavoritesOnly}
-                  />
-                ) : currentPage === "Add Skill" ? (
-                  <AddSkillPage
-                    onBackHome={() => handleNavSelect("Home")}
-                    userId={userId}
-                    profile={profile}
-                    onRequireProfile={requireProfile}
-                    initialDescription={addSkillSeed}
-                    onGoToEditor={(skill) => openEditor(skill, "new")}
-                    onOpenSkill={openSkill}
-                  />
-                ) : currentPage === "Skill Editor" ? (
-                  <SkillEditor
-                    initialSkill={editorSkill}
-                    mode={editorMode}
-                    userId={userId}
-                    profile={profile}
-                    onRequireProfile={requireProfile}
-                    onBack={() => handleNavSelect("Home")}
-                  />
-                ) : currentPage === "Profile" ? (
-                  <ProfilePage
-                    profile={profile}
-                    userId={userId}
-                    email={accountEmail}
-                    isOnboarding={isOnboarding}
-                    reason={profileReason}
-                    onSaved={(updated) => {
-                      setProfile(updated);
-                      setIsOnboarding(false);
-                      setProfileReason(null);
-                      handleNavSelect("Home");
-                    }}
-                    onSkip={() => handleNavSelect("Home")}
-                  />
-                ) : currentPage === "Settings" ? (
-                  <SettingsPage
-                    key={profile?.id ?? "loading-profile"}
-                    profile={profile}
-                    userId={userId}
-                    email={accountEmail}
-                    onSaved={setProfile}
-                  />
-                ) : (
-                  <Discover
-                    onAddSkills={openAddSkill}
-                    onOpenSkill={openSkill}
-                    onEditSkill={(skill) => openEditor(skill, "fork")}
-                    onBrowse={() => handleNavSelect("Skills")}
-                    username={profile?.username}
-                    userId={userId}
-                  />
-                )}
+                <Routes>
+                  <Route path="/" element={<Navigate to="/home" replace />} />
+                  <Route path="/login" element={<Navigate to="/home" replace />} />
+                  <Route path="/home" element={
+                    <Discover
+                      onAddSkills={openAddSkill}
+                      onOpenSkill={openSkill}
+                      onEditSkill={(skill) => openEditor(skill, "fork")}
+                      onBrowse={() => handleNavSelect("Skills")}
+                      username={profile?.username}
+                      userId={userId}
+                    />
+                  } />
+                  <Route path="/browse" element={
+                    <SkillsPage
+                      key="browse"
+                      onBackHome={() => handleNavSelect("Home")}
+                      onEditSkill={(skill) => openEditor(skill, "fork")}
+                      userId={userId}
+                    />
+                  } />
+                  <Route path="/browse/:skillId" element={
+                    <SkillsPage
+                      key={`browse-${skillId}`}
+                      onBackHome={() => handleNavSelect("Home")}
+                      initialSkillId={skillId}
+                      onEditSkill={(skill) => openEditor(skill, "fork")}
+                      userId={userId}
+                    />
+                  } />
+                  <Route path="/favorites" element={
+                    <SkillsPage
+                      key="favorites"
+                      onBackHome={() => handleNavSelect("Home")}
+                      onEditSkill={(skill) => openEditor(skill, "fork")}
+                      userId={userId}
+                      initialFavoritesOnly
+                    />
+                  } />
+                  <Route path="/create" element={
+                    <AddSkillPage
+                      key={location.key}
+                      onBackHome={() => handleNavSelect("Home")}
+                      userId={userId}
+                      profile={profile}
+                      onRequireProfile={requireProfile}
+                      initialDescription={location.state?.seed ?? ""}
+                      onGoToEditor={(skill) => openEditor(skill, "new")}
+                      onOpenSkill={openSkill}
+                    />
+                  } />
+                  <Route path="/create/editor" element={
+                    <SkillEditor
+                      key={location.key}
+                      initialSkill={location.state?.skill ?? null}
+                      mode={location.state?.mode ?? "new"}
+                      userId={userId}
+                      profile={profile}
+                      onRequireProfile={requireProfile}
+                      onBack={() => handleNavSelect("Home")}
+                    />
+                  } />
+                  <Route path="/profile" element={
+                    <ProfilePage
+                      profile={profile}
+                      userId={userId}
+                      email={accountEmail}
+                      isOnboarding={isOnboarding}
+                      reason={location.state?.profileReason ?? null}
+                      onSaved={(updated) => {
+                        setProfile(updated);
+                        setIsOnboarding(false);
+                        handleNavSelect("Home");
+                      }}
+                      onSkip={() => handleNavSelect("Home")}
+                    />
+                  } />
+                  <Route path="/settings" element={settingsPage()} />
+                  <Route path="/settings/:section" element={settingsPage()} />
+                  <Route path="/appearance" element={settingsPage()} />
+                  <Route path="/updates" element={<AccountOptionPage title="Updates" description="You are up to date. New product and skill updates will appear here." />} />
+                  <Route path="/accessibility" element={<AccountOptionPage title="Accessibility" description="Accessibility preferences and guidance will appear here." />} />
+                  <Route path="*" element={<Navigate to="/home" replace />} />
+                </Routes>
               </div>
             </div>
 
@@ -293,6 +353,34 @@ function App() {
         </div>
       </BaseStyles>
     </ThemeProvider>
+  );
+
+  function settingsPage() {
+    return (
+      <SettingsPage
+        key={`${profile?.id ?? "loading-profile"}-${settingsSection}`}
+        profile={profile}
+        userId={userId}
+        email={accountEmail}
+        onSaved={setProfile}
+        initialSection={settingsSection}
+        onSectionChange={openSettings}
+        appearance={appearancePreview ?? appearance}
+        onPreviewAppearance={setAppearancePreview}
+        onSaveAppearance={commitAppearance}
+      />
+    );
+  }
+}
+
+function AccountOptionPage({ title, description }) {
+  return (
+    <main className="settings-page">
+      <header className="settings-page__header">
+        <h1>{title}</h1>
+        <p>{description}</p>
+      </header>
+    </main>
   );
 }
 

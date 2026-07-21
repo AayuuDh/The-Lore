@@ -33,7 +33,7 @@
 .discover__headline {
   font-size: 34px;
   font-weight: 700;
-  color: #e6edf3;
+  color: var(--text-primary);
   line-height: 1.15;
 }
 
@@ -54,18 +54,18 @@
   height: 24px;
   padding: 0;
   border-radius: 999px;
-  border: 1px solid #4935bc;
-  background: rgba(137, 87, 229, 0.15);
-  color: #b98bff;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-soft);
+  color: var(--accent-text);
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .discover__info-btn:hover,
 .discover__info-btn:focus-visible {
-  background: rgba(137, 87, 229, 0.32);
-  color: #e6edf3;
-  border-color: #8957e5;
+  background: var(--accent-soft);
+  color: var(--text-primary);
+  border-color: var(--accent);
   outline: none;
 }
 
@@ -79,10 +79,10 @@
   z-index: 30;
   padding: 12px 14px;
   border-radius: 12px;
-  border: 1px solid #4935bc;
-  background: #130f2a;
+  border: 1px solid var(--accent-border);
+  background: var(--surface);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-  color: #c9d1d9;
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
@@ -103,7 +103,7 @@
 
 .discover__sub {
   font-size: 18px;
-  color: #c9d1d9;
+  color: var(--text-secondary);
   max-width: 460px;
   line-height: 1.5;
 }
@@ -116,20 +116,20 @@
   width: 100%;
   max-width: 620px;
   margin-top: 8px;
-  background: #0d0b1f;
-  border: 1px solid #30363d;
+  background: var(--surface-deep);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 8px 8px 8px 16px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .discover__search:focus-within {
-  border-color: #8957e5;
-  box-shadow: 0 0 0 4px rgba(137, 87, 229, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
 .discover__search-icon {
-  color: #7d8590;
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
@@ -138,18 +138,18 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #e6edf3;
+  color: var(--text-primary);
   font-size: 16px;
   padding: 10px 4px;
 }
 
 .discover__input::placeholder {
-  color: #6e7681;
+  color: var(--text-muted);
 }
 
 .discover__go {
   flex-shrink: 0;
-  background: #8957e5;
+  background: var(--accent);
   border: none;
   color: #fff;
   font-size: 15px;
@@ -161,7 +161,7 @@
 }
 
 .discover__go:hover {
-  background: #7a47d3;
+  background: var(--accent-strong);
 }
 
 .discover__go:disabled {
@@ -181,7 +181,7 @@
 
 .discover__starters-label {
   font-size: 13px;
-  color: #7d8590;
+  color: var(--text-muted);
 }
 
 /* ── Always-on "Add a Skill" call to action ── */
@@ -195,7 +195,7 @@
 
 .discover__add-label {
   font-size: 14px;
-  color: #7d8590;
+  color: var(--text-muted);
 }
 
 .discover__add-btn {
@@ -203,8 +203,8 @@
   align-items: center;
   gap: 8px;
   background: transparent;
-  border: 1px solid #8957e5;
-  color: #d2c4f7;
+  border: 1px solid var(--accent);
+  color: var(--accent-text);
   font-size: 14px;
   font-weight: 600;
   padding: 10px 20px;
@@ -214,15 +214,15 @@
 }
 
 .discover__add-btn:hover {
-  background: #8957e5;
+  background: var(--accent);
   color: #fff;
-  border-color: #8957e5;
+  border-color: var(--accent);
 }
 
 .discover__chip {
   background: transparent;
-  border: 1px solid #30363d;
-  color: #c9d1d9;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
   padding: 6px 12px;
   border-radius: 999px;
   font-size: 13px;
@@ -231,8 +231,8 @@
 }
 
 .discover__chip:hover {
-  border-color: #8957e5;
-  color: #e6edf3;
+  border-color: var(--accent);
+  color: var(--text-primary);
 }
 
 /* ── Result ── */
@@ -244,11 +244,11 @@
 }
 
 .discover__best {
-  background: #130f2a;
-  border: 1px solid rgba(137, 87, 229, 0.5);
+  background: var(--surface);
+  border: 1px solid var(--accent-border);
   border-radius: 16px;
   padding: 24px 26px;
-  box-shadow: 0 8px 30px rgba(137, 87, 229, 0.12);
+  box-shadow: 0 8px 30px var(--accent-soft);
 }
 
 .discover__best-top {
@@ -264,7 +264,7 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #fff;
-  background: #8957e5;
+  background: var(--accent);
   padding: 4px 10px;
   border-radius: 999px;
 }
@@ -278,13 +278,13 @@
 .discover__best-name {
   font-size: 22px;
   font-weight: 700;
-  color: #e6edf3;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .discover__best-why {
   font-size: 14px;
-  color: #adb6c2;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 18px;
 }
@@ -299,7 +299,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #8957e5;
+  background: var(--accent);
   border: none;
   color: #fff;
   font-size: 14px;
@@ -311,13 +311,13 @@
 }
 
 .discover__use:hover {
-  background: #7a47d3;
+  background: var(--accent-strong);
 }
 
 .discover__create {
   background: transparent;
-  border: 1px solid #30363d;
-  color: #c9d1d9;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 600;
   padding: 10px 18px;
@@ -327,8 +327,8 @@
 }
 
 .discover__create:hover {
-  border-color: #8957e5;
-  color: #e6edf3;
+  border-color: var(--accent);
+  color: var(--text-primary);
 }
 
 /* ── Guided narrowing: the trail + "add a detail" step ── */
@@ -342,9 +342,9 @@
 
 .discover__crumb {
   font-size: 12px;
-  color: #adb6c2;
-  background: rgba(137, 87, 229, 0.12);
-  border: 1px solid rgba(137, 87, 229, 0.3);
+  color: var(--text-secondary);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-soft);
   padding: 4px 10px;
   border-radius: 999px;
 }
@@ -352,7 +352,7 @@
 .discover__crumb:not(:last-child)::after {
   content: "›";
   margin-left: 8px;
-  color: #6e7681;
+  color: var(--text-muted);
 }
 
 .discover__refine {
@@ -360,15 +360,15 @@
   gap: 8px;
   margin-top: 14px;
   padding-top: 14px;
-  border-top: 1px solid #30363d;
+  border-top: 1px solid var(--border);
 }
 
 .discover__refine-input {
   flex: 1;
-  background: #0d0b1f;
-  border: 1px solid #30363d;
+  background: var(--surface-deep);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  color: #e6edf3;
+  color: var(--text-primary);
   font-size: 14px;
   padding: 10px 14px;
   outline: none;
@@ -376,11 +376,11 @@
 }
 
 .discover__refine-input:focus {
-  border-color: #8957e5;
+  border-color: var(--accent);
 }
 
 .discover__refine-input::placeholder {
-  color: #6e7681;
+  color: var(--text-muted);
 }
 
 /* ── Alternatives (quiet, secondary) ── */
@@ -393,7 +393,7 @@
 .discover__alts-title {
   font-size: 13px;
   font-weight: 600;
-  color: #7d8590;
+  color: var(--text-muted);
   margin-bottom: 2px;
 }
 
@@ -401,8 +401,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #130f2a;
-  border: 1px solid #30363d;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 14px 16px;
   cursor: pointer;
@@ -410,17 +410,17 @@
 }
 
 .discover__alt:hover {
-  border-color: #8957e5;
+  border-color: var(--accent);
 }
 
 .discover__alt-name {
   font-size: 14px;
-  color: #e6edf3;
+  color: var(--text-primary);
 }
 
 .discover__alt-match {
   font-size: 13px;
-  color: #7d8590;
+  color: var(--text-muted);
 }
 
 /* ── Empty state (never a dead end) ── */
@@ -435,7 +435,7 @@
 
 .discover__empty-text {
   font-size: 15px;
-  color: #adb6c2;
+  color: var(--text-secondary);
 }
 
 /* ── Error ── */
@@ -454,7 +454,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #adb6c2;
+  color: var(--text-secondary);
   font-size: 15px;
   padding: 8px 0;
 }
@@ -468,7 +468,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #8957e5;
+  background: var(--accent);
   animation: discover-bounce 1.2s infinite ease-in-out both;
 }
 
@@ -493,9 +493,9 @@
 /* ── The guide's clarifying question ── */
 .discover__followup {
   font-size: 14px;
-  color: #e6edf3;
-  background: rgba(137, 87, 229, 0.1);
-  border-left: 3px solid #8957e5;
+  color: var(--text-primary);
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
   padding: 10px 14px;
   border-radius: 0 8px 8px 0;
   margin-bottom: 16px;
@@ -504,7 +504,7 @@
 
 .discover__followup-label {
   font-weight: 600;
-  color: #b98bff;
+  color: var(--accent-text);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -565,15 +565,15 @@
 }
 
 .discover__msg--user .discover__bubble {
-  background: #8957e5;
+  background: var(--accent);
   color: #fff;
   border-bottom-right-radius: 4px;
 }
 
 .discover__msg--assistant .discover__bubble {
-  background: #130f2a;
-  border: 1px solid #30363d;
-  color: #e6edf3;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
   border-bottom-left-radius: 4px;
 }
 
@@ -594,8 +594,8 @@
 /* Inline skill card in an assistant bubble */
 .discover__skillcard {
   margin-top: 12px;
-  background: #0d0b1f;
-  border: 1px solid rgba(137, 87, 229, 0.5);
+  background: var(--surface-deep);
+  border: 1px solid var(--accent-border);
   border-radius: 12px;
   padding: 14px;
   display: flex;
@@ -613,7 +613,7 @@
 .discover__skillcard-name {
   font-size: 15px;
   font-weight: 700;
-  color: #e6edf3;
+  color: var(--text-primary);
 }
 
 .discover__conf {
@@ -635,7 +635,7 @@
 }
 
 .discover__conf--low {
-  color: #8b949e;
+  color: var(--text-muted);
   background: rgba(139, 148, 158, 0.14);
 }
 
@@ -648,16 +648,16 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #0d0b1f;
-  border: 1px solid #30363d;
+  background: var(--surface-deep);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 6px 6px 6px 16px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .discover__composer:focus-within {
-  border-color: #8957e5;
-  box-shadow: 0 0 0 4px rgba(137, 87, 229, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
 .discover__composer-input {
@@ -665,13 +665,13 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #e6edf3;
+  color: var(--text-primary);
   font-size: 16px;
   padding: 12px 4px;
 }
 
 .discover__composer-input::placeholder {
-  color: #8b949e;
+  color: var(--text-muted);
 }
 
 .discover__send {
@@ -681,7 +681,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #8957e5;
+  background: var(--accent);
   border: none;
   border-radius: 10px;
   color: #fff;
@@ -690,7 +690,7 @@
 }
 
 .discover__send:hover {
-  background: #7a47d3;
+  background: var(--accent-strong);
 }
 
 .discover__send:disabled {
@@ -732,26 +732,26 @@
 }
 
 .discover__cta--secondary {
-  background: rgba(137, 87, 229, 0.18);
-  border: 1px solid #8957e5;
-  color: #d2c4f7;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  color: var(--accent-text);
 }
 
 .discover__cta--secondary:hover {
-  background: rgba(137, 87, 229, 0.3);
-  border-color: #a371f0;
+  background: var(--accent-soft);
+  border-color: var(--accent);
   color: #fff;
 }
 
 .discover__cta--primary {
-  background: #7a47d3;
-  border: 1px solid #7a47d3;
+  background: var(--accent-strong);
+  border: 1px solid var(--accent-strong);
   color: #fff;
 }
 
 .discover__cta--primary:hover {
-  background: #6b39c4;
-  border-color: #6b39c4;
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
 }
 
 .discover__create-link {
@@ -759,14 +759,14 @@
   margin-top: 8px;
   background: transparent;
   border: none;
-  color: #adb6c2;
+  color: var(--text-secondary);
   font-size: 15px;
   cursor: pointer;
   transition: color 0.2s;
 }
 
 .discover__create-link:hover {
-  color: #b98bff;
+  color: var(--accent-text);
 }
 
 /* Skill preview modal — opens over the chat, keeps the conversation intact */
@@ -784,8 +784,8 @@
 
 .discover__modal-inner {
   position: relative;
-  background: #0b0918;
-  border: 1px solid #30363d;
+  background: var(--surface-deep);
+  border: 1px solid var(--border);
   border-radius: 16px;
   max-width: 900px;
   width: 100%;
@@ -802,17 +802,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #130f2a;
-  border: 1px solid #30363d;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  color: #c9d1d9;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: border-color 0.2s, color 0.2s;
 }
 
 .discover__modal-close:hover {
-  border-color: #8957e5;
-  color: #e6edf3;
+  border-color: var(--accent);
+  color: var(--text-primary);
 }
 
 /* "Create this skill" call-to-action inside an assistant bubble */
@@ -824,7 +824,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #8957e5;
+  background: var(--accent);
   border: none;
   color: #fff;
   font-size: 14px;
@@ -836,5 +836,5 @@
 }
 
 .discover__create-btn:hover {
-  background: #7a47d3;
+  background: var(--accent-strong);
 }

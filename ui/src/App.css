@@ -1,9 +1,83 @@
 .app-container {
+  --app-bg: #130922;
+  --chrome-bg: #0d0619;
+  --surface: #1b102e;
+  --surface-raised: #211538;
+  --surface-subtle: #281a40;
+  --surface-deep: #0e0818;
+  --text-primary: #f5f1ff;
+  --text-secondary: #d8cfea;
+  --text-muted: #aaa0ba;
+  --border: #4b3b61;
+  --accent: #a176ed;
+  --accent-strong: #7852cb;
+  --accent-text: #cbb5ff;
+  --accent-soft: rgba(161, 118, 237, 0.16);
+  --accent-border: rgba(161, 118, 237, 0.55);
+  --content-scrim: rgba(10, 5, 20, 0.24);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   position: relative;
-  background: #1F1636;
+  background: var(--app-bg);
+  color: var(--text-primary);
+}
+
+.app-container[data-theme="purple"][data-mode="light"] {
+  --app-bg: #e8dffd;
+  --chrome-bg: #f7f3ff;
+  --surface: #f9f6ff;
+  --surface-raised: #ffffff;
+  --surface-subtle: #eee7f9;
+  --surface-deep: #e3daf2;
+  --text-primary: #251638;
+  --text-secondary: #49375e;
+  --text-muted: #6f6080;
+  --border: #cbbde0;
+  --accent: #7044bd;
+  --accent-strong: #5e32a9;
+  --accent-text: #5d2eaa;
+  --accent-soft: rgba(112, 68, 189, 0.12);
+  --accent-border: rgba(112, 68, 189, 0.48);
+  --content-scrim: rgba(255, 255, 255, 0.34);
+}
+
+.app-container[data-theme="m365"][data-mode="dark"] {
+  --app-bg: #08172a;
+  --chrome-bg: #071321;
+  --surface: #101f32;
+  --surface-raised: #17283c;
+  --surface-subtle: #1c3047;
+  --surface-deep: #06111e;
+  --text-primary: #f5f9ff;
+  --text-secondary: #d3e0ef;
+  --text-muted: #9cafc3;
+  --border: #3c536b;
+  --accent: #4da3ed;
+  --accent-strong: #1676c4;
+  --accent-text: #8dcaff;
+  --accent-soft: rgba(77, 163, 237, 0.15);
+  --accent-border: rgba(77, 163, 237, 0.5);
+  --content-scrim: rgba(3, 12, 24, 0.28);
+}
+
+.app-container[data-theme="m365"][data-mode="light"] {
+  --app-bg: #ddecfa;
+  --chrome-bg: #f8fbff;
+  --surface: #f7fbff;
+  --surface-raised: #ffffff;
+  --surface-subtle: #e7f1fa;
+  --surface-deep: #d8e8f5;
+  --text-primary: #10243a;
+  --text-secondary: #304a64;
+  --text-muted: #587087;
+  --border: #b7cadc;
+  --accent: #0878c9;
+  --accent-strong: #0067b8;
+  --accent-text: #0067b8;
+  --accent-soft: rgba(0, 120, 212, 0.1);
+  --accent-border: rgba(0, 120, 212, 0.42);
+  --content-scrim: rgba(255, 255, 255, 0.38);
 }
 
 .purple-cube-bg {
@@ -30,6 +104,16 @@
   min-height: 100vh;
   position: relative;
   z-index: 2;
+  isolation: isolate;
+}
+
+.main-wrapper::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--content-scrim);
+  pointer-events: none;
+  content: "";
 }
 
 .content-area {

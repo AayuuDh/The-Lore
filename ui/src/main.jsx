@@ -17,6 +17,7 @@ import { PublicClientApplication, EventType } from "@azure/msal-browser";
 // MsalProvider = a React wrapper that shares the MSAL engine with every
 // component below it via React context, so hooks like useMsal() work anywhere.
 import { MsalProvider } from "@azure/msal-react";
+import { BrowserRouter } from "react-router-dom";
 // Global styles (Primer design system + our own overrides). Not auth-related.
 import "@primer/css/dist/primer.css";
 import "./index.css";
@@ -33,11 +34,19 @@ const msalInstance = new PublicClientApplication(msalConfig);
 // MSAL v3+ requires an explicit async initialize() before you use it (it does
 // internal setup like reading cached tokens). It returns a Promise, so we wait
 // for it with .then(...) and only render React once it has finished.
-msalInstance.initialize().then(() => {
+msalInstance.initialize().then(async () => {
+  // Consume Microsoft's redirect response before React Router renders. The
+  // authorization result lives in the URL hash, so mounting the unauthenticated
+  // /login redirect first can erase it before MSAL creates the signed-in account.
+  const redirectResult = await msalInstance.handleRedirectPromise();
+  if (redirectResult?.account) {
+    msalInstance.setActiveAccount(redirectResult.account);
+  }
+
   // getAllAccounts() returns any accounts MSAL already knows about (e.g. a
   // session cached from a previous visit). If there's at least one...
   const accounts = msalInstance.getAllAccounts();
-  if (accounts.length > 0) {
+  if (!msalInstance.getActiveAccount() && accounts.length > 0) {
     // ...mark the first one as "active" so the rest of the app knows which
     // account is the current user without us passing it around manually.
     msalInstance.setActiveAccount(accounts[0]);
@@ -62,7 +71,9 @@ msalInstance.initialize().then(() => {
       {/* MsalProvider shares msalInstance with everything inside it. Because
           <App/> is a child, any component in the app can call MSAL hooks. */}
       <MsalProvider instance={msalInstance}>
-        <App />
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
       </MsalProvider>
     </React.StrictMode>
   );

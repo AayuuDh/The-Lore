@@ -37,8 +37,8 @@
 
 /* Welcome card*/
 .homepage__welcome {
-  background: #130f2a;
-  border: 1px solid #30363d;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 32px;
 }
@@ -46,13 +46,13 @@
 .homepage__welcome-heading {
   font-size: 24px;
   font-weight: 600;
-  color: #e6edf3;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .homepage__welcome-text {
   font-size: 14px;
-  color: #7d8590;
+  color: var(--text-muted);
   line-height: 1.6;
   max-width: 620px;
 }
@@ -68,8 +68,8 @@
 .homepage__recent-card {
   flex: 0 0 240px;
   text-align: left;
-  background: #130f2a;
-  border: 1px solid #30363d;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 16px;
   cursor: pointer;
@@ -77,20 +77,20 @@
 }
 
 .homepage__recent-card:hover {
-  border-color: #8957e5;
-  box-shadow: 0 8px 24px rgba(137, 87, 229, 0.18);
+  border-color: var(--accent);
+  box-shadow: 0 8px 24px var(--accent-soft);
 }
 
 .homepage__recent-title {
   font-size: 14px;
   font-weight: 600;
-  color: #e6edf3;
+  color: var(--text-primary);
   margin-bottom: 6px;
 }
 
 .homepage__recent-desc {
   font-size: 13px;
-  color: #7d8590;
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
@@ -98,14 +98,14 @@
   margin-top: 8px;
   font-size: 11px;
   font-weight: 600;
-  color: #8957e5;
+  color: var(--accent);
 }
 
 /* Achievements / badges */
 .homepage__achievements-count {
   font-size: 13px;
   font-weight: 600;
-  color: #8957e5;
+  color: var(--accent);
   margin-left: 6px;
 }
 
@@ -119,16 +119,16 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #130f2a;
-  border: 1px solid #30363d;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 14px 16px;
   transition: border-color 0.2s;
 }
 
 .homepage__badge.is-earned {
-  border-color: rgba(137, 87, 229, 0.5);
-  box-shadow: 0 4px 16px rgba(137, 87, 229, 0.12);
+  border-color: var(--accent-border);
+  box-shadow: 0 4px 16px var(--accent-soft);
 }
 
 .homepage__badge.is-locked {
@@ -145,13 +145,13 @@
 .homepage__badge-title {
   font-size: 14px;
   font-weight: 600;
-  color: #e6edf3;
+  color: var(--text-primary);
   margin-bottom: 2px;
 }
 
 .homepage__badge-desc {
   font-size: 12px;
-  color: #7d8590;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
@@ -159,7 +159,7 @@
 .homepage__section-title {
   font-size: 16px;
   font-weight: 600;
-  color: #e6edf3;
+  color: var(--text-primary);
   margin-bottom: 16px;
 }
 
@@ -171,15 +171,15 @@
 }
 
 .homepage__tip-card {
-  background: #130f2a;
-  border: 1px solid #30363d;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 20px;
   transition: border-color 0.2s;
 }
 
 .homepage__tip-card:hover {
-  border-color: #8b949e;
+  border-color: var(--text-muted);
 }
 
 .homepage__tip-card--action {
@@ -187,8 +187,8 @@
 }
 
 .homepage__tip-card--action:hover {
-  border-color: #8957e5;
-  box-shadow: 0 8px 24px rgba(137, 87, 229, 0.18);
+  border-color: var(--accent);
+  box-shadow: 0 8px 24px var(--accent-soft);
 }
 
 .homepage__tip-emoji {
@@ -200,20 +200,20 @@
 .homepage__tip-title {
   font-size: 14px;
   font-weight: 600;
-  color: #e6edf3;
+  color: var(--text-primary);
   margin-bottom: 6px;
 }
 
 .homepage__tip-desc {
   font-size: 13px;
-  color: #7d8590;
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
 /* Demo Video */
 .homepage__video-placeholder {
-  background: #130f2a;
-  border: 1px solid #30363d;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   aspect-ratio: 16 / 9;
   display: flex;
@@ -226,7 +226,7 @@
 }
 
 .homepage__video-placeholder:hover {
-  border-color: #8b949e;
+  border-color: var(--text-muted);
 }
 
 /* Play Button in demo video*/
@@ -238,7 +238,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #e6edf3;
+  color: var(--text-primary);
   transition: background 0.2s;
 }
 
@@ -248,7 +248,7 @@
 
 .homepage__video-label {
   font-size: 14px;
-  color: #7d8590;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
@@ -281,12 +281,12 @@
 
 .homepage__cta-btn--secondary {
   background: transparent;
-  border: 1px solid #30363d;
-  color: #e6edf3;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
 }
 
 .homepage__cta-btn--secondary:hover {
-  border-color: #8b949e;
+  border-color: var(--text-muted);
 } */
 
 @media (max-width: 768px) {

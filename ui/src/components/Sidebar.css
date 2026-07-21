@@ -5,8 +5,8 @@
   height: 100vh;
   width: 320px;
   z-index: 100;
-  background: #06061F;
-  border-right: 1px solid #30363d;
+  background: var(--chrome-bg);
+  border-right: 1px solid var(--border);
   transform: translateX(-100%);
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -31,7 +31,7 @@
   align-items: center;
   justify-content: center;
   font-size: 20px;
-  color: #fafafa;
+  color: var(--text-primary);
   text-align: center;
   gap: 10px;
 }
@@ -45,14 +45,14 @@
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: #7d8590;
+  color: var(--text-muted);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
 .sidebar__close:hover {
-  background: #21262d;
-  color: #e6edf3;
+  background: var(--surface-subtle);
+  color: var(--text-primary);
 }
 
 /* Navigation */
@@ -71,7 +71,7 @@
   border-radius: 6px;
   border: none;
   background: transparent;
-  color: #e6edf3;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -81,19 +81,19 @@
 }
 
 .sidebar__nav-item:hover {
-  background: #1c2128;
+  background: var(--surface-subtle);
 }
 
 .sidebar__nav-item--active {
-  background: #1c2128;
+  background: var(--surface-subtle);
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 /* Divider */
 .sidebar__divider {
   height: 1px;
-  background: #30363d;
+  background: var(--border);
   margin: 12px 16px;
 }
 
@@ -117,18 +117,18 @@
 }
 
 .sidebar__section-header svg {
-  color: #7d8590;
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
 .sidebar__section-header:hover .sidebar__section-title {
-  color: #adb6c2;
+  color: var(--text-secondary);
 }
 
 .sidebar__section-title {
   font-size: 12px;
   font-weight: 600;
-  color: #7d8590;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -152,14 +152,14 @@
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: #7d8590;
+  color: var(--text-muted);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
 .sidebar__section-btn:hover {
-  background: #21262d;
-  color: #e6edf3;
+  background: var(--surface-subtle);
+  color: var(--text-primary);
 }
 
 /* List */
@@ -177,13 +177,13 @@
   padding: 6px 8px;
   border-radius: 6px;
   font-size: 14px;
-  color: #e6edf3;
+  color: var(--text-primary);
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .sidebar__list-item:hover {
-  background: #1c2128;
+  background: var(--surface-subtle);
 }
 
 .sidebar__dot {
@@ -203,14 +203,14 @@
   background: transparent;
   border-radius: 6px;
   font-size: 14px;
-  color: #e6edf3;
+  color: var(--text-primary);
   cursor: pointer;
   text-align: left;
   transition: background 0.15s;
 }
 
 .sidebar__skill:hover {
-  background: #1c2128;
+  background: var(--surface-subtle);
 }
 
 .sidebar__skill-name {
@@ -222,18 +222,18 @@
 .sidebar__empty {
   padding: 4px 8px;
   font-size: 12px;
-  color: #7d8590;
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
 .sidebar__show-more {
   padding: 6px 8px;
   font-size: 12px;
-  color: #7d8590;
+  color: var(--text-muted);
   cursor: pointer;
   transition: color 0.15s;
 }
 
 .sidebar__show-more:hover {
-  color: #e6edf3;
+  color: var(--text-primary);
 }
