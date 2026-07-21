@@ -11,6 +11,8 @@
 // after you close the tab. React's useState forgets everything on refresh;
 // localStorage remembers. We store the list of skill ids you've starred.
 
+import { getSkills } from "./api";
+
 // The single key under which we save the list. Namespacing it with "the-lore:"
 // keeps it from clashing with anything else the browser stores for this site.
 const STORAGE_KEY = "the-lore:favorites";
@@ -57,4 +59,50 @@ export function toggleFavorite(skillId) {
     : [...current, skillId];                 // add it
   saveFavorites(next);
   return next;
+}
+
+// ---------------------------------------------------------------------------
+// Default demo favorite.
+// ---------------------------------------------------------------------------
+// So a brand-new user's Favorites section is never empty, we auto-star one solid
+// showcase skill the FIRST time the app loads. The user can unfavorite it and it
+// stays gone: we set a one-time "seeded" flag so we never re-add it or fight
+// their choice. We match by NAME (not a hardcoded id) because the id differs
+// across backends (Cosmos in production vs. local markdown files).
+const SEED_KEY = "the-lore:favorites-seeded";
+const DEFAULT_FAVORITE_NAME =
+  "azure app service deployment with github actions and oidc";
+
+const norm = (s) => (s || "").trim().toLowerCase();
+
+// Add the default demo favorite once, if it exists in the catalog. Safe to call
+// on every load: it no-ops after the first successful seed, and never overrides
+// a user who has since unfavorited it. Returns the (possibly updated) id list.
+export async function ensureDefaultFavorite() {
+  try {
+    if (localStorage.getItem(SEED_KEY)) return getFavorites();
+
+    const skills = await getSkills();
+    // If the catalog didn't load (backend down / empty), don't burn the one-shot
+    // seed — try again on a future load.
+    if (!Array.isArray(skills) || skills.length === 0) return getFavorites();
+
+    const match =
+      skills.find((s) => norm(s.name) === DEFAULT_FAVORITE_NAME) ||
+      skills.find(
+        (s) => norm(s.name).includes("app service") && norm(s.name).includes("oidc")
+      );
+
+    // We successfully checked a real catalog, so mark it seeded either way.
+    localStorage.setItem(SEED_KEY, "1");
+
+    if (match && !isFavorite(match.id)) {
+      const next = [...getFavorites(), match.id];
+      saveFavorites(next);
+      return next;
+    }
+    return getFavorites();
+  } catch {
+    return getFavorites();
+  }
 }

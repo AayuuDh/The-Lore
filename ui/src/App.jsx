@@ -20,6 +20,7 @@ import "./App.css";
 import PurpleCubeBackground from "./components/PurpleCubeBackground";
 import { recordVisit } from "./streaks";
 import { ensureProfile } from "./api";
+import { ensureDefaultFavorite } from "./favorites";
 import { loadAppearance, saveAppearance } from "./appearance";
 
 // ---------------------------------------------------------------------------
@@ -107,6 +108,13 @@ function App() {
       setStreak(recordVisit());
     }, 0);
     return () => window.clearTimeout(updateTimer);
+  }, [isAuthenticated]);
+
+  // Seed the one-time demo favorite so a new user's Favorites is never empty.
+  // No-ops after the first successful seed and respects later unfavoriting.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    ensureDefaultFavorite();
   }, [isAuthenticated]);
 
   // Right after sign-in, fetch-or-create the profile. On the very first sign-in
