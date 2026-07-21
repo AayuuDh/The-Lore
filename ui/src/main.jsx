@@ -24,6 +24,16 @@ import "./index.css";
 import App from "./App";
 // The settings object we wrote in authConfig.js.
 import { msalConfig } from "./authConfig";
+// Microsoft Clarity — behavioral analytics (session replays, heatmaps, insights).
+import Clarity from "@microsoft/clarity";
+
+// Initialize Clarity only when a project ID is provided (via ui/.env). This
+// keeps analytics out of local dev unless you opt in, and avoids errors when
+// the ID is unset.
+const clarityProjectId = import.meta.env.VITE_CLARITY_ID;
+if (clarityProjectId) {
+  Clarity.init(clarityProjectId);
+}
 
 // Create ONE MSAL engine for the entire app, configured by our settings.
 // One shared instance matters: it holds the single source of truth for who is
