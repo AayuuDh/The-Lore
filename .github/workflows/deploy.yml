@@ -67,8 +67,14 @@ jobs:
             echo "frontend=true" >> "$GITHUB_OUTPUT"
           else
             CHANGED=$(git diff --name-only "$BEFORE" "$AFTER")
-            echo "backend=$(echo  "$CHANGED" | grep -q '^matching/' && echo true || echo false)" >> "$GITHUB_OUTPUT"
-            echo "frontend=$(echo "$CHANGED" | grep -q '^ui/'       && echo true || echo false)" >> "$GITHUB_OUTPUT"
+            # Workflow file changes validate that both sides still deploy correctly.
+            if echo "$CHANGED" | grep -q '^\.github/workflows/'; then
+              echo "backend=true"  >> "$GITHUB_OUTPUT"
+              echo "frontend=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "backend=$(echo  "$CHANGED" | grep -q '^matching/' && echo true || echo false)" >> "$GITHUB_OUTPUT"
+              echo "frontend=$(echo "$CHANGED" | grep -q '^ui/'       && echo true || echo false)" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
   # ---------------- Backend: Python FastAPI -> App Service ----------------
