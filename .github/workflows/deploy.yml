@@ -68,6 +68,7 @@ jobs:
           VITE_API_BASE_URL: https://the-lore-api-e3dghcgkfnfvcxed.westus-01.azurewebsites.net
           VITE_MSAL_CLIENT_ID: 5368ab3e-6c25-4ea2-951c-84651053f287
           VITE_MSAL_TENANT_ID: 72f988bf-86f1-41af-91ab-2d7cd011db47
+          VITE_CLARITY_ID: xq0b5ht68f
         run: |
           npm ci
           npm run build
