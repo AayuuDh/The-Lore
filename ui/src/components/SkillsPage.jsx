@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SearchIcon, ArrowLeftIcon, XIcon, StarIcon, StarFillIcon, AlertIcon, EyeIcon, ZapIcon } from "@primer/octicons-react";
 import { getSkills, matchSkills, getAllMetrics } from "../api";
 import { getFavorites, toggleFavorite } from "../favorites";
@@ -93,6 +93,7 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
 
   // Follow the nav intent: opening via "Favorited" flips the filter on.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setShowFavoritesOnly(initialFavoritesOnly);
   }, [initialFavoritesOnly]);
 
@@ -108,6 +109,7 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
   // Load the full catalog once on mount.
   useEffect(() => {
     let active = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     getSkills()
       .then((data) => {

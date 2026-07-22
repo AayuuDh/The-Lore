@@ -19,6 +19,7 @@ import { useMsal } from "@azure/msal-react";
 import logo from "../assets/logo light.png";
 // The scopes/permissions object we defined in authConfig.js.
 import { loginRequest } from "../authConfig";
+import { TEAMS_CHAT_URL } from "../config";
 import "./Login.css";
 
 // The categories of skills people can discover, shown as playful chips so the
@@ -156,7 +157,16 @@ function Login() {
           </button>
 
           <p className="login__fineprint">
-            🔒 We never see your password — Microsoft handles sign-in.
+            Want to know more before signing into the lore?
+            <br />
+            <a
+              href={TEAMS_CHAT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Join our Teams chat
+            </a>
+            .
           </p>
         </section>
       </div>

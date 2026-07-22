@@ -1,0 +1,80 @@
+# CI — runs on every PR to main (and on main itself) to catch broken builds
+# before they land.
+#
+# Jobs:
+#   frontend  → install, lint, build (with placeholder env vars)
+#   backend   → install deps, syntax-check every .py file
+#
+# Actions are pinned to commit SHAs (not mutable tags) per EMU policy.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # ------------- Frontend: lint + production build --------------------------
+  frontend:
+    name: Frontend (lint + build)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Lint
+        working-directory: ui
+        run: npm run lint
+
+      # Build with placeholder MSAL GUIDs — the build just needs them to be
+      # non-empty strings; they are never used at CI time.
+      - name: Build
+        working-directory: ui
+        env:
+          VITE_API_BASE_URL: http://localhost:8000
+          VITE_MSAL_CLIENT_ID: 00000000-0000-0000-0000-000000000000
+          VITE_MSAL_TENANT_ID: 00000000-0000-0000-0000-000000000000
+        run: npm run build
+
+  # ------------- Backend: dep install + syntax check ------------------------
+  backend:
+    name: Backend (syntax check)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: matching
+        run: pip install -r requirements.txt
+
+      # Compile every .py module to catch import errors and obvious syntax
+      # mistakes without needing a running server or cloud credentials.
+      - name: Syntax check
+        working-directory: matching
+        run: |
+          python -m py_compile main.py
+          python -m py_compile skills_loader.py
+          python -m py_compile matcher.py
+          python -m py_compile embeddings.py
+          python -m py_compile draft_skill.py
+          python -m py_compile query_rewriter.py

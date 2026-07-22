@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useMsal } from "@azure/msal-react";
-import { Link } from "react-router-dom";
 import {
   ThreeBarsIcon,
   PersonIcon,
@@ -16,7 +15,7 @@ import { getRecentlyViewed } from "../recentlyViewed";
 import { getAchievements, getAchievementSummary } from "../achievements";
 import "./TopNav.css";
 
-function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, onOpenProfile, onOpenSettings, onOpenAppearance, onOpenUpdates, onOpenAccessibility, onOpenSkill }) {
+function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, onHome, onOpenProfile, onOpenSettings, onOpenAppearance, onOpenUpdates, onOpenAccessibility, onOpenSkill }) {
   // The MSAL engine — used to sign the user out.
   const { instance } = useMsal();
   // Whether the profile dropdown is open.
@@ -105,7 +104,18 @@ function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, o
           <ThreeBarsIcon size={16} />
         </button>
 
-        <Link className="topnav__logo-link" to="/home" aria-label="Go to home page">
+        {/* Home. Kept as an anchor (so it looks/acts like a link and supports
+            middle-click) but intercepted: onHome runs through the app's leave
+            guard, which confirms before abandoning an in-progress conversation. */}
+        <a
+          className="topnav__logo-link"
+          href="/home"
+          aria-label="Go to home page"
+          onClick={(event) => {
+            event.preventDefault();
+            onHome?.();
+          }}
+        >
           <img
             className="topnav__logo"
             src={logo}
@@ -113,7 +123,7 @@ function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, o
             height="40"
             alt=""
           />
-        </Link>
+        </a>
 
         <span className="topnav__separator">/</span>
         <span className="topnav__page-name">{currentPage}</span>

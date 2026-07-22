@@ -25,6 +25,26 @@ import "./index.css";
 import App from "./App";
 // The settings object we wrote in authConfig.js.
 import { msalConfig } from "./authConfig";
+// Microsoft Clarity — behavioral analytics (session replays, heatmaps, insights).
+import Clarity from "@microsoft/clarity";
+
+// Initialize Clarity only when a project ID is set AND we're not running on
+// localhost. This keeps local dev / preview sessions out of the analytics data
+// so only real deployed traffic is tracked.
+const clarityProjectId = import.meta.env.VITE_CLARITY_ID;
+const isLocalhost = ["localhost", "127.0.0.1", "[::1]", "::1"].includes(
+  window.location.hostname
+);
+if (clarityProjectId && !isLocalhost) {
+  Clarity.init(clarityProjectId);
+}
+
+// Own scroll position ourselves. Without this the browser restores the previous
+// scroll offset on reload — which, on a tall page like /home, lands the user
+// scrolled to the bottom. Components reset to the top on mount instead.
+if ("scrollRestoration" in window.history) {
+  window.history.scrollRestoration = "manual";
+}
 
 // Create ONE MSAL engine for the entire app, configured by our settings.
 // One shared instance matters: it holds the single source of truth for who is

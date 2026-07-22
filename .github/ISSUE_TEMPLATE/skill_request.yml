@@ -1,0 +1,39 @@
+name: Skill Request
+description: Request a new AI skill to be added to the library.
+title: "Skill request: "
+labels: ["skill-request", "Needs-Triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Know a workflow that would make a great reusable skill? Tell us about it and we'll look at adding it to the library.
+
+  - type: textarea
+    id: task
+    attributes:
+      label: What task should this skill help with?
+      description: Describe the job to be done — what are you trying to accomplish?
+      placeholder: Summarize a long email thread into a short action list.
+    validations:
+      required: true
+
+  - type: textarea
+    id: prompt
+    attributes:
+      label: Example prompt or workflow
+      description: Share a prompt, set of steps, or workflow you already use — even a rough version helps.
+      placeholder: |
+        "You are a meeting assistant. Given the following email thread, produce:
+        1. A one-sentence TL;DR
+        2. A bulleted list of action items with owners"
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Who would use this?
+      description: Which roles or situations is this most useful for?
+      placeholder: Anyone who gets long email chains and needs to act on them quickly.
+    validations:
+      required: false

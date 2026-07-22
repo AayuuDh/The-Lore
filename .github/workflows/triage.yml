@@ -1,0 +1,49 @@
+# Issue triage — fires when a new issue is opened and it is not a JIT access
+# request (those have the "jit" label applied by their template and are handled
+# by the separate jit.yml policy).
+#
+# What it does:
+#   1. Adds the "Needs-Triage" label so the issue shows up in triage views.
+#   2. Assigns the three triage reviewers, skipping the issue author so nobody
+#      gets assigned their own report.
+#
+# No third-party actions needed — only the gh CLI (pre-installed on ubuntu-latest).
+
+name: Issue Triage
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  triage:
+    # Skip JIT access requests — they are handled by the governance policy.
+    if: ${{ !contains(github.event.issue.labels.*.name, 'jit') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Label and assign
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE: ${{ github.event.issue.number }}
+          OPENER: ${{ github.event.issue.user.login }}
+        run: |
+          # Add triage label (gh creates it if missing).
+          gh issue edit "$ISSUE" --repo "$REPO" --add-label "Needs-Triage"
+
+          # Assign the three triage reviewers, but skip the person who opened it.
+          REVIEWERS="t-traichura_microsoft t-erkuyghur_microsoft t-adhungana_microsoft"
+          ASSIGN=""
+          for user in $REVIEWERS; do
+            if [ "$user" != "$OPENER" ]; then
+              ASSIGN="${ASSIGN:+$ASSIGN,}$user"
+            fi
+          done
+
+          if [ -n "$ASSIGN" ]; then
+            gh issue edit "$ISSUE" --repo "$REPO" --add-assignee "$ASSIGN"
+          fi

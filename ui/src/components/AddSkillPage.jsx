@@ -161,6 +161,7 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
     const seed = (initialDescription || "").trim();
     if (seed) {
       seededRef.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       sendTurn(seed);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

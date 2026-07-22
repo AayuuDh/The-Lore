@@ -531,6 +531,13 @@
   flex-direction: column;
   gap: 16px;
   padding: 8px 4px 16px;
+  /* Hide the visible scrollbar while keeping scroll functional. */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge / IE */
+}
+
+.discover__chat::-webkit-scrollbar {
+  display: none; /* Chrome / Safari */
 }
 
 .discover__greeting {

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   XIcon,
   HomeIcon,
   HomeFillIcon,
   StarIcon,
   PlusIcon,
+  ArrowRightIcon,
   ChevronDownIcon,
   ChevronRightIcon,
 } 
@@ -106,7 +107,7 @@ function Sidebar({ isOpen, onClose, currentPage, onNavigate, userId, onOpenSkill
 
   // One collapsible, chevron-headed section with a "new" dot and color-coded
   // skill dots (colored by the skill's category).
-  function renderSection(key, title, items, emptyText) {
+  function renderSection(key, title, items, emptyAction) {
     const expanded = open[key];
     return (
       <div className="sidebar__section" key={key}>
@@ -121,7 +122,13 @@ function Sidebar({ isOpen, onClose, currentPage, onNavigate, userId, onOpenSkill
         </button>
         {expanded &&
           (items.length === 0 ? (
-            <p className="sidebar__empty">{emptyText}</p>
+            <button
+              className="sidebar__empty-link"
+              onClick={() => onNavigate(emptyAction.page)}
+            >
+              {emptyAction.icon}
+              <span>{emptyAction.label}</span>
+            </button>
           ) : (
             <ul className="sidebar__list">
               {items.map((s) => (
@@ -189,9 +196,9 @@ function Sidebar({ isOpen, onClose, currentPage, onNavigate, userId, onOpenSkill
 
       <div className="sidebar__divider" />
 
-      {renderSection("yours", "Yours", yours, "Skills you add show up here.")}
-      {renderSection("favs", "Favorites", favs, "Star a skill and it lands here.")}
-      {renderSection("recent", "Recent", recent, "Open a skill and it lands here.")}
+      {renderSection("yours", "My Skills", yours, { label: "Create a new skill", page: "Add Skill", icon: <PlusIcon size={12} /> })}
+      {renderSection("favs", "Favorites", favs, { label: "Browse skills to favorite", page: "Skills", icon: <ArrowRightIcon size={12} /> })}
+      {renderSection("recent", "Recent", recent, { label: "Browse skills", page: "Skills", icon: <ArrowRightIcon size={12} /> })}
     </aside>
   );
 }
