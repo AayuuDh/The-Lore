@@ -28,11 +28,14 @@ import { msalConfig } from "./authConfig";
 // Microsoft Clarity — behavioral analytics (session replays, heatmaps, insights).
 import Clarity from "@microsoft/clarity";
 
-// Initialize Clarity only when a project ID is provided (via ui/.env). This
-// keeps analytics out of local dev unless you opt in, and avoids errors when
-// the ID is unset.
+// Initialize Clarity only when a project ID is set AND we're not running on
+// localhost. This keeps local dev / preview sessions out of the analytics data
+// so only real deployed traffic is tracked.
 const clarityProjectId = import.meta.env.VITE_CLARITY_ID;
-if (clarityProjectId) {
+const isLocalhost = ["localhost", "127.0.0.1", "[::1]", "::1"].includes(
+  window.location.hostname
+);
+if (clarityProjectId && !isLocalhost) {
   Clarity.init(clarityProjectId);
 }
 
