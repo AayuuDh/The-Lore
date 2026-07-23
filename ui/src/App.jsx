@@ -312,6 +312,7 @@ function App() {
                       key="browse"
                       onBackHome={() => handleNavSelect("Home")}
                       onEditSkill={(skill) => openEditor(skill, "fork")}
+                      onCreateSkill={openAddSkill}
                       userId={userId}
                     />
                   } />
@@ -321,6 +322,7 @@ function App() {
                       onBackHome={() => handleNavSelect("Home")}
                       initialSkillId={skillId}
                       onEditSkill={(skill) => openEditor(skill, "fork")}
+                      onCreateSkill={openAddSkill}
                       userId={userId}
                     />
                   } />
@@ -329,6 +331,7 @@ function App() {
                       key="favorites"
                       onBackHome={() => handleNavSelect("Home")}
                       onEditSkill={(skill) => openEditor(skill, "fork")}
+                      onCreateSkill={openAddSkill}
                       userId={userId}
                       initialFavoritesOnly
                     />
