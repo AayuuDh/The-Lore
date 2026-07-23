@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from "react";
-import { InteractionStatus } from "@azure/msal-browser";
 import { useIsAuthenticated, useMsal } from "@azure/msal-react";
 import { ThemeProvider, BaseStyles } from "@primer/react";
 import { Navigate, Route, Routes, matchPath, useLocation, useNavigate } from "react-router-dom";
@@ -88,12 +87,9 @@ function App() {
 
   // The signed-in account. localAccountId is a stable per-user GUID we use as
   // the profile key; it is NOT the person's email/alias, so it stays private.
-  const { accounts, inProgress } = useMsal();
+  const { accounts } = useMsal();
   const userId = accounts[0]?.localAccountId ?? null;
   const accountEmail = accounts[0]?.username ?? "";
-  const isAuthInitializing =
-    inProgress === InteractionStatus.Startup ||
-    inProgress === InteractionStatus.HandleRedirect;
 
   // The user's profile (anonymous username + optional contact info). null until
   // we've fetched/created it.
@@ -226,12 +222,10 @@ function App() {
             <PurpleCubeBackground theme={appearance.theme} mode={appearance.mode} />
             {/* No props needed: Login triggers MSAL itself, and this component
                 re-renders automatically when auth state flips. */}
-            {!isAuthInitializing && (
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="*" element={<Navigate to="/login" replace />} />
-              </Routes>
-            )}
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
           </div>
         </BaseStyles>
       </ThemeProvider>
@@ -312,7 +306,6 @@ function App() {
                       key="browse"
                       onBackHome={() => handleNavSelect("Home")}
                       onEditSkill={(skill) => openEditor(skill, "fork")}
-                      onCreateSkill={openAddSkill}
                       userId={userId}
                     />
                   } />
@@ -322,7 +315,6 @@ function App() {
                       onBackHome={() => handleNavSelect("Home")}
                       initialSkillId={skillId}
                       onEditSkill={(skill) => openEditor(skill, "fork")}
-                      onCreateSkill={openAddSkill}
                       userId={userId}
                     />
                   } />
@@ -331,7 +323,6 @@ function App() {
                       key="favorites"
                       onBackHome={() => handleNavSelect("Home")}
                       onEditSkill={(skill) => openEditor(skill, "fork")}
-                      onCreateSkill={openAddSkill}
                       userId={userId}
                       initialFavoritesOnly
                     />

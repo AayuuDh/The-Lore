@@ -86,7 +86,7 @@ function SkillEditor({
     // A little conversational memory: the turns so far.
     const history = agentMessages.slice(-6);
     try {
-      const updated = await editSkill(skill, text, history, userId);
+      const updated = await editSkill(skill, text, history);
       setSkill((prev) => ({
         ...prev,
         name: updated.name,
