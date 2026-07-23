@@ -38,7 +38,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from query_rewriter import rewrite_query
 from draft_skill import start_draft, refine_draft
 from edit_skill import edit_skill as ai_edit_skill
-from events import record_event, skill_metrics, user_history, all_metrics
+from events import record_event, skill_metrics, user_history, user_activity_summary, all_metrics
 from users import get_user, ensure_user, update_user, UsernameTakenError
 
 
@@ -110,12 +110,13 @@ class EditSkillRequest(BaseModel):
     skill: dict                 # the current skill being edited: {name, description, body, ...}
     instruction: str            # plain-English change, e.g. "add a concrete example"
     history: list | None = None # optional prior {role, content} turns for context
+    user_id: str | None = None  # signed-in editor, used for their private activity count
 
 
 class EventRequest(BaseModel):
     """Shape of the JSON body POSTed to /events — one usage event to log."""
     skill_id: str               # which skill the event is about
-    type: str                   # view | use | favorite | unfavorite
+    type: str                   # view | use | download | edit | favorite | unfavorite
     user_id: str | None = None  # who (stored privately; never returned in aggregates)
 
 
@@ -310,6 +311,15 @@ def user_history_endpoint(user_id: str):
     ]
 
 
+@app.get("/users/{user_id}/activity-summary")
+def user_activity_summary_endpoint(user_id: str):
+    """Return this user's profile counters: added, downloaded, favorited, edited."""
+    return {
+        "added": len(load_skills_by_author(user_id)),
+        **user_activity_summary(user_id),
+    }
+
+
 @app.patch("/users/{user_id}")
 def update_user_endpoint(user_id: str, req: UpdateUserRequest):
     """Update a profile. Only the fields you send are changed.
@@ -339,7 +349,7 @@ def get_skill(id: str):
 
 @app.post("/events", status_code=204)
 def record_event_endpoint(req: EventRequest):
-    """Log one usage event (view / use / favorite / unfavorite). Fire-and-forget:
+    """Log one usage event. Fire-and-forget:
     the client doesn't wait on the result. Silently no-ops without Cosmos."""
     try:
         record_event(req.skill_id, req.user_id, req.type)
@@ -403,7 +413,11 @@ async def edit_skill_endpoint(req: EditSkillRequest):
     Stateless — the frontend holds the working copy and sends it each turn.
     """
     try:
-        return await ai_edit_skill(req.skill, req.instruction, req.history)
+        updated = await ai_edit_skill(req.skill, req.instruction, req.history)
+        skill_id = req.skill.get("id")
+        if req.user_id and skill_id:
+            record_event(skill_id, req.user_id, "edit")
+        return updated
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"edit failed: {exc}")
 

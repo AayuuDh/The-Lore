@@ -115,10 +115,10 @@ function SkillDetail({ skillId, onBack, onEdit, userId }) {
     }
   }
 
-  // Download the skill as markdown, and count it as a "use" like copy.
+  // Download the skill as markdown. It also contributes to the global use count.
   function handleDownload() {
     downloadSkill(skill);
-    recordEvent(skillId, "use", userId);
+    recordEvent(skillId, "download", userId);
     setMetrics((m) => (m ? { ...m, uses: m.uses + 1 } : m));
   }
 

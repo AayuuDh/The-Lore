@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { SearchIcon, ArrowLeftIcon, XIcon, StarIcon, StarFillIcon, AlertIcon, EyeIcon, ZapIcon } from "@primer/octicons-react";
+import { SearchIcon, ArrowLeftIcon, XIcon, StarIcon, StarFillIcon, AlertIcon, EyeIcon, ZapIcon, PlusIcon } from "@primer/octicons-react";
 import { getSkills, matchSkills, getAllMetrics } from "../api";
 import { getFavorites, toggleFavorite } from "../favorites";
 import { recordView } from "../recentlyViewed";
 import { getCategory, getAllCategories } from "../categories";
 import SkillDetail from "./SkillDetail";
 import "./SkillsPage.css";
+
+// Model2Vec always returns nearest neighbors, even for an unrelated query.
+// Scores below this floor are noise in this catalog rather than useful matches.
+const RELEVANCE_THRESHOLD = 0.35;
 
 // The backend `description` is a long paragraph with usage hints.
 // Keep only a short, card-friendly snippet (first sentence, capped length).
@@ -68,10 +72,11 @@ function bentoLayout(skills, metricsMap) {
   }));
 }
 
-function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, initialFavoritesOnly = false }) {
+function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, onCreateSkill, userId, initialFavoritesOnly = false }) {
   const [allSkills, setAllSkills] = useState([]);
   const [results, setResults] = useState(null); // null = showing full catalog
   const [query, setQuery] = useState("");
+  const [searchedQuery, setSearchedQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState("");
@@ -157,8 +162,12 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
     setError("");
     try {
       const ranked = await matchSkills(q);
-      // ranked is best-first; keep only meaningful matches.
-      setResults(ranked.map((r) => ({ ...r.skill, score: r.score })));
+      setSearchedQuery(q);
+      setResults(
+        ranked
+          .filter((result) => result.score >= RELEVANCE_THRESHOLD)
+          .map((result) => ({ ...result.skill, score: result.score }))
+      );
     } catch {
       setError("Search failed. Make sure the backend is running.");
     } finally {
@@ -168,6 +177,7 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
 
   function clearSearch() {
     setQuery("");
+    setSearchedQuery("");
     setResults(null);
     setError("");
   }
@@ -247,7 +257,7 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
           <span>
             Showing {visibleSkills.length} recommended{" "}
             {visibleSkills.length === 1 ? "skill" : "skills"} for
-            &nbsp;“{query.trim()}”
+            &nbsp;“{searchedQuery}”
           </span>
         ) : (
           !loading && <span>{alphabetical.length} skills</span>
@@ -259,7 +269,6 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
           onClick={() => setShowFavoritesOnly((v) => !v)}
           aria-pressed={showFavoritesOnly}
         >
-          {showFavoritesOnly ? <StarFillIcon size={14} /> : <StarIcon size={14} />}
           <span>{showFavoritesOnly ? "Showing favorites" : "My Favorites"}</span>
           {favorites.length > 0 && (
             <span className="skills-page__fav-count">{favorites.length}</span>
@@ -372,7 +381,24 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
                 )}
             </button>
           ))}
-          {visibleSkills.length === 0 && !error && (
+          {isSearchView && results.length === 0 && !showFavoritesOnly && !error && (
+            <div className="skills-page__no-match">
+              <h2>No existing skill matches “{searchedQuery}”</h2>
+              <p>
+                There isn’t an existing skill here that helps with this yet.
+                Want to add it?
+              </p>
+              <button
+                type="button"
+                className="skills-page__create-skill"
+                onClick={() => onCreateSkill?.(searchedQuery)}
+              >
+                <PlusIcon size={16} /> Create this skill
+              </button>
+            </div>
+          )}
+          {visibleSkills.length === 0 && !error &&
+            !(isSearchView && results.length === 0 && !showFavoritesOnly) && (
             <div className="skills-page__empty">
               {showFavoritesOnly
                 ? "You haven’t starred any skills yet. Tap the ☆ on a card to add one."
