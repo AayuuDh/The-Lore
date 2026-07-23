@@ -14,6 +14,9 @@ __pycache__/
 venv/
 env/
 .pytest_cache/
+# CI-built, ready-to-run dependency bundle for the App Service deploy
+.python_packages/
+backend.zip
 
 # Env / secrets
 .env
