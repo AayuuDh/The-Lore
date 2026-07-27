@@ -1,16 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowLeftIcon, PencilIcon, SyncIcon } from "@primer/octicons-react";
-import { getActivitySummary, updateProfile } from "../api";
+import { updateProfile } from "../api";
 import "./ProfilePage.css";
 
 const ACTIVITY_TYPES = [
   { label: "Skills added", key: "added", color: "#3fb950" },
   { label: "Skills downloaded", key: "downloaded", color: "#58a6ff" },
-  { label: "Skills favorited", key: "favorited", color: "#d29922" },
   { label: "Skills edited", key: "edited", color: "#d2a8ff" },
 ];
-
-const EMPTY_ACTIVITY = { added: 0, downloaded: 0, favorited: 0, edited: 0 };
 
 function ProfilePage({ profile, userId, email, onSaved, onSkip, isOnboarding, reason }) {
   const [editing, setEditing] = useState(isOnboarding);
@@ -21,19 +18,6 @@ function ProfilePage({ profile, userId, email, onSaved, onSkip, isOnboarding, re
   const [other, setOther] = useState(profile?.contact_other ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  const [activity, setActivity] = useState(EMPTY_ACTIVITY);
-
-  useEffect(() => {
-    let active = true;
-    if (userId) {
-      getActivitySummary(userId)
-        .then((summary) => active && setActivity({ ...EMPTY_ACTIVITY, ...summary }))
-        .catch(() => {});
-    }
-    return () => {
-      active = false;
-    };
-  }, [userId]);
 
   async function handleSave() {
     const trimmed = username.trim();
@@ -86,7 +70,7 @@ function ProfilePage({ profile, userId, email, onSaved, onSkip, isOnboarding, re
             {ACTIVITY_TYPES.map(({ label, key, color }) => (
               <div className="profile-page__stat" key={key}>
                 <span className="profile-page__stat-dot" style={{ backgroundColor: color }} />
-                <strong>{activity[key]}</strong>
+                <strong>0</strong>
                 <span>{label}</span>
               </div>
             ))}

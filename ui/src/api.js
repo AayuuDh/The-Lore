@@ -98,11 +98,11 @@ export function saveSkill(skill, userId) {
 // instruction ("make the workflow tighter", "add a real example"); get back the
 // full updated skill plus a short note describing what changed. Optionally pass
 // prior { role, content } turns as `history` for a little conversational memory.
-export function editSkill(skill, instruction, history, userId) {
+export function editSkill(skill, instruction, history) {
   return request("/edit-skill", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ skill, instruction, history, user_id: userId }),
+    body: JSON.stringify({ skill, instruction, history }),
   });
 }
 
@@ -135,12 +135,7 @@ export function getMyHistory(userId) {
   return request(`/users/${encodeURIComponent(userId)}/history`);
 }
 
-// GET /users/{userId}/activity-summary -> profile activity counters.
-export function getActivitySummary(userId) {
-  return request(`/users/${encodeURIComponent(userId)}/activity-summary`);
-}
-
-// POST /events -> 204. Log one skill activity event.
+// POST /events -> 204. Log one usage event (view | use | favorite | unfavorite).
 // Fire-and-forget: swallow errors so metrics never break the UI.
 export function recordEvent(skillId, type, userId) {
   return request("/events", {

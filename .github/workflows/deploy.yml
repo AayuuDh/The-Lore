@@ -1,7 +1,8 @@
 # Auto-deploy The Lore to Azure whenever code lands on main.
 #
 # Two independent jobs run in parallel when their paths change:
-#   backend  -> zips matching/ and deploys to the App Service (Python API)
+#   backend  -> installs Python deps in the runner, then deploys a
+#               ready-to-run artifact to the App Service (no server build)
 #   frontend -> builds ui/ and uploads it to the Static Web App (React SPA)
 #
 # Path-based change detection uses a native git-diff step so no third-party
@@ -85,6 +86,12 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
+      # Match the App Service runtime (PYTHON|3.11) so the wheels we install
+      # here are ABI-compatible with the box that will run them.
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.11"
+
       # Log into Azure as the managed identity via OIDC (passwordless).
       - name: Azure login
         uses: azure/login@532459ea530d8321f2fb9bb10d1e0bcf23869a43  # v3.0.0
@@ -93,12 +100,35 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # Zip the matching/ folder and deploy it. Azure runs pip install itself
-      # because SCM_DO_BUILD_DURING_DEPLOYMENT=true is set on the app.
+      # Build the dependencies HERE in the runner (not on the server) into
+      # .python_packages/lib/site-packages — the folder App Service loads via
+      # PYTHONPATH. Doing pip install on the tiny Free (F1) instance used up
+      # its daily CPU quota and tripped "QuotaExceeded"; now the box just
+      # unzips a ready-to-run artifact and never runs pip itself.
+      - name: Build dependencies (ready-to-run artifact)
+        working-directory: matching
+        run: |
+          python -m pip install --upgrade pip
+          pip install --target=".python_packages/lib/site-packages" -r requirements.txt
+
+      # Turn OFF server-side builds and point PYTHONPATH at the prebuilt
+      # packages, so Oryx has nothing to compile when the package lands.
+      - name: Configure app for prebuilt deploy
+        run: |
+          az webapp config appsettings set \
+            --resource-group rg-aiskills-chelseasimek \
+            --name the-lore-api \
+            --settings \
+              SCM_DO_BUILD_DURING_DEPLOYMENT=false \
+              ENABLE_ORYX_BUILD=false \
+              PYTHONPATH=/home/site/wwwroot/.python_packages/lib/site-packages
+
+      # Zip matching/ WITH the prebuilt packages but WITHOUT requirements.txt,
+      # so Oryx won't try to build even if it inspects the package.
       - name: Deploy backend
         run: |
           cd matching
-          zip -rq ../backend.zip . -x "*.pyc" "__pycache__/*"
+          zip -rq ../backend.zip . -x "*.pyc" "__pycache__/*" "requirements.txt"
           az webapp deploy \
             --resource-group rg-aiskills-chelseasimek \
             --name the-lore-api \
