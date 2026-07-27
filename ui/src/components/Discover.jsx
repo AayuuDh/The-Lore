@@ -126,6 +126,11 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
     setLoading(true);
     const controller = new AbortController();
     requestControllerRef.current = controller;
+    // Don't let the spinner run forever if the backend is slow or wedged (e.g.
+    // the AI provider is rate-limiting and retrying behind the scenes). Abort
+    // with a "timeout" reason so the catch below can tell it apart from the
+    // user pressing Stop and show a "service is busy" message instead.
+    const timeoutId = setTimeout(() => controller.abort("timeout"), 25000);
 
     try {
       // Send the whole conversation so the guide keeps full context.
@@ -143,17 +148,25 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
         },
       ]);
     } catch (error) {
-      if (error.name === "AbortError") return;
+      const timedOut =
+        error.name === "AbortError" && controller.signal.reason === "timeout";
+      // User pressed Stop (aborted without our timeout reason): stay quiet.
+      if (error.name === "AbortError" && !timedOut) return;
+      // A timeout, or the backend surfacing a busy/upstream error (429 rate
+      // limit, 502 discovery agent failed) → tell them to try again shortly.
+      const busy = timedOut || error.status === 429 || error.status === 502;
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content:
-            "I couldn't reach the discovery service — is the backend running?",
+          content: busy
+            ? "The discovery service is busy right now. Please try again in a moment."
+            : "I couldn't reach the discovery service — is the backend running?",
           error: true,
         },
       ]);
     } finally {
+      clearTimeout(timeoutId);
       if (requestControllerRef.current === controller) {
         requestControllerRef.current = null;
         setLoading(false);

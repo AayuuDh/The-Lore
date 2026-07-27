@@ -41,6 +41,14 @@ const PALETTES = {
 
 export default function PurpleCubeBackground({ theme = "purple", mode = "dark" }) {
   const canvasRef = useRef(null);
+  const cubesRef = useRef([]);
+  const paletteRef = useRef(PALETTES[theme]?.[mode] ?? PALETTES.purple.dark);
+
+  // Swap only the colors when the theme/mode changes. The cubes keep their
+  // existing positions because they live in a ref and are never regenerated here.
+  useEffect(() => {
+    paletteRef.current = PALETTES[theme]?.[mode] ?? PALETTES.purple.dark;
+  }, [theme, mode]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -50,8 +58,6 @@ export default function PurpleCubeBackground({ theme = "purple", mode = "dark" }
     let width = 0;
     let height = 0;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
-    let cubes = [];
-    const palette = PALETTES[theme]?.[mode] ?? PALETTES.purple.dark;
 
     function resizeCanvas() {
       width = window.innerWidth;
@@ -73,7 +79,10 @@ export default function PurpleCubeBackground({ theme = "purple", mode = "dark" }
 
     function createCubes() {
       const count = Math.floor((width * height) / 18000); // adjust density here
-      cubes = Array.from({ length: count }, () => {
+      // colorIndex spans the largest palette so cubes keep a stable color slot
+      // across themes; drawCube wraps it to the active palette's length.
+      const maxColors = 4;
+      cubesRef.current = Array.from({ length: count }, () => {
         const size = randomBetween(8, 20);
 
         return {
@@ -84,7 +93,7 @@ export default function PurpleCubeBackground({ theme = "purple", mode = "dark" }
           speedY: randomBetween(-0.02, 0.05),
           floatOffset: randomBetween(0, Math.PI * 2),
           opacity: randomBetween(0.15, 0.45),
-          colorIndex: Math.floor(randomBetween(0, palette.cubes.length)),
+          colorIndex: Math.floor(randomBetween(0, maxColors)),
         };
       });
     }
@@ -105,7 +114,8 @@ export default function PurpleCubeBackground({ theme = "purple", mode = "dark" }
     }
 
     function drawCube(x, y, size, alpha, colorIndex) {
-      const [top, left, right] = palette.cubes[colorIndex];
+      const palette = paletteRef.current;
+      const [top, left, right] = palette.cubes[colorIndex % palette.cubes.length];
       const topColor = rgba(top, alpha);
       const leftColor = rgba(left, alpha);
       const rightColor = rgba(right, alpha);
@@ -145,6 +155,7 @@ export default function PurpleCubeBackground({ theme = "purple", mode = "dark" }
     }
 
     function drawBackground(time) {
+      const palette = paletteRef.current;
       ctx.clearRect(0, 0, width, height);
 
       const gradient = ctx.createLinearGradient(0, 0, width, height);
@@ -193,6 +204,7 @@ export default function PurpleCubeBackground({ theme = "purple", mode = "dark" }
     function animate(time) {
       drawBackground(time);
 
+      const cubes = cubesRef.current;
       for (let i = 0; i < cubes.length; i++) {
         const cube = cubes[i];
 
@@ -219,7 +231,7 @@ export default function PurpleCubeBackground({ theme = "purple", mode = "dark" }
       window.removeEventListener("resize", resizeCanvas);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [theme, mode]);
+  }, []);
 
   return <canvas ref={canvasRef} className="purple-cube-bg" />;
 }

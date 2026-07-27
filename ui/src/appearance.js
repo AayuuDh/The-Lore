@@ -1,6 +1,6 @@
 export const DEFAULT_APPEARANCE = Object.freeze({
   theme: "purple",
-  mode: "dark",
+  mode: "light",
 });
 
 const STORAGE_KEY = "the-lore:appearance";
