@@ -1,13 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeftIcon, PencilIcon, SyncIcon } from "@primer/octicons-react";
-import { updateProfile } from "../api";
+import { updateProfile, getMySkills, getMyHistory } from "../api";
+import { getFavorites } from "../favorites";
 import "./ProfilePage.css";
 
 const ACTIVITY_TYPES = [
   { label: "Skills added", key: "added", color: "#3fb950" },
-  { label: "Skills downloaded", key: "downloaded", color: "#58a6ff" },
-  { label: "Skills edited", key: "edited", color: "#d2a8ff" },
+  { label: "Skills used", key: "used", color: "#58a6ff" },
+  { label: "Skills favorited", key: "favorited", color: "#d2a8ff" },
 ];
+
+// Turn the user's authored skills, event history, and saved favorites into the
+// three headline counts. Downloads and copies are both logged as "use" events;
+// favorites live in localStorage (the app's source of truth, shared with the
+// sidebar), so we read them from there rather than from backend events.
+function computeStats(mySkills, history, favorites) {
+  let used = 0;
+  for (const event of history || []) {
+    if (event.type === "use") used += 1;
+  }
+  return {
+    added: (mySkills || []).length,
+    used,
+    favorited: (favorites || []).length,
+  };
+}
 
 function ProfilePage({ profile, userId, email, onSaved, onSkip, isOnboarding, reason }) {
   const [editing, setEditing] = useState(isOnboarding);
@@ -18,6 +35,23 @@ function ProfilePage({ profile, userId, email, onSaved, onSkip, isOnboarding, re
   const [other, setOther] = useState(profile?.contact_other ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [stats, setStats] = useState(null);
+
+  // Load real activity counts for this user. Both calls degrade to empty lists
+  // (e.g. local dev without Cosmos), so the stats simply read as zero.
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    Promise.all([
+      getMySkills(userId).catch(() => []),
+      getMyHistory(userId).catch(() => []),
+    ]).then(([mySkills, history]) => {
+      if (active) setStats(computeStats(mySkills, history, getFavorites()));
+    });
+    return () => {
+      active = false;
+    };
+  }, [userId]);
 
   async function handleSave() {
     const trimmed = username.trim();
@@ -70,7 +104,7 @@ function ProfilePage({ profile, userId, email, onSaved, onSkip, isOnboarding, re
             {ACTIVITY_TYPES.map(({ label, key, color }) => (
               <div className="profile-page__stat" key={key}>
                 <span className="profile-page__stat-dot" style={{ backgroundColor: color }} />
-                <strong>0</strong>
+                <strong>{stats ? stats[key] : "—"}</strong>
                 <span>{label}</span>
               </div>
             ))}
