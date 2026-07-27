@@ -226,28 +226,6 @@
   line-height: 1.5;
 }
 
-.sidebar__empty-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin: 2px 8px;
-  padding: 6px 10px;
-  background: rgba(137, 87, 229, 0.14);
-  border: 1px solid rgba(137, 87, 229, 0.4);
-  border-radius: 8px;
-  color: #c9b6ff;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.sidebar__empty-link:hover {
-  background: rgba(137, 87, 229, 0.26);
-  border-color: #8957e5;
-  color: #fff;
-}
-
 .sidebar__show-more {
   padding: 6px 8px;
   font-size: 12px;

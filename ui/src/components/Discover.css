@@ -700,6 +700,10 @@
   background: var(--accent-strong);
 }
 
+.discover__send--stop {
+  border-radius: 50%;
+}
+
 .discover__send:disabled {
   opacity: 0.5;
   cursor: default;
@@ -785,7 +789,7 @@
   align-items: flex-start;
   justify-content: center;
   padding: 40px 20px;
-  z-index: 50;
+  z-index: 120;
   overflow-y: auto;
 }
 

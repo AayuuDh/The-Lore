@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeftIcon } from "@primer/octicons-react";
+import { ArrowLeftIcon, XIcon } from "@primer/octicons-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { draftSkill, refineSkill, saveSkill, matchSkills, getMySkills } from "../api";
+import SkillDetail from "./SkillDetail";
 import "./AddSkillPage.css";
 
 // If an existing skill scores at/above this cosine similarity, treat it as a
@@ -18,8 +19,8 @@ function normalize(s = "") {
 }
 
 // Given ranked matches, return the strongest one that looks like a
-// near-duplicate ({ skill, score }), or null. Intentionally lightweight: we use
-// this both for the non-blocking nudge and the pre-save check.
+// near-duplicate ({ skill, score }), or null. Used for both the opening-turn
+// gate and the pre-save check.
 function findSimilar(ranked) {
   const top = ranked && ranked[0];
   if (top && top.score >= SIMILAR_THRESHOLD) {
@@ -40,7 +41,8 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
   const [bodyPreview, setBodyPreview] = useState(true); // show rendered markdown vs raw editor
   const [duplicate, setDuplicate] = useState(null);     // near-duplicate found before saving
   const [checkingDup, setCheckingDup] = useState(false); // running the pre-save duplicate check?
-  const [similar, setSimilar] = useState(null);         // non-blocking "may already exist" nudge
+  const [similar, setSimilar] = useState(null);         // existing skill found before drafting
+  const [previewId, setPreviewId] = useState(null);     // existing skill opened over this page
 
   const transcriptRef = useRef(null);
   const started = messages.length > 0 || sessionId !== null;
@@ -51,19 +53,28 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, loading, skill]);
 
+  useEffect(() => {
+    if (!previewId) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setPreviewId(null);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [previewId]);
+
   function pushMessage(role, text) {
     setMessages((prev) => [...prev, { role, text }]);
   }
 
-  // --- Non-blocking nudge: does a similar skill already exist? ----------------
-  // Runs once, on the first user message. Never blocks the interview — it just
-  // surfaces an "already exists?" banner the user can ignore.
+  // --- Opening-turn gate: does a similar skill already exist? -----------------
+  // Run before starting the interview so we never draft a duplicate skill.
   async function checkSimilar(text) {
     try {
       const ranked = await matchSkills(text, 8);
-      setSimilar(findSimilar(ranked));
+      return findSimilar(ranked);
     } catch {
-      // A failed check shouldn't get in the way of the conversation.
+      // A failed check shouldn't prevent the user from starting the interview.
+      return null;
     }
   }
 
@@ -79,10 +90,15 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
     setError(null);
     setDuplicate(null); // any new turn invalidates a prior pre-save check
 
-    // On the opening turn, check for an existing similar skill in parallel.
-    if (firstTurn) checkSimilar(text);
-
     try {
+      if (firstTurn) {
+        const existing = await checkSimilar(text);
+        if (existing) {
+          setSimilar(existing);
+          return;
+        }
+      }
+
       const res = firstTurn
         ? await draftSkill(text)
         : await refineSkill(sessionId, text);
@@ -340,46 +356,48 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
               )}
 
               {similar && (
-                <div className="add-skill-page__dup add-skill-page__dup--info" role="status">
-                  <p className="add-skill-page__dup-title">
-                    A similar skill may already exist &mdash; &ldquo;{similar.skill.name}&rdquo;
-                    {typeof similar.score === "number" &&
-                      ` (${Math.round(similar.score * 100)}% match)`}
+                <div className="add-skill-page__existing" role="status">
+                  <p className="add-skill-page__existing-label">
+                    A similar skill may already exist
                   </p>
-                  {similar.skill.description && (
-                    <p className="add-skill-page__dup-desc">{similar.skill.description}</p>
-                  )}
-                  <p className="add-skill-page__dup-hint">
-                    You can keep going if what you&apos;re capturing is genuinely different, or
-                    stop and use the existing one.
-                  </p>
-                  <div className="add-skill-page__actions">
-                    <button
-                      className="add-skill-page__ghost-btn"
-                      type="button"
-                      onClick={() => setSimilar(null)}
-                    >
-                      Dismiss
-                    </button>
-                  </div>
+                  <button
+                    className="add-skill-page__existing-card"
+                    type="button"
+                    onClick={() => setPreviewId(similar.skill.id)}
+                  >
+                    <span className="add-skill-page__dup-title">{similar.skill.name}</span>
+                    {similar.skill.description && (
+                      <span className="add-skill-page__dup-desc">{similar.skill.description}</span>
+                    )}
+                    <span className="add-skill-page__existing-link">View skill details</span>
+                  </button>
+                  <button
+                    className="add-skill-page__ghost-btn"
+                    type="button"
+                    onClick={handleReset}
+                  >
+                    Try another skill
+                  </button>
                 </div>
               )}
 
               {/* The chat box: opens the interview, answers questions, or refines. */}
-              <form className="add-skill-page__input-row" onSubmit={handleSend}>
-                <input
-                  className="add-skill-page__input"
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder={placeholder}
-                  aria-label="Your message to the interviewer"
-                  disabled={loading}
-                />
-                <button className="add-skill-page__start-btn" type="submit" disabled={loading}>
-                  {loading ? "Working…" : started ? "Send" : "Start"}
-                </button>
-              </form>
+              {!similar && (
+                <form className="add-skill-page__input-row" onSubmit={handleSend}>
+                  <input
+                    className="add-skill-page__input"
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder={placeholder}
+                    aria-label="Your message to the interviewer"
+                    disabled={loading}
+                  />
+                  <button className="add-skill-page__start-btn" type="submit" disabled={loading}>
+                    {loading ? "Working…" : started ? "Send" : "Start"}
+                  </button>
+                </form>
+              )}
 
               {/* Escape hatch: let the user draft as soon as they feel they've
                   said enough, instead of answering every follow-up. */}
@@ -476,8 +494,7 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
                     <div className="add-skill-page__dup" role="alert">
                       <p className="add-skill-page__dup-title">
                         A very similar skill already exists
-                        {typeof duplicate.score === "number" &&
-                          ` — “${duplicate.skill.name}” (${Math.round(duplicate.score * 100)}% match)`}
+                        {duplicate.skill.name && ` — “${duplicate.skill.name}”`}
                       </p>
                       {duplicate.skill.description && (
                         <p className="add-skill-page__dup-desc">{duplicate.skill.description}</p>
@@ -538,6 +555,33 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
           )}
         </section>
       </main>
+
+      {previewId && (
+        <div className="add-skill-page__modal" onClick={() => setPreviewId(null)}>
+          <div
+            className="add-skill-page__modal-inner"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Existing skill details"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              className="add-skill-page__modal-close"
+              type="button"
+              onClick={() => setPreviewId(null)}
+              aria-label="Close skill details"
+              autoFocus
+            >
+              <XIcon size={18} />
+            </button>
+            <SkillDetail
+              skillId={previewId}
+              onBack={() => setPreviewId(null)}
+              userId={userId}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
