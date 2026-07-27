@@ -122,16 +122,27 @@ jobs:
 
       # Zip the source (WITH requirements.txt) and deploy. Oryx installs the
       # dependencies on the box — no large package tree to extract onto /home.
+      # Retries up to 3 times (60 s apart) to survive transient Kudu 504s
+      # (cold Kudu restarts can time out the first upload attempt).
       - name: Deploy backend
         run: |
           cd matching
           zip -rq ../backend.zip . -x "*.pyc" "__pycache__/*" ".env"
-          az webapp deploy \
-            --resource-group rg-aiskills-chelseasimek \
-            --name the-lore-api \
-            --src-path ../backend.zip \
-            --type zip \
-            --track-status false
+          for i in 1 2 3; do
+            az webapp deploy \
+              --resource-group rg-aiskills-chelseasimek \
+              --name the-lore-api \
+              --src-path ../backend.zip \
+              --type zip \
+              --track-status false && break
+            if [ "$i" -lt 3 ]; then
+              echo "Attempt $i failed — waiting 60 s before retry..."
+              sleep 60
+            else
+              echo "All 3 deployment attempts failed."
+              exit 1
+            fi
+          done
 
       # Fail the job LOUDLY if the deployed app isn't actually serving. Without
       # this, a broken deploy (missing deps, bad startup) goes green and only
