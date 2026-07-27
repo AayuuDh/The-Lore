@@ -46,11 +46,12 @@ export function matchSkills(query, topK = 30) {
 // POST /discover -> { reply, best: {…skill}|null, confidence }
 // Conversational discovery: send the whole chat; an AI guide replies and names
 // the best-fit skill (no misleading similarity numbers).
-export function discoverSkill(messages) {
+export function discoverSkill(messages, signal) {
   return request("/discover", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ messages }),
+    signal,
   });
 }
 

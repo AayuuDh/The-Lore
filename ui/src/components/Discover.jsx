@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowRightIcon, SearchIcon, PaperAirplaneIcon, InfoIcon, PlusIcon, XIcon } from "@primer/octicons-react";
+import { ArrowRightIcon, SearchIcon, PaperAirplaneIcon, InfoIcon, PlusIcon, StopIcon, XIcon } from "@primer/octicons-react";
 import { discoverSkill } from "../api";
 import SkillDetail from "./SkillDetail";
 import { useLeaveGuard, ABANDON_INTENTS } from "./LeaveGuard";
@@ -82,6 +82,7 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
   const [createHint, setCreateHint] = useState("");
   const endRef = useRef(null);
   const inputRef = useRef(null);
+  const requestControllerRef = useRef(null);
   // Skips the newest-message auto-scroll on the very first render so landing on
   // /home (fresh login or refresh) stays at the top instead of jumping down.
   const didMountRef = useRef(false);
@@ -104,6 +105,8 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
     inputRef.current?.focus({ preventScroll: true });
   }, []);
 
+  useEffect(() => () => requestControllerRef.current?.abort(), []);
+
   // Persist the conversation (and the clean need) for this browser session.
   useEffect(() => {
     sessionStorage.setItem(CHAT_KEY, JSON.stringify(messages));
@@ -121,11 +124,13 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
     setMessages(history);
     setInput("");
     setLoading(true);
+    const controller = new AbortController();
+    requestControllerRef.current = controller;
 
     try {
       // Send the whole conversation so the guide keeps full context.
       const convo = history.map((m) => ({ role: m.role, content: m.content }));
-      const data = await discoverSkill(convo);
+      const data = await discoverSkill(convo, controller.signal);
       if (data.need) setLatestNeed(data.need);
       setMessages((prev) => [
         ...prev,
@@ -137,7 +142,8 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
           suggestCreate: Boolean(data.suggest_create),
         },
       ]);
-    } catch {
+    } catch (error) {
+      if (error.name === "AbortError") return;
       setMessages((prev) => [
         ...prev,
         {
@@ -148,8 +154,18 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
         },
       ]);
     } finally {
-      setLoading(false);
+      if (requestControllerRef.current === controller) {
+        requestControllerRef.current = null;
+        setLoading(false);
+      }
     }
+  }
+
+  function stopResponse() {
+    requestControllerRef.current?.abort();
+    requestControllerRef.current = null;
+    setLoading(false);
+    inputRef.current?.focus();
   }
 
   const started = messages.length > 0;
@@ -304,12 +320,13 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
           aria-label="Message the discovery guide"
         />
         <button
-          className="discover__send"
-          type="submit"
-          disabled={loading || !input.trim()}
-          aria-label={started ? "Send" : "Search"}
+          className={`discover__send${loading ? " discover__send--stop" : ""}`}
+          type={loading ? "button" : "submit"}
+          onClick={loading ? stopResponse : undefined}
+          disabled={!loading && !input.trim()}
+          aria-label={loading ? "Stop response" : started ? "Send" : "Search"}
         >
-          {started ? <PaperAirplaneIcon size={18} /> : <SearchIcon size={18} />}
+          {loading ? <StopIcon size={18} /> : started ? <PaperAirplaneIcon size={18} /> : <SearchIcon size={18} />}
         </button>
       </form>
 
