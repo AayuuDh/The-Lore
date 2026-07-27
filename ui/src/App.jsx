@@ -237,7 +237,7 @@ function App() {
       <BaseStyles>
        <LeaveGuardContext.Provider value={leaveGuardValue}>
         <div
-          className="app-container"
+          className={`app-container${sidebarOpen ? " app-container--sidebar-open" : ""}`}
           data-theme={visibleAppearance.theme}
           data-mode={visibleAppearance.mode}
         >

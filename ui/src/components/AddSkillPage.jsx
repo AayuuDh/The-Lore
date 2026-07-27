@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeftIcon, PlusIcon, XIcon } from "@primer/octicons-react";
+import { ArrowLeftIcon, XIcon } from "@primer/octicons-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { draftSkill, refineSkill, saveSkill, matchSkills, getMySkills } from "../api";
@@ -274,9 +274,6 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
       <aside className="add-skill-page__sidebar">
         <div className="add-skill-page__sidebar-header">
           <span className="add-skill-page__sidebar-title">My Skills</span>
-          <button className="add-skill-page__plus-btn" type="button" aria-label="Add skill" onClick={handleReset}>
-            <PlusIcon size={18} />
-          </button>
         </div>
         {mySkills.length === 0 ? (
           <div className="add-skill-page__sidebar-empty">Skills you add will appear here</div>
