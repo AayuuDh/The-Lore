@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  XIcon,
   HomeIcon,
   HomeFillIcon,
   StarIcon,
@@ -32,7 +31,7 @@ const NAV_ITEMS = [
   { label: "Favorited", icon: StarIcon },
 ];
 
-function Sidebar({ isOpen, onClose, currentPage, onNavigate, userId, onOpenSkill }) {
+function Sidebar({ isOpen, currentPage, onNavigate, userId, onOpenSkill }) {
   // The three lists: skills you made, favorited, and recently used.
   const [yours, setYours] = useState([]);
   const [favs, setFavs] = useState([]);
@@ -169,10 +168,7 @@ function Sidebar({ isOpen, onClose, currentPage, onNavigate, userId, onOpenSkill
         <span className="sidebar__the-lore">The Lore</span>
 
         </div>
-        
-        <button className="sidebar__close" onClick={onClose} aria-label="Close sidebar">
-          <XIcon size={16} />
-        </button>
+
       </div>
 
       {/* Navigation */}
