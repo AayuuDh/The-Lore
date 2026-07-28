@@ -79,19 +79,19 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
   }
 
   // --- Send one turn: opens the interview, or answers/refines afterwards ------
-  async function sendTurn(rawText) {
+  async function sendTurn(rawText, { skipSimilarCheck = false, appendMessage = true } = {}) {
     const text = (rawText || "").trim();
     if (!text || loading) return;
 
     const firstTurn = !sessionId;
-    pushMessage("user", text);
+    if (appendMessage) pushMessage("user", text);
     setInput("");
     setLoading(true);
     setError(null);
     setDuplicate(null); // any new turn invalidates a prior pre-save check
 
     try {
-      if (firstTurn) {
+      if (firstTurn && !skipSimilarCheck) {
         const existing = await checkSimilar(text);
         if (existing) {
           setSimilar(existing);
@@ -129,6 +129,12 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
   function handleSend(e) {
     e.preventDefault();
     sendTurn(input);
+  }
+
+  function handleCreateAnyway() {
+    const description = messages[messages.length - 1]?.text;
+    setSimilar(null);
+    sendTurn(description, { skipSimilarCheck: true, appendMessage: false });
   }
 
   // --- "Create skill now": draft immediately with whatever we have so far -----
@@ -371,13 +377,22 @@ function AddSkillPage({ onBackHome, userId, profile, onRequireProfile, initialDe
                     )}
                     <span className="add-skill-page__existing-link">View skill details</span>
                   </button>
-                  <button
-                    className="add-skill-page__ghost-btn"
-                    type="button"
-                    onClick={handleReset}
-                  >
-                    Try another skill
-                  </button>
+                  <div className="add-skill-page__existing-actions">
+                    <button
+                      className="add-skill-page__ghost-btn"
+                      type="button"
+                      onClick={handleReset}
+                    >
+                      Try another skill
+                    </button>
+                    <button
+                      className="add-skill-page__existing-continue"
+                      type="button"
+                      onClick={handleCreateAnyway}
+                    >
+                      Create skill anyway
+                    </button>
+                  </div>
                 </div>
               )}
 
