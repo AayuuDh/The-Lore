@@ -1,0 +1,119 @@
+.about-page {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  padding: 28px 0 64px;
+}
+
+.about-page__document {
+  padding: clamp(28px, 6vw, 72px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.16);
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.about-page__document > :first-child {
+  margin-top: 0;
+}
+
+.about-page__document h1,
+.about-page__document h2,
+.about-page__document h3 {
+  color: var(--text-primary);
+  letter-spacing: 0;
+}
+
+.about-page__document h1 {
+  margin: 0;
+  font-size: 52px;
+  line-height: 1.08;
+}
+
+.about-page__document h1 + h2 {
+  margin: 14px 0 48px;
+  padding: 0 0 28px;
+  border-bottom: 1px solid var(--accent-border);
+  color: var(--accent-text);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.about-page__document h2 {
+  margin: 52px 0 16px;
+  scroll-margin-top: 88px;
+  font-size: 27px;
+  line-height: 1.25;
+}
+
+.about-page__document h3 {
+  margin: 32px 0 10px;
+  font-size: 19px;
+  line-height: 1.35;
+}
+
+.about-page__document p {
+  margin: 0 0 18px;
+}
+
+.about-page__document ul,
+.about-page__document ol {
+  margin: 0 0 22px;
+  padding-left: 26px;
+}
+
+.about-page__document li {
+  margin-bottom: 7px;
+  padding-left: 4px;
+}
+
+.about-page__document li::marker {
+  color: var(--accent);
+}
+
+.about-page__document strong {
+  color: var(--text-primary);
+  font-weight: 650;
+}
+
+.about-page__document hr {
+  width: 72px;
+  margin: 44px 0;
+  border: 0;
+  border-top: 3px solid var(--accent);
+}
+
+.about-page__document > p:last-child {
+  margin: 48px 0 0;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--border);
+  color: var(--accent-text);
+  font-size: 18px;
+}
+
+@media (max-width: 640px) {
+  .about-page {
+    padding: 8px 0 40px;
+  }
+
+  .about-page__document {
+    padding: 28px 22px 40px;
+  }
+
+  .about-page__document h1 {
+    font-size: 36px;
+  }
+
+  .about-page__document h1 + h2 {
+    margin-bottom: 36px;
+    font-size: 20px;
+  }
+
+  .about-page__document h2 {
+    margin-top: 40px;
+    font-size: 23px;
+  }
+}

@@ -16,7 +16,7 @@ import { useState } from "react";
 // MsalProvider in main.jsx) so we can trigger login from this component.
 import { useMsal } from "@azure/msal-react";
 // The logo image. Vite turns this import into a usable URL at build time.
-import logo from "../assets/logo light.png";
+import logo from "../assets/New_logo_Key_lore.png";
 // The scopes/permissions object we defined in authConfig.js.
 import { loginRequest } from "../authConfig";
 import { TEAMS_CHAT_URL } from "../config";
@@ -136,8 +136,8 @@ function Login() {
           <img
             className="login__logo"
             src={logo}
-            width="130"
-            height="180"
+            width="200"
+            height="380"
             alt="The Lore logo"
           />
 

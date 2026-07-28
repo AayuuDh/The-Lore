@@ -8,7 +8,7 @@ import {
   StarIcon,
   SignOutIcon,
 } from "@primer/octicons-react";
-import logo from "../assets/logo light.png";
+import logo from "../assets/New_logo_Key_lore.png";
 import "./TopNav.css";
 
 // The top bar. The avatar on the right opens a GitHub-style account menu with
@@ -81,7 +81,7 @@ function TopNav({
           className="topnav__logo"
           src={logo}
           width="28"
-          height="40"
+          height="44"
           alt="Logo"
         />
 

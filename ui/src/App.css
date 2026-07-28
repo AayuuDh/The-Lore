@@ -110,14 +110,15 @@
 
 /* On wider screens, opening the sidebar pushes the page over (instead of
    covering it) so all content stays visible. The 320px matches the sidebar
-   width in Sidebar.css. */
+   width in Sidebar.css. The overlay stays (transparent) so clicking anywhere
+   off the sidebar still collapses it. */
 @media (min-width: 769px) {
   .app-container--sidebar-open .main-wrapper {
     margin-left: 320px;
   }
 
   .app-container--sidebar-open .overlay {
-    display: none;
+    background: transparent;
   }
 }
 

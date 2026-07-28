@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  XIcon,
   HomeIcon,
   HomeFillIcon,
   StarIcon,
@@ -11,7 +10,7 @@ import {
 } 
 from "@primer/octicons-react";
 import "./Sidebar.css";
-import logo from "../assets/logo light.png"
+import logo from "../assets/New_logo_Key_lore.png"
 import { getMySkills, getMyHistory, getSkills } from "../api";
 import { getFavorites } from "../favorites";
 import { getCategory, getCategoryColor } from "../categories";
@@ -32,7 +31,7 @@ const NAV_ITEMS = [
   { label: "Favorited", icon: StarIcon },
 ];
 
-function Sidebar({ isOpen, onClose, currentPage, onNavigate, userId, onOpenSkill }) {
+function Sidebar({ isOpen, currentPage, onNavigate, userId, onOpenSkill }) {
   // The three lists: skills you made, favorited, and recently used.
   const [yours, setYours] = useState([]);
   const [favs, setFavs] = useState([]);
@@ -161,18 +160,15 @@ function Sidebar({ isOpen, onClose, currentPage, onNavigate, userId, onOpenSkill
           <img
             className="topnav__logo"
             src={logo}
-            width="28"
-            height="40"
+            width="25"
+            height="45"
             alt="Logo"
           />
         
         <span className="sidebar__the-lore">The Lore</span>
 
         </div>
-        
-        <button className="sidebar__close" onClick={onClose} aria-label="Close sidebar">
-          <XIcon size={16} />
-        </button>
+
       </div>
 
       {/* Navigation */}

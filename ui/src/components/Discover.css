@@ -31,77 +31,44 @@
 }
 
 .discover__headline {
-  font-size: 34px;
+  margin: 0;
+  font-size: 36px;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.15;
 }
 
-/* ── "What is a skill?" info icon + tooltip ── */
-.discover__info {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  margin-left: 10px;
-  vertical-align: middle;
-}
-
-.discover__info-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
+.discover__about-link {
+  align-self: center;
+  margin: 0;
   padding: 0;
-  border-radius: 999px;
-  border: 1px solid var(--accent-border);
-  background: var(--accent-soft);
-  color: var(--accent-text);
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  opacity: 0.72;
+  text-decoration: underline;
+  text-underline-offset: 3px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: color 0.15s, opacity 0.15s;
 }
 
-.discover__info-btn:hover,
-.discover__info-btn:focus-visible {
-  background: var(--accent-soft);
-  color: var(--text-primary);
-  border-color: var(--accent);
-  outline: none;
-}
-
-.discover__info-pop {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%) translateY(-4px);
-  width: 300px;
-  max-width: 78vw;
-  z-index: 30;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--accent-border);
-  background: var(--surface);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-  color: var(--text-secondary);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.5;
-  text-align: left;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-
-.discover__info:hover .discover__info-pop,
-.discover__info-pop.is-open {
+.discover__about-link:hover,
+.discover__about-link:focus-visible {
+  color: var(--accent-text);
   opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(0);
-  pointer-events: auto;
+}
+
+.discover__about-link:focus-visible {
+  border-radius: 3px;
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
 }
 
 .discover__sub {
+  margin: 0;
   font-size: 18px;
   color: var(--text-secondary);
   max-width: 460px;
@@ -727,6 +694,7 @@
 .discover--intro .discover__chat {
   flex: 0 0 auto;
   overflow: visible;
+  padding-bottom: 14px;
 }
 
 /* Two prominent entry points beneath the search bar: browse the library or

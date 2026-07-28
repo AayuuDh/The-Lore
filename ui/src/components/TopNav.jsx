@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMsal } from "@azure/msal-react";
 import {
   ThreeBarsIcon,
+  XIcon,
   PersonIcon,
   FlameIcon,
   GearIcon,
@@ -10,12 +11,12 @@ import {
   QuestionIcon,
   SignOutIcon,
 } from "@primer/octicons-react";
-import logo from "../assets/logo light.png";
+import logo from "../assets/New_logo_Key_lore.png";
 import { getRecentlyViewed } from "../recentlyViewed";
 import { getAchievements, getAchievementSummary } from "../achievements";
 import "./TopNav.css";
 
-function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, onHome, onOpenProfile, onOpenSettings, onOpenAppearance, onOpenUpdates, onOpenAccessibility, onOpenSkill }) {
+function TopNav({ onMenuClick, sidebarOpen, currentPage, streak, email, nickname, username, onHome, onOpenProfile, onOpenSettings, onOpenAppearance, onOpenUpdates, onOpenAccessibility, onOpenSkill }) {
   // The MSAL engine — used to sign the user out.
   const { instance } = useMsal();
   // Whether the profile dropdown is open.
@@ -99,9 +100,10 @@ function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, o
         <button
           className="topnav__hamburger"
           onClick={onMenuClick}
-          aria-label="Open sidebar"
+          aria-label="Toggle sidebar"
+          aria-expanded={sidebarOpen}
         >
-          <ThreeBarsIcon size={16} />
+          {sidebarOpen ? <XIcon size={16} /> : <ThreeBarsIcon size={16} />}
         </button>
 
         {/* Home. Kept as an anchor (so it looks/acts like a link and supports
@@ -119,8 +121,8 @@ function TopNav({ onMenuClick, currentPage, streak, email, nickname, username, o
           <img
             className="topnav__logo"
             src={logo}
-            width="28"
-            height="40"
+            width="24"
+            height="45"
             alt=""
           />
         </a>
