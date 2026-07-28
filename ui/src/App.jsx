@@ -260,7 +260,6 @@ function App() {
           {/* Collapsible Sidebar */}
           <Sidebar
             isOpen={sidebarOpen}
-            onClose={() => setSidebarOpen(false)}
             currentPage={sidebarPage}
             onNavigate={handleNavSelect}
             userId={userId}
@@ -270,7 +269,8 @@ function App() {
           {/* Main wrapper */}
           <div className="main-wrapper">
             <TopNav
-              onMenuClick={() => setSidebarOpen(true)}
+              onMenuClick={() => setSidebarOpen((open) => !open)}
+              sidebarOpen={sidebarOpen}
               currentPage={pageTitle}
               streak={streak}
               email={accountEmail}
