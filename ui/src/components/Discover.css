@@ -781,7 +781,7 @@
   border-radius: 16px;
   max-width: 900px;
   width: 100%;
-  padding: 8px;
+  padding: 60px 8px 8px;
 }
 
 .discover__modal-close {

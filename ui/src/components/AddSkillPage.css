@@ -407,8 +407,29 @@
   font-weight: 700;
 }
 
-.add-skill-page__existing > .add-skill-page__ghost-btn {
+.add-skill-page__existing-actions {
   margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.add-skill-page__existing-continue {
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.98rem;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: filter 0.2s, transform 0.15s ease;
+}
+
+.add-skill-page__existing-continue:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
 }
 
 .add-skill-page__modal {

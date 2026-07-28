@@ -382,6 +382,7 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, onAbout, userId }) {
               onBack={() => setPreviewId(null)}
               onEdit={onEditSkill}
               userId={userId}
+              showBack={false}
             />
           </div>
         </div>

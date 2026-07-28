@@ -37,7 +37,7 @@ function downloadSkill(skill) {
   URL.revokeObjectURL(url);
 }
 
-function SkillDetail({ skillId, onBack, onEdit, userId }) {
+function SkillDetail({ skillId, onBack, onEdit, userId, showBack = true }) {
   const [skill, setSkill] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -124,10 +124,12 @@ function SkillDetail({ skillId, onBack, onEdit, userId }) {
 
   return (
     <div className="skill-detail">
-      <button className="skill-detail__back" onClick={onBack}>
-        <ArrowLeftIcon size={16} />
-        <span>Back to Skills</span>
-      </button>
+      {showBack && (
+        <button className="skill-detail__back" onClick={onBack}>
+          <ArrowLeftIcon size={16} />
+          <span>Back to Skills</span>
+        </button>
+      )}
 
       {loading && <div className="skill-detail__status">Loading…</div>}
       {error && <div className="skill-detail__error">{error}</div>}
