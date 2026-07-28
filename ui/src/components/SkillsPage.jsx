@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { SearchIcon, ArrowLeftIcon, XIcon, StarIcon, StarFillIcon, AlertIcon, EyeIcon, ZapIcon } from "@primer/octicons-react";
+import { SearchIcon, ArrowLeftIcon, XIcon, StarIcon, StarFillIcon, AlertIcon, EyeIcon, ZapIcon, PlusIcon } from "@primer/octicons-react";
 import { getSkills, matchSkills, getAllMetrics } from "../api";
 import { getFavorites, toggleFavorite } from "../favorites";
 import { recordView } from "../recentlyViewed";
@@ -22,6 +22,13 @@ function sortByName(skills) {
     (a.name || a.id).localeCompare(b.name || b.id)
   );
 }
+
+// Minimum cosine similarity for a result to count as a real match. Below this,
+// the ranking is just noise (every skill scores a little), so we'd rather tell
+// the user nothing fits and offer to create the skill than show 30 non-matches.
+// This embedding model scores an exact phrase match at ~0.69 and the Add-Skill
+// near-duplicate gate uses 0.55, so this floor is deliberately conservative.
+const RELEVANCE_THRESHOLD = 0.4;
 
 // Percentile rank (0..1) of each value in an array — robust to outliers, so one
 // mega-popular skill can't blow out the scale, and sizing stays stable as numbers grow.
@@ -68,7 +75,7 @@ function bentoLayout(skills, metricsMap) {
   }));
 }
 
-function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, initialFavoritesOnly = false }) {
+function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, initialFavoritesOnly = false, onCreateSkill }) {
   const [allSkills, setAllSkills] = useState([]);
   const [results, setResults] = useState(null); // null = showing full catalog
   const [query, setQuery] = useState("");
@@ -157,8 +164,14 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
     setError("");
     try {
       const ranked = await matchSkills(q);
-      // ranked is best-first; keep only meaningful matches.
-      setResults(ranked.map((r) => ({ ...r.skill, score: r.score })));
+      // ranked is best-first; keep only results that clear the relevance floor.
+      // Everything below it is noise, so an empty list here is a genuine "no
+      // skill fits" — which the grid turns into a create-this-skill prompt.
+      setResults(
+        ranked
+          .filter((r) => r.score >= RELEVANCE_THRESHOLD)
+          .map((r) => ({ ...r.skill, score: r.score }))
+      );
     } catch {
       setError("Search failed. Make sure the backend is running.");
     } finally {
@@ -244,11 +257,15 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
       {/* Status row */}
       <div className="skills-page__status">
         {isSearchView ? (
-          <span>
-            Showing {visibleSkills.length} recommended{" "}
-            {visibleSkills.length === 1 ? "skill" : "skills"} for
-            &nbsp;“{query.trim()}”
-          </span>
+          visibleSkills.length === 0 ? (
+            <span>No matches for&nbsp;“{query.trim()}”</span>
+          ) : (
+            <span>
+              Showing {visibleSkills.length} recommended{" "}
+              {visibleSkills.length === 1 ? "skill" : "skills"} for
+              &nbsp;“{query.trim()}”
+            </span>
+          )
         ) : (
           !loading && <span>{alphabetical.length} skills</span>
         )}
@@ -373,11 +390,30 @@ function SkillsPage({ onBackHome, initialSkillId = null, onEditSkill, userId, in
             </button>
           ))}
           {visibleSkills.length === 0 && !error && (
-            <div className="skills-page__empty">
-              {showFavoritesOnly
-                ? "You haven’t starred any skills yet. Tap the ☆ on a card to add one."
-                : "No matching skills found."}
-            </div>
+            showFavoritesOnly ? (
+              <div className="skills-page__empty">
+                You haven’t starred any skills yet. Tap the ☆ on a card to add one.
+              </div>
+            ) : isSearchView ? (
+              <div className="skills-page__empty skills-page__empty--create">
+                <p className="skills-page__empty-title">
+                  There isn’t a skill for “{query.trim()}” yet.
+                </p>
+                <p className="skills-page__empty-text">
+                  Nothing in the catalog matches what you searched for. Want to
+                  add it? We’ll start you off with what you typed.
+                </p>
+                <button
+                  type="button"
+                  className="skills-page__create-btn"
+                  onClick={() => onCreateSkill?.(query.trim())}
+                >
+                  <PlusIcon size={16} /> Create this skill
+                </button>
+              </div>
+            ) : (
+              <div className="skills-page__empty">No matching skills found.</div>
+            )
           )}
         </div>
       )}

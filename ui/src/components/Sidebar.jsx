@@ -10,7 +10,7 @@ import {
 } 
 from "@primer/octicons-react";
 import "./Sidebar.css";
-import logo from "../assets/logo light.png"
+import logo from "../assets/New_logo_Key_lore.png"
 import { getMySkills, getMyHistory, getSkills } from "../api";
 import { getFavorites } from "../favorites";
 import { getCategory, getCategoryColor } from "../categories";
@@ -160,8 +160,8 @@ function Sidebar({ isOpen, currentPage, onNavigate, userId, onOpenSkill }) {
           <img
             className="topnav__logo"
             src={logo}
-            width="28"
-            height="40"
+            width="25"
+            height="45"
             alt="Logo"
           />
         

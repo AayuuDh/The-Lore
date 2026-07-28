@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowRightIcon, SearchIcon, PaperAirplaneIcon, InfoIcon, PlusIcon, StopIcon, XIcon } from "@primer/octicons-react";
+import { ArrowRightIcon, SearchIcon, PaperAirplaneIcon, PlusIcon, StopIcon, XIcon } from "@primer/octicons-react";
 import { discoverSkill } from "../api";
 import SkillDetail from "./SkillDetail";
 import { useLeaveGuard, ABANDON_INTENTS } from "./LeaveGuard";
@@ -16,34 +16,6 @@ const STARTERS = [
 
 const GREETING =
   "Search a growing library of AI skills. Describe what you're trying to accomplish, and we'll find the best skill for the job or help you create a new one.";
-
-// Plain-English definition of a "skill" for first-time users, shown in the hero.
-const SKILL_DEFINITION =
-  "A skill is a reusable AI workflow that helps you complete a specific task like summarizing meetings, drafting documents, analyzing feedback, or creating project plans. Search for what you want to accomplish, and we'll find the right skill for you.";
-
-// Small circular info icon + tooltip that explains what a "skill" means. Opens
-// on hover and on click/focus (keyboard + touch friendly), and is announced to
-// screen readers via its aria-label.
-function SkillInfo() {
-  const [open, setOpen] = useState(false);
-  return (
-    <span className="discover__info">
-      <button
-        type="button"
-        className="discover__info-btn"
-        aria-label="What is a skill?"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-        onBlur={() => setOpen(false)}
-      >
-        <InfoIcon size={16} />
-      </button>
-      <span className={`discover__info-pop${open ? " is-open" : ""}`} role="tooltip">
-        {SKILL_DEFINITION}
-      </span>
-    </span>
-  );
-}
 
 // The AI judges fit in words, not a misleading similarity number.
 function confidenceLabel(c) {
@@ -65,7 +37,7 @@ function loadChat() {
   }
 }
 
-function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
+function Discover({ onAddSkills, onEditSkill, onBrowse, onAbout, userId }) {
   // The chat. Each message: { role, content, skill?, confidence?, suggestCreate?, error? }
   const [messages, setMessages] = useState(loadChat);
   const [input, setInput] = useState("");
@@ -126,6 +98,11 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
     setLoading(true);
     const controller = new AbortController();
     requestControllerRef.current = controller;
+    // Don't let the spinner run forever if the backend is slow or wedged (e.g.
+    // the AI provider is rate-limiting and retrying behind the scenes). Abort
+    // with a "timeout" reason so the catch below can tell it apart from the
+    // user pressing Stop and show a "service is busy" message instead.
+    const timeoutId = setTimeout(() => controller.abort("timeout"), 25000);
 
     try {
       // Send the whole conversation so the guide keeps full context.
@@ -143,17 +120,25 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
         },
       ]);
     } catch (error) {
-      if (error.name === "AbortError") return;
+      const timedOut =
+        error.name === "AbortError" && controller.signal.reason === "timeout";
+      // User pressed Stop (aborted without our timeout reason): stay quiet.
+      if (error.name === "AbortError" && !timedOut) return;
+      // A timeout, or the backend surfacing a busy/upstream error (429 rate
+      // limit, 502 discovery agent failed) → tell them to try again shortly.
+      const busy = timedOut || error.status === 429 || error.status === 502;
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content:
-            "I couldn't reach the discovery service — is the backend running?",
+          content: busy
+            ? "The discovery service is busy right now. Please try again in a moment."
+            : "I couldn't reach the discovery service — is the backend running?",
           error: true,
         },
       ]);
     } finally {
+      clearTimeout(timeoutId);
       if (requestControllerRef.current === controller) {
         requestControllerRef.current = null;
         setLoading(false);
@@ -228,11 +213,11 @@ function Discover({ onAddSkills, onEditSkill, onBrowse, userId }) {
         {/* Empty state: a warm greeting + one-click starters. */}
         {!started && (
           <div className="discover__greeting">
-            <h1 className="discover__headline">
-              Find the Right Skill
-              <SkillInfo />
-            </h1>
+            <h1 className="discover__headline">Find the Right Skill</h1>
             <p className="discover__sub">{GREETING}</p>
+            <button type="button" className="discover__about-link" onClick={onAbout}>
+              What is a skill?
+            </button>
           </div>
         )}
 

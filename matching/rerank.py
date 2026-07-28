@@ -37,10 +37,22 @@ _OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
 _USE_AZURE = bool(_ENDPOINT) and bool(_DEPLOYMENT) and bool(_KEY)
 
 
+# Fail fast instead of hanging. Without these, the SDK waits out a rate-limit's
+# Retry-After header (e.g. 30s) and retries twice, so one 429 blocks the request
+# ~90s and the UI spins forever. Surface the error quickly (as a clean 502) so the
+# frontend can tell the user the service is busy. Tune via env if needed.
+_REQUEST_TIMEOUT = float(os.environ.get("AZURE_OPENAI_TIMEOUT", "20"))
+_MAX_RETRIES = int(os.environ.get("AZURE_OPENAI_MAX_RETRIES", "1"))
+
+
 def _make_client() -> AsyncAzureOpenAI:
     if _KEY:
         return AsyncAzureOpenAI(
-            azure_endpoint=_ENDPOINT, api_key=_KEY, api_version=_API_VERSION
+            azure_endpoint=_ENDPOINT,
+            api_key=_KEY,
+            api_version=_API_VERSION,
+            timeout=_REQUEST_TIMEOUT,
+            max_retries=_MAX_RETRIES,
         )
     from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
@@ -51,6 +63,8 @@ def _make_client() -> AsyncAzureOpenAI:
         azure_endpoint=_ENDPOINT,
         azure_ad_token_provider=token_provider,
         api_version=_API_VERSION,
+        timeout=_REQUEST_TIMEOUT,
+        max_retries=_MAX_RETRIES,
     )
 
 

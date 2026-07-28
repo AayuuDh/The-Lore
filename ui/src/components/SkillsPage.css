@@ -184,6 +184,54 @@
   padding: 24px 0;
 }
 
+/* No-match state: a clear invitation to create the skill they searched for. */
+.skills-page__empty--create {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 40px 24px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.skills-page__empty-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.skills-page__empty-text {
+  margin: 0;
+  max-width: 420px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.skills-page__create-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.skills-page__create-btn:hover {
+  background: #9a6ff0;
+}
+
 /* Loading skeletons — shimmering placeholder cards shown while skills load. */
 .skill-card--skeleton {
   cursor: default;

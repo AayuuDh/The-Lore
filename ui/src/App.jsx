@@ -12,6 +12,7 @@ import AddSkillPage from "./components/AddSkillPage";
 import SkillEditor from "./components/SkillEditor";
 import ProfilePage from "./components/ProfilePage";
 import SettingsPage from "./components/SettingsPage";
+import AboutPage from "./components/AboutPage";
 import Footer from "./components/Footer";
 import Login from "./components/Login";
 import FeedbackWidget from "./components/FeedbackWidget";
@@ -68,6 +69,7 @@ function App() {
     : pathname === "/create/editor" ? "Skill Editor"
     : pathname === "/create" ? "Create Skill"
     : pathname === "/profile" ? "Profile"
+    : pathname === "/about" ? "About"
     : pathname === "/appearance" ? "Appearance"
     : pathname.startsWith("/settings") ? "Settings"
     : pathname === "/updates" ? "Updates"
@@ -297,6 +299,7 @@ function App() {
                       onOpenSkill={openSkill}
                       onEditSkill={(skill) => openEditor(skill, "fork")}
                       onBrowse={() => handleNavSelect("Skills")}
+                      onAbout={() => navigate("/about#what-is-a-skill")}
                       username={profile?.username}
                       userId={userId}
                     />
@@ -306,6 +309,7 @@ function App() {
                       key="browse"
                       onBackHome={() => handleNavSelect("Home")}
                       onEditSkill={(skill) => openEditor(skill, "fork")}
+                      onCreateSkill={openAddSkill}
                       userId={userId}
                     />
                   } />
@@ -315,6 +319,7 @@ function App() {
                       onBackHome={() => handleNavSelect("Home")}
                       initialSkillId={skillId}
                       onEditSkill={(skill) => openEditor(skill, "fork")}
+                      onCreateSkill={openAddSkill}
                       userId={userId}
                     />
                   } />
@@ -323,6 +328,7 @@ function App() {
                       key="favorites"
                       onBackHome={() => handleNavSelect("Home")}
                       onEditSkill={(skill) => openEditor(skill, "fork")}
+                      onCreateSkill={openAddSkill}
                       userId={userId}
                       initialFavoritesOnly
                     />
@@ -365,6 +371,7 @@ function App() {
                       onSkip={() => handleNavSelect("Home")}
                     />
                   } />
+                  <Route path="/about" element={<AboutPage />} />
                   <Route path="/settings" element={settingsPage()} />
                   <Route path="/settings/:section" element={settingsPage()} />
                   <Route path="/appearance" element={settingsPage()} />

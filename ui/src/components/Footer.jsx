@@ -1,10 +1,12 @@
 import "./Footer.css";
-import logo from "../assets/logo light.png"
+import logo from "../assets/New_logo_Key_lore.png"
 import { TEAMS_CHAT_URL } from "../config";
+import { Link } from "react-router-dom";
 
 // Each link needs a real destination in `href`. Links still pointing at the
 // placeholder "#" are filtered out below so we don't show dead links.
 const LINKS = [
+  { label: "About", href: "/about" },
   { label: "Terms", href: "#" },
   { label: "Privacy", href: "#" },
   { label: "Security", href: "#" },
@@ -26,14 +28,20 @@ function Footer() {
              
             {LINKS.filter((link) => link.href !== "#").map((link) => (
               <li key={link.label}>
-                <a
-                  href={link.href}
-                  className="footer__link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {link.label}
-                </a>
+                {link.href.startsWith("/") ? (
+                  <Link to={link.href} className="footer__link">
+                    {link.label}
+                  </Link>
+                ) : (
+                  <a
+                    href={link.href}
+                    className="footer__link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {link.label}
+                  </a>
+                )}
               </li>
             ))}
 
@@ -44,8 +52,8 @@ function Footer() {
           <img
             className="footer__logo"
             src={logo}
-            width="28"
-            height="40"
+            width="24"
+            height="45"
             alt="Logo"
           />
           

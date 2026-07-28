@@ -194,6 +194,19 @@
   box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
+/* In light mode the input blends into the page, so lift it out with a raised
+   surface, an accent border and a soft shadow — matching the home composer. */
+.app-container[data-mode="light"] .add-skill-page__input-row {
+  background: var(--surface-raised);
+  border-color: var(--accent-border);
+  box-shadow: 0 8px 24px var(--accent-soft);
+}
+
+.app-container[data-mode="light"] .add-skill-page__input-row:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 8px 24px var(--accent-soft), 0 0 0 4px var(--accent-soft);
+}
+
 .add-skill-page__input {
   flex: 1;
   min-width: 0;
