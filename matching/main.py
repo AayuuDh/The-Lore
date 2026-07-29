@@ -25,12 +25,32 @@ Endpoints (all return JSON):
         Return the full data for one skill, looked up by its "id".
         Example: GET /skills/summarize-meeting-notes
         Returns: { ...skill fields... }    (404 if id not found)
+
+Authentication
+--------------
+Auth is enforced app-wide by a single dependency (see auth.py), not per route,
+so endpoints added later are covered without anyone remembering to opt in. With
+REQUIRE_AUTH unset — the default, and how local dev runs — the principal is None
+and the API behaves exactly as it always has. With REQUIRE_AUTH=true every
+endpoint requires an Entra bearer token and the caller's identity comes from the
+token's `oid` claim rather than a user_id in the request body.
+
+Two paths sit outside that gate, both deliberately:
+    /health   always open — the deploy health check has no token to present
+    /docs     open only when auth is off, so a protected API doesn't publish
+              its full schema to anonymous callers (also /redoc, /openapi.json)
 """
 
-from fastapi import FastAPI, HTTPException
+import os
+
+from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel
+from starlette.responses import JSONResponse
 # from contextlib import asynccontextmanager
 
+import auth
+import ratelimit
 from matcher import match, precompute_skill_vectors
 from rerank import converse
 from skills_loader import load_skills, save_skill, load_skills_by_author
@@ -40,6 +60,8 @@ from draft_skill import start_draft, refine_draft
 from edit_skill import edit_skill as ai_edit_skill
 from events import record_event, skill_metrics, user_history, all_metrics
 from users import get_user, ensure_user, update_user, UsernameTakenError
+
+load_dotenv()
 
 
 # @asynccontextmanager
@@ -51,13 +73,78 @@ from users import get_user, ensure_user, update_user, UsernameTakenError
 
 
 # app = FastAPI(lifespan=lifespan)
-app = FastAPI()
+#
+# The auth dependency is declared here, once, rather than on each route: a route
+# that forgets it would be silently unauthenticated, and that gap only shows up
+# in production after REQUIRE_AUTH is turned on. Declaring it app-wide means new
+# endpoints are covered by construction. Endpoints that need the caller's
+# identity still take `principal` as a parameter; FastAPI caches dependencies
+# per request, so it resolves exactly once either way.
+#
+# The interactive explorer is switched OFF whenever auth is on. FastAPI registers
+# /docs, /redoc and /openapi.json as plain Starlette routes rather than APIRoutes,
+# so app-level dependencies do NOT cover them — a protected API would still have
+# published its full schema (every route, every model field) to anyone who asked.
+# No data leaks either way, but it is free reconnaissance, so it goes away in the
+# configuration where it would matter. Locally, where auth is off, /docs stays.
+_DOCS_ENABLED = not auth.REQUIRE_AUTH
+
+app = FastAPI(
+    dependencies=[Depends(auth.current_principal)],
+    docs_url="/docs" if _DOCS_ENABLED else None,
+    redoc_url="/redoc" if _DOCS_ENABLED else None,
+    openapi_url="/openapi.json" if _DOCS_ENABLED else None,
+)
+
+if not auth.REQUIRE_AUTH:
+    # Say it out loud. Otherwise "is this deployment protected?" can only be
+    # answered by reading env config, and the code reads as though it is.
+    print("[auth] REQUIRE_AUTH is off — every endpoint is unauthenticated")
 
 
-# WARNING!!!!: tighten allow_origins before production.
+# --- Health check ----------------------------------------------------------
+async def _health(request):
+    """Liveness probe for the post-deploy check in .github/workflows/deploy.yml.
+
+    Registered as a plain Starlette route, not an @app.get, and that is the
+    whole point: app-level dependencies only apply to APIRoutes, so this is the
+    one path that stays reachable without a token. A normal route would 401 the
+    moment REQUIRE_AUTH is turned on and every deploy would fail its health
+    check — the same mechanism that exempts /docs, used deliberately here.
+
+    Returns a fixed payload. It deliberately does not touch the catalog, Cosmos,
+    or the embedding model, so it answers "is the process serving?" and nothing
+    an unauthenticated caller could mine.
+    """
+    return JSONResponse({"status": "ok"})
+
+
+app.add_route("/health", _health, methods=["GET"], include_in_schema=False)
+
+
+# --- CORS ------------------------------------------------------------------
+# The browser origins allowed to call this API. This used to be ["*"], which let
+# any page on the internet make cross-origin calls on a visitor's behalf.
+#
+# These are the only two front ends that exist today: the Static Web App and the
+# Vite dev server. Verified against Azure — `the-lore-web` has no custom domain
+# and only the `default` environment, so there are no preview origins to allow.
+# If someone adds a custom domain or turns on PR preview builds, this list is
+# what will break first; extend it via ALLOWED_ORIGINS rather than reverting to
+# a wildcard.
+_DEFAULT_ORIGINS = [
+    "https://polite-cliff-021fe9a1e.7.azurestaticapps.net",  # the-lore-web
+    "http://localhost:5173",                                 # Vite dev server
+]
+_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+] or _DEFAULT_ORIGINS
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -161,7 +248,7 @@ def match_endpoint(req: MatchRequest):
     ]
 
 
-@app.post("/discover")
+@app.post("/discover", dependencies=[Depends(ratelimit.llm_limit)])
 async def discover_endpoint(req: DiscoverRequest):
     """Conversational discovery. The whole chat drives retrieval (cosine over the
     joined user turns), then the AI agent (rerank.py) replies like a guide, names
@@ -214,7 +301,10 @@ def list_skills():
 
 
 @app.post("/skills")
-def add_skill_endpoint(req: SaveSkillRequest):
+def add_skill_endpoint(
+    req: SaveSkillRequest,
+    principal: dict | None = Depends(auth.current_principal),
+):
     """Save an approved skill to disk AND make it searchable right away.
 
     Writes data/skills/<id>.md, then embeds the skill and appends it to the
@@ -228,11 +318,18 @@ def add_skill_endpoint(req: SaveSkillRequest):
     """
     payload = req.model_dump()
 
+    # The author is the verified token subject when auth is on. Before this, the
+    # id came from the request body, so the profile gate below could be
+    # satisfied by anyone: POST /users mints a profile for ANY string, so a
+    # caller could create an identity and then publish as it. Taking the id from
+    # the token closes that path.
+    user_id = auth.resolve_user_id(principal, req.user_id)
+
     # Gate: you may only publish a skill once a public username has been chosen
     # and the contact preference has been decided.
-    if not req.user_id:
+    if not user_id:
         raise HTTPException(status_code=400, detail="sign-in required to add a skill")
-    profile = get_user(req.user_id)
+    profile = get_user(user_id)
     if profile is None:
         raise HTTPException(status_code=400, detail="complete your profile before adding a skill")
     if not profile.get("username"):
@@ -246,7 +343,7 @@ def add_skill_endpoint(req: SaveSkillRequest):
             detail="choose whether you'd like to be contacted before adding a skill",
         )
     payload["created_by"] = profile["username"]
-    payload["created_by_id"] = req.user_id
+    payload["created_by_id"] = user_id
 
     try:
         saved = save_skill(payload)
@@ -262,7 +359,10 @@ def add_skill_endpoint(req: SaveSkillRequest):
 
 # --- User profile endpoints ------------------------------------------------
 @app.post("/users")
-def ensure_user_endpoint(req: EnsureUserRequest):
+def ensure_user_endpoint(
+    req: EnsureUserRequest,
+    principal: dict | None = Depends(auth.current_principal),
+):
     """Fetch-or-create the signed-in user's profile.
 
     Call this right after sign-in. On the first call for a user it mints a unique
@@ -270,8 +370,12 @@ def ensure_user_endpoint(req: EnsureUserRequest):
     can show first-time onboarding. Later calls return the existing profile with
     "is_new": false.
     """
+    # With auth on, the body's user_id is ignored entirely: you can only ever
+    # create or fetch your own profile. This is what stops the endpoint from
+    # being a free identity factory for arbitrary strings.
+    user_id = auth.resolve_user_id(principal, req.user_id)
     try:
-        profile, is_new = ensure_user(req.user_id)
+        profile, is_new = ensure_user(user_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return {"profile": profile, "is_new": is_new}
@@ -279,7 +383,11 @@ def ensure_user_endpoint(req: EnsureUserRequest):
 
 @app.get("/users/{user_id}")
 def get_user_endpoint(user_id: str):
-    """Return one user's public profile (404 if they have no profile yet)."""
+    """Return one user's public profile (404 if they have no profile yet).
+
+    Readable by any authenticated caller: the UI shows a skill's author and, if
+    they opted in, how to reach them.
+    """
     profile = get_user(user_id)
     if profile is None:
         raise HTTPException(status_code=404, detail="profile not found")
@@ -297,12 +405,18 @@ def user_skills_endpoint(user_id: str):
 
 
 @app.get("/users/{user_id}/history")
-def user_history_endpoint(user_id: str):
+def user_history_endpoint(
+    user_id: str,
+    principal: dict | None = Depends(auth.current_principal),
+):
     """This user's OWN recent activity (skills they viewed/used/favorited).
 
     Returns only their own events — never anyone else's — enriched with each
     skill's current name for display. This is per-user history/trends data.
     """
+    # The docstring above promised "never anyone else's", but until now nothing
+    # enforced it: knowing a GUID was enough to read that person's history.
+    auth.require_self(principal, user_id)
     names = {s["id"]: s.get("name", s["id"]) for s in skills}
     return [
         {**event, "name": names.get(event["skill_id"], event["skill_id"])}
@@ -311,12 +425,17 @@ def user_history_endpoint(user_id: str):
 
 
 @app.patch("/users/{user_id}")
-def update_user_endpoint(user_id: str, req: UpdateUserRequest):
+def update_user_endpoint(
+    user_id: str,
+    req: UpdateUserRequest,
+    principal: dict | None = Depends(auth.current_principal),
+):
     """Update a profile. Only the fields you send are changed.
 
     Changing the username enforces uniqueness (409 if the handle is taken).
     Everything except the username is optional and may be left blank.
     """
+    auth.require_self(principal, user_id)
     # exclude_unset so omitting a field means "leave it as-is", while explicitly
     # sending contactable=false is still recorded as a real decision.
     fields = req.model_dump(exclude_unset=True)
@@ -338,11 +457,17 @@ def get_skill(id: str):
 
 
 @app.post("/events", status_code=204)
-def record_event_endpoint(req: EventRequest):
+def record_event_endpoint(
+    req: EventRequest,
+    principal: dict | None = Depends(auth.current_principal),
+):
     """Log one usage event (view / use / favorite / unfavorite). Fire-and-forget:
     the client doesn't wait on the result. Silently no-ops without Cosmos."""
+    # Events are attributed to the verified caller, so nobody can write history
+    # into someone else's activity log.
+    user_id = auth.resolve_user_id(principal, req.user_id)
     try:
-        record_event(req.skill_id, req.user_id, req.type)
+        record_event(req.skill_id, user_id, req.type)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return None
@@ -362,7 +487,7 @@ def all_metrics_endpoint():
     return all_metrics()
 
 
-@app.post("/draft-skill")
+@app.post("/draft-skill", dependencies=[Depends(ratelimit.llm_limit)])
 async def draft_skill_endpoint(req: DraftSkillRequest):
     """Turn 1 of the interview: open a conversation from a plain-English description.
 
@@ -379,7 +504,7 @@ async def draft_skill_endpoint(req: DraftSkillRequest):
         raise HTTPException(status_code=502, detail=f"draft failed: {exc}")
 
 
-@app.post("/draft-skill/refine")
+@app.post("/draft-skill/refine", dependencies=[Depends(ratelimit.llm_limit)])
 async def refine_skill_endpoint(req: RefineSkillRequest):
     """Later turns: continue the interview — answer a question or refine the draft.
 
@@ -393,7 +518,7 @@ async def refine_skill_endpoint(req: RefineSkillRequest):
         raise HTTPException(status_code=502, detail=f"refine failed: {exc}")
 
 
-@app.post("/edit-skill")
+@app.post("/edit-skill", dependencies=[Depends(ratelimit.llm_limit)])
 async def edit_skill_endpoint(req: EditSkillRequest):
     """The skill editor's AI side-agent: apply one instruction to the current skill.
 

@@ -11,9 +11,10 @@ import React from "react";
 // react-dom/client is the part of React that actually mounts the app into the
 // real HTML page (the browser DOM).
 import ReactDOM from "react-dom/client";
-// PublicClientApplication = the core MSAL engine. EventType = a list of named
-// events (login success, logout, etc.) we can listen for.
-import { PublicClientApplication, EventType } from "@azure/msal-browser";
+// EventType = a list of named events (login success, logout, etc.) we can
+// listen for. The MSAL engine itself now lives in its own module so that
+// api.js can reach it too — see msalInstance.js for why.
+import { EventType } from "@azure/msal-browser";
 // MsalProvider = a React wrapper that shares the MSAL engine with every
 // component below it via React context, so hooks like useMsal() work anywhere.
 import { MsalProvider } from "@azure/msal-react";
@@ -23,8 +24,8 @@ import "@primer/css/dist/primer.css";
 import "./index.css";
 // Our top-level React component (the whole UI lives under this).
 import App from "./App";
-// The settings object we wrote in authConfig.js.
-import { msalConfig } from "./authConfig";
+// The one shared MSAL engine, configured from authConfig.js.
+import { msalInstance } from "./msalInstance";
 // Microsoft Clarity — behavioral analytics (session replays, heatmaps, insights).
 import Clarity from "@microsoft/clarity";
 
@@ -46,11 +47,6 @@ if ("scrollRestoration" in window.history) {
   window.history.scrollRestoration = "manual";
 }
 
-// Create ONE MSAL engine for the entire app, configured by our settings.
-// One shared instance matters: it holds the single source of truth for who is
-// signed in. Making more than one would split that state and cause bugs.
-const msalInstance = new PublicClientApplication(msalConfig);
-
 // MSAL v3+ requires an explicit async initialize() before you use it (it does
 // internal setup like reading cached tokens). It returns a Promise, so we wait
 // for it with .then(...) and only render React once it has finished.
@@ -58,9 +54,20 @@ msalInstance.initialize().then(async () => {
   // Consume Microsoft's redirect response before React Router renders. The
   // authorization result lives in the URL hash, so mounting the unauthenticated
   // /login redirect first can erase it before MSAL creates the signed-in account.
-  const redirectResult = await msalInstance.handleRedirectPromise();
-  if (redirectResult?.account) {
-    msalInstance.setActiveAccount(redirectResult.account);
+  //
+  // Wrapped in try/catch because this rejects on a stale or half-consumed
+  // redirect hash (e.g. no_token_request_cache_error). Unhandled, that
+  // rejection aborts this whole .then() chain BEFORE createRoot below ever
+  // runs — so a bad hash doesn't degrade sign-in, it renders a blank page with
+  // no way out. Log it and carry on: the app mounts, the user lands on /login,
+  // and signing in again clears the bad state.
+  try {
+    const redirectResult = await msalInstance.handleRedirectPromise();
+    if (redirectResult?.account) {
+      msalInstance.setActiveAccount(redirectResult.account);
+    }
+  } catch (err) {
+    console.error("[MSAL] could not process the sign-in redirect:", err);
   }
 
   // getAllAccounts() returns any accounts MSAL already knows about (e.g. a

@@ -28,6 +28,8 @@ npm install                          # first time
 npm run dev
 ```
 
+Or start both at once with `python3 scripts/dev.py` (`py scripts\dev.py` on Windows) — stdlib-only, runs natively on macOS/Linux/Windows, waits for the backend's `/health` before launching Vite, prefixes each side's output, and stops both together. Add `--auth` to run the backend with `REQUIRE_AUTH=true` and exercise the real token flow. It still needs the one-time setup above.
+
 In VS Code: **Run Task → "Setup (run once)"** then **"Start Dev"** (see `.vscode/tasks.json`) — it builds the venv, installs both sides, and launches both servers, with the correct commands per OS.
 
 The backend **boots with no cloud credentials**: Cosmos DB and the Azure-OpenAI features (discovery, drafting, editing) auto-disable or fall back to a local Ollama model when their env vars are unset, and skills come from local `data/skills/*.md`. Copy `matching/.env.example` → `matching/.env` to turn cloud features on. First backend boot downloads a ~60MB embedding model from Hugging Face (needs internet once, then cached). The frontend needs `ui/.env` (copy `ui/.env.example`) with two Entra GUIDs for Microsoft sign-in — the app is gated behind MSAL login and won't render past the login screen without them. Restart Vite after editing `.env`.
@@ -53,8 +55,14 @@ Module boundaries are deliberate:
 - `draft_skill.py` — AI skill drafting run as a multi-turn knowledge-extraction interview (`start_draft`/`refine_draft`, per-`session_id` history held in memory). Same Azure-OpenAI-or-Ollama backend as `rerank.py`. (`edit_skill.py` is the editor's AI side-agent behind `POST /edit-skill`; `draft_skill_with_copilot_sdk.py` is an unused earlier version.)
 - `cosmos_client.py` / `users.py` — Cosmos DB client and the user-profile store (`/users` endpoints). Config is read with `.get()` and clients build lazily, so missing `COSMOS_*` / `AZURE_OPENAI_*` disables that feature instead of crashing the server at import.
 - `query_rewriter.py` — optional query preprocessing via a local Ollama server. Off by default; enabled per-request with `rewrite: true` on `/match` or `--rewrite` on `evaluate.py`. Requires Ollama running or it will error.
+- `auth.py` — bearer-token validation against Entra ID, wired as an **app-level FastAPI dependency** in `main.py` so every route (including ones added later) is covered without per-route opt-in. Gated by `REQUIRE_AUTH`, **off by default**: unset, the principal is `None` and the API behaves as it always has, which is what keeps a fresh clone runnable with no cloud setup. When on, the caller's identity is the token's `oid` claim rather than a `user_id` in the request body. Fails closed if `REQUIRE_AUTH` is set without a tenant/audience.
+- `ratelimit.py` — in-process sliding-window throttle, applied via `dependencies=[Depends(ratelimit.llm_limit)]` on the four endpoints that call Azure OpenAI. Per-process only, so it does not coordinate across App Service instances.
 
-Key endpoints: `POST /match`, `POST /discover`, `GET /skills`, `GET /skills/{id}`, `POST /skills` (save + embed live), `POST /users` + `GET/PATCH /users/{id}`, `POST /draft-skill`, `POST /draft-skill/refine`, `POST /edit-skill`. CORS is wide open (`allow_origins=["*"]`) — prototype only.
+Two paths sit outside the auth gate on purpose. `/health` is a plain Starlette route (app-level dependencies only cover `APIRoute`s), so it stays reachable without a token — the post-deploy check in `deploy.yml` polls it and has no token to present. `/docs`, `/redoc` and `/openapi.json` are served only when auth is off; FastAPI registers them as plain Starlette routes too, so an authenticated API would otherwise still publish its full schema to anonymous callers.
+
+Key endpoints: `POST /match`, `POST /discover`, `GET /skills`, `GET /skills/{id}`, `POST /skills` (save + embed live), `POST /users` + `GET/PATCH /users/{id}`, `POST /draft-skill`, `POST /draft-skill/refine`, `POST /edit-skill`. CORS is restricted to the Static Web App origin and the Vite dev server, overridable with `ALLOWED_ORIGINS`.
+
+**The deployed API is currently unauthenticated.** `REQUIRE_AUTH` is off in the App Service because turning it on needs two things that don't exist yet: an API scope exposed on the `The-Lore` app registration, and the frontend actually sending its token (`ui/src/api.js` sends none today, and `authConfig.js` requests only the Graph `User.Read` scope). Until both land, the machinery in `auth.py` is present but inert — the backend on `azurewebsites.net` is reachable by anyone.
 
 ## Frontend architecture (`ui/`)
 

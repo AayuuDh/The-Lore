@@ -10,6 +10,22 @@
 // MSAL how chatty to be in the console. We only need it for the logger block.
 import { LogLevel } from "@azure/msal-browser";
 
+// Fail loudly, here, if the Entra GUIDs are missing from ui/.env. Without this
+// the missing value is interpolated into the authority URL as the literal string
+// "undefined", and the first sign-in attempt fails on Microsoft's own page with
+// AADSTS900023 ("tenant identifier 'undefined'") — an error that gives no hint
+// the cause is a local env file. We log rather than throw on purpose: throwing
+// at module scope would blank the page instead of showing the login screen.
+const REQUIRED_ENV = ["VITE_MSAL_CLIENT_ID", "VITE_MSAL_TENANT_ID"];
+const missingEnv = REQUIRED_ENV.filter((key) => !import.meta.env[key]);
+if (missingEnv.length > 0) {
+  console.error(
+    `[auth] ui/.env is missing ${missingEnv.join(", ")}. Sign-in will fail ` +
+      `with AADSTS900023. See ui/.env.example, then restart the dev server — ` +
+      `Vite only reads .env at startup.`
+  );
+}
+
 // `export` makes this object importable from other files (main.jsx imports it).
 // `const` because the config never gets reassigned after we define it.
 export const msalConfig = {
@@ -73,10 +89,32 @@ export const msalConfig = {
   },
 };
 
+// --- API_SCOPE: the permission for OUR OWN backend ---
+// Built from the client id rather than hardcoded so the two can never drift —
+// the identifierUri on the app registration is literally api://<client-id>.
+// Declared before loginRequest because that requests it at sign-in.
+export const API_SCOPE = `api://${
+  import.meta.env.VITE_MSAL_CLIENT_ID
+}/Lore.Read`;
+
 // --- loginRequest: WHAT permissions we ask for at sign-in ---
 // `scopes` are the permissions we request. "User.Read" is the most basic
 // Microsoft Graph permission: it lets us read the signed-in user's own basic
 // profile (name, email). We pass this object into loginRedirect() in Login.jsx.
+//
+// API_SCOPE is requested here too, so the user consents to BOTH in the single
+// interaction they already expect. Asking for it later instead means the first
+// backend call discovers it needs consent and has to start a second redirect
+// from inside a data fetch — which is unsafe, because several fetches run at
+// once on mount and MSAL supports only one interaction at a time.
 export const loginRequest = {
-  scopes: ["User.Read"],
+  scopes: ["User.Read", API_SCOPE],
+};
+
+// The permission for OUR OWN backend, used by api.js to get a token per call.
+// "User.Read" is a *Microsoft Graph* scope, so the token it returns is addressed
+// to Graph and our API cannot validate it. Calling the backend needs a token
+// addressed to us, which means a scope we ourselves expose.
+export const apiRequest = {
+  scopes: [API_SCOPE],
 };

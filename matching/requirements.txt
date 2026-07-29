@@ -7,5 +7,9 @@ azure-cosmos
 # azure-identity   # RBAC only; needed on the Linux deploy, not local ARM
 python-dotenv
 openai
+# Bearer-token validation (auth.py). The [crypto] extra pulls in `cryptography`,
+# which is what actually verifies Entra's RS256 signatures. Imported lazily, so
+# the app still runs with auth off if this is missing.
+PyJWT[crypto]
 
 

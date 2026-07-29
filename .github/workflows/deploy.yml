@@ -146,11 +146,16 @@ jobs:
 
       # Fail the job LOUDLY if the deployed app isn't actually serving. Without
       # this, a broken deploy (missing deps, bad startup) goes green and only
-      # surfaces on the next cold start. Polls /docs through the cold-start
+      # surfaces on the next cold start. Polls /health through the cold-start
       # window (Oryx build + model load can take a couple of minutes).
+      #
+      # /health rather than /docs: the interactive explorer is switched off when
+      # REQUIRE_AUTH is on, so polling it would start failing every deploy the
+      # moment auth is enabled. /health is a plain Starlette route that stays
+      # reachable without a token in both configurations — see matching/main.py.
       - name: Post-deploy health check
         run: |
-          url="https://the-lore-api-e3dghcgkfnfvcxed.westus-01.azurewebsites.net/docs"
+          url="https://the-lore-api-e3dghcgkfnfvcxed.westus-01.azurewebsites.net/health"
           for i in $(seq 1 24); do
             code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 90 "$url" || echo 000)
             echo "attempt $i -> HTTP $code"
