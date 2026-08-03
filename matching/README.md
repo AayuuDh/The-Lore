@@ -2,8 +2,6 @@
 
 Python backend that takes a user's query and returns matching skills, ranked by how well they fit.
 
-**Owner:** Erk
-
 ---
 
 ## Files

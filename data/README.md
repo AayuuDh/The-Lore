@@ -2,7 +2,6 @@
 
 Skill definitions and test cases.
 
-**Owner:** Trisha
 ## Subfolders
 
 - `skills/` — one file per skill. Each describes a reusable AI prompt / workflow / agent pattern.

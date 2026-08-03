@@ -1,6 +1,6 @@
 # Product Requirements: Move to Database (Cosmos DB)
 
-**The Lore**  |  Owner: Erk (PM)  |  Status: Planned (building for real)
+**The Lore** | Status: Planned (building for real)
 
 ## 1. Problem
 

@@ -1,6 +1,6 @@
 # Product Requirements: AI Add-Skill
 
-**The Lore**  |  Owner: Erk (PM)  |  Status: In progress (building for real, not a throwaway prototype)
+**The Lore**  |  Status: In progress (building for real, not a throwaway prototype)
 
 ## 1. Problem
 
