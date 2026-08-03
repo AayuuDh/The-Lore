@@ -20,3 +20,5 @@ configuration:
     role: Maintain
   - member: patyc
     role: Pull
+  - member: jonmcl
+    role: Maintain
