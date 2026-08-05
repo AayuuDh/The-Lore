@@ -1,0 +1,4 @@
+# Local Python artifacts for the MCP server — never commit these.
+__pycache__/
+*.pyc
+.venv/
