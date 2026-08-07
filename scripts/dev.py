@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 """Start the backend and frontend together for local testing.
 
-    python3 scripts/dev.py           # normal dev: no auth (the default posture)
-    python3 scripts/dev.py --auth    # with REQUIRE_AUTH=true, to test the token flow
+    python3 scripts/dev.py
 
 On Windows use `py scripts\\dev.py` (or `python`). Complements the VS Code
-"Start Dev" task for people working in a terminal, and adds the --auth mode that
-task doesn't have.
+"Start Dev" task for people working in a terminal.
 
 Why Python and not a shell script
 ---------------------------------
@@ -20,7 +18,7 @@ checking a port without lsof, and prefixing interleaved output.
 Runs from anywhere: paths are resolved from this file's location, not the
 current directory. That matters because the backend must start with matching/ as
 its working directory — main.py imports its siblings as top-level modules
-(`import auth`, `from matcher import match`), so launching from the repo root
+(`from matcher import match`), so launching from the repo root
 fails on those imports.
 """
 
@@ -40,12 +38,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 IS_WINDOWS = os.name == "nt"
-
-# Public identifiers, not secrets: the tenant id is already in deploy.yml and the
-# client id is baked into the shipped browser bundle.
-DEFAULT_TENANT_ID = "72f988bf-86f1-41af-91ab-2d7cd011db47"
-DEFAULT_AUDIENCE = "api://5368ab3e-6c25-4ea2-951c-84651053f287"
-
 
 def venv_python() -> Path:
     """Path to the venv interpreter. Windows puts it in Scripts/, POSIX in bin/."""
@@ -88,46 +80,17 @@ def preflight(args) -> None:
         )
 
     probe = subprocess.run(
-        [str(python), "-c", "import fastapi, jwt"],
+        [str(python), "-c", "import fastapi"],
         capture_output=True,
     )
     if probe.returncode != 0:
         sys.exit(
-            "Backend dependencies missing (or PyJWT not installed) — run:\n"
+            "Backend dependencies missing — run:\n"
             f"  {python} -m pip install -r matching/requirements.txt"
         )
 
     if not (ROOT / "ui" / "node_modules").is_dir():
         sys.exit("Frontend dependencies missing — run:  cd ui && npm install")
-
-    # ui/.env is gitignored and holds the Entra GUIDs. Checking that the file
-    # exists is not enough: a .env with only VITE_API_BASE_URL in it builds an
-    # authority URL of login.microsoftonline.com/undefined, and the failure
-    # surfaces as AADSTS900023 on Microsoft's own sign-in page — far from the
-    # cause. Check the keys that are actually required.
-    required_keys = ("VITE_MSAL_CLIENT_ID", "VITE_MSAL_TENANT_ID")
-    env_file = ROOT / "ui" / ".env"
-    if not env_file.exists():
-        print(
-            "WARNING: ui/.env not found. Sign-in will fail — copy ui/.env.example\n"
-            f"         and set {', '.join(required_keys)}.",
-            file=sys.stderr,
-        )
-    else:
-        text = env_file.read_text(encoding="utf-8")
-        present = {
-            line.split("=", 1)[0].strip(): line.split("=", 1)[1].strip()
-            for line in text.splitlines()
-            if "=" in line and not line.lstrip().startswith("#")
-        }
-        missing = [key for key in required_keys if not present.get(key)]
-        if missing:
-            print(
-                f"WARNING: ui/.env is missing {', '.join(missing)}.\n"
-                "         Sign-in will fail with AADSTS900023 (tenant 'undefined').\n"
-                "         See ui/.env.example for the values.",
-                file=sys.stderr,
-            )
 
     for label, port in (("backend", args.api_port), ("frontend", args.web_port)):
         if not port_is_free(port):
@@ -226,7 +189,7 @@ def wait_for_backend(port: int, process: subprocess.Popen, timeout: int = 120) -
     """Block until /health answers, so the first page load doesn't race startup.
 
     A cold start downloads a ~60MB embedding model, which is why the timeout is
-    generous. /health is reachable in both auth modes — that is what it is for.
+    generous.
     """
     url = f"http://127.0.0.1:{port}/health"
     deadline = time.monotonic() + timeout
@@ -247,11 +210,6 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Run the Lore backend and frontend together."
     )
-    parser.add_argument(
-        "--auth",
-        action="store_true",
-        help="run the backend with REQUIRE_AUTH=true to test the token flow",
-    )
     parser.add_argument("--api-port", type=int, default=8000)
     parser.add_argument("--web-port", type=int, default=5173)
     args = parser.parse_args()
@@ -269,19 +227,7 @@ def main() -> int:
     preflight(args)
 
     env = os.environ.copy()
-    env["REQUIRE_AUTH"] = "true" if args.auth else ""
-    env.setdefault("ENTRA_TENANT_ID", DEFAULT_TENANT_ID)
-    env.setdefault("ENTRA_API_AUDIENCE", DEFAULT_AUDIENCE)
-
-    if args.auth:
-        print("==> auth ON — every endpoint needs a bearer token; /docs is disabled")
-        print("    If sign-in wedges (no_token_request_cache_error), clear session")
-        print(f"    storage for localhost:{args.web_port} and reload with no # fragment.")
-    else:
-        print(
-            f"==> auth OFF (default) — API is open, "
-            f"/docs at http://localhost:{args.api_port}/docs"
-        )
+    print(f"==> API docs at http://localhost:{args.api_port}/docs")
 
     backend = frontend = None
     try:

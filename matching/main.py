@@ -26,19 +26,9 @@ Endpoints (all return JSON):
         Example: GET /skills/summarize-meeting-notes
         Returns: { ...skill fields... }    (404 if id not found)
 
-Authentication
---------------
-Auth is enforced app-wide by a single dependency (see auth.py), not per route,
-so endpoints added later are covered without anyone remembering to opt in. With
-REQUIRE_AUTH unset — the default, and how local dev runs — the principal is None
-and the API behaves exactly as it always has. With REQUIRE_AUTH=true every
-endpoint requires an Entra bearer token and the caller's identity comes from the
-token's `oid` claim rather than a user_id in the request body.
-
-Two paths sit outside that gate, both deliberately:
-    /health   always open — the deploy health check has no token to present
-    /docs     open only when auth is off, so a protected API doesn't publish
-              its full schema to anonymous callers (also /redoc, /openapi.json)
+The API is intentionally unauthenticated for local use. User IDs are generated
+by the browser and supplied in request bodies where a stable profile key is
+needed.
 """
 
 import os
@@ -49,7 +39,6 @@ from pydantic import BaseModel
 from starlette.responses import JSONResponse
 # from contextlib import asynccontextmanager
 
-import auth
 import ratelimit
 from matcher import match, precompute_skill_vectors
 from rerank import converse
@@ -73,49 +62,12 @@ load_dotenv()
 
 
 # app = FastAPI(lifespan=lifespan)
-#
-# The auth dependency is declared here, once, rather than on each route: a route
-# that forgets it would be silently unauthenticated, and that gap only shows up
-# in production after REQUIRE_AUTH is turned on. Declaring it app-wide means new
-# endpoints are covered by construction. Endpoints that need the caller's
-# identity still take `principal` as a parameter; FastAPI caches dependencies
-# per request, so it resolves exactly once either way.
-#
-# The interactive explorer is switched OFF whenever auth is on. FastAPI registers
-# /docs, /redoc and /openapi.json as plain Starlette routes rather than APIRoutes,
-# so app-level dependencies do NOT cover them — a protected API would still have
-# published its full schema (every route, every model field) to anyone who asked.
-# No data leaks either way, but it is free reconnaissance, so it goes away in the
-# configuration where it would matter. Locally, where auth is off, /docs stays.
-_DOCS_ENABLED = not auth.REQUIRE_AUTH
-
-app = FastAPI(
-    dependencies=[Depends(auth.current_principal)],
-    docs_url="/docs" if _DOCS_ENABLED else None,
-    redoc_url="/redoc" if _DOCS_ENABLED else None,
-    openapi_url="/openapi.json" if _DOCS_ENABLED else None,
-)
-
-if not auth.REQUIRE_AUTH:
-    # Say it out loud. Otherwise "is this deployment protected?" can only be
-    # answered by reading env config, and the code reads as though it is.
-    print("[auth] REQUIRE_AUTH is off — every endpoint is unauthenticated")
+app = FastAPI()
 
 
 # --- Health check ----------------------------------------------------------
 async def _health(request):
-    """Liveness probe for the post-deploy check in .github/workflows/deploy.yml.
-
-    Registered as a plain Starlette route, not an @app.get, and that is the
-    whole point: app-level dependencies only apply to APIRoutes, so this is the
-    one path that stays reachable without a token. A normal route would 401 the
-    moment REQUIRE_AUTH is turned on and every deploy would fail its health
-    check — the same mechanism that exempts /docs, used deliberately here.
-
-    Returns a fixed payload. It deliberately does not touch the catalog, Cosmos,
-    or the embedding model, so it answers "is the process serving?" and nothing
-    an unauthenticated caller could mine.
-    """
+    """Return a dependency-free liveness response."""
     return JSONResponse({"status": "ok"})
 
 
@@ -303,7 +255,6 @@ def list_skills():
 @app.post("/skills")
 def add_skill_endpoint(
     req: SaveSkillRequest,
-    principal: dict | None = Depends(auth.current_principal),
 ):
     """Save an approved skill to disk AND make it searchable right away.
 
@@ -318,12 +269,7 @@ def add_skill_endpoint(
     """
     payload = req.model_dump()
 
-    # The author is the verified token subject when auth is on. Before this, the
-    # id came from the request body, so the profile gate below could be
-    # satisfied by anyone: POST /users mints a profile for ANY string, so a
-    # caller could create an identity and then publish as it. Taking the id from
-    # the token closes that path.
-    user_id = auth.resolve_user_id(principal, req.user_id)
+    user_id = req.user_id
 
     # Gate: you may only publish a skill once a public username has been chosen
     # and the contact preference has been decided.
@@ -361,7 +307,6 @@ def add_skill_endpoint(
 @app.post("/users")
 def ensure_user_endpoint(
     req: EnsureUserRequest,
-    principal: dict | None = Depends(auth.current_principal),
 ):
     """Fetch-or-create the signed-in user's profile.
 
@@ -370,12 +315,8 @@ def ensure_user_endpoint(
     can show first-time onboarding. Later calls return the existing profile with
     "is_new": false.
     """
-    # With auth on, the body's user_id is ignored entirely: you can only ever
-    # create or fetch your own profile. This is what stops the endpoint from
-    # being a free identity factory for arbitrary strings.
-    user_id = auth.resolve_user_id(principal, req.user_id)
     try:
-        profile, is_new = ensure_user(user_id)
+        profile, is_new = ensure_user(req.user_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return {"profile": profile, "is_new": is_new}
@@ -407,16 +348,12 @@ def user_skills_endpoint(user_id: str):
 @app.get("/users/{user_id}/history")
 def user_history_endpoint(
     user_id: str,
-    principal: dict | None = Depends(auth.current_principal),
 ):
     """This user's OWN recent activity (skills they viewed/used/favorited).
 
     Returns only their own events — never anyone else's — enriched with each
     skill's current name for display. This is per-user history/trends data.
     """
-    # The docstring above promised "never anyone else's", but until now nothing
-    # enforced it: knowing a GUID was enough to read that person's history.
-    auth.require_self(principal, user_id)
     names = {s["id"]: s.get("name", s["id"]) for s in skills}
     return [
         {**event, "name": names.get(event["skill_id"], event["skill_id"])}
@@ -428,14 +365,12 @@ def user_history_endpoint(
 def update_user_endpoint(
     user_id: str,
     req: UpdateUserRequest,
-    principal: dict | None = Depends(auth.current_principal),
 ):
     """Update a profile. Only the fields you send are changed.
 
     Changing the username enforces uniqueness (409 if the handle is taken).
     Everything except the username is optional and may be left blank.
     """
-    auth.require_self(principal, user_id)
     # exclude_unset so omitting a field means "leave it as-is", while explicitly
     # sending contactable=false is still recorded as a real decision.
     fields = req.model_dump(exclude_unset=True)
@@ -459,15 +394,11 @@ def get_skill(id: str):
 @app.post("/events", status_code=204)
 def record_event_endpoint(
     req: EventRequest,
-    principal: dict | None = Depends(auth.current_principal),
 ):
     """Log one usage event (view / use / favorite / unfavorite). Fire-and-forget:
     the client doesn't wait on the result. Silently no-ops without Cosmos."""
-    # Events are attributed to the verified caller, so nobody can write history
-    # into someone else's activity log.
-    user_id = auth.resolve_user_id(principal, req.user_id)
     try:
-        record_event(req.skill_id, user_id, req.type)
+        record_event(req.skill_id, req.user_id, req.type)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return None

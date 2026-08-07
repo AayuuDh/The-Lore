@@ -8,7 +8,8 @@ isn't fully sure — asks one short question to narrow things down.
 That two-stage shape (cheap retrieval → smart reranking) is the standard RAG
 pattern, and it's what turns a lookup into something that walks the user through.
 
-Auth mirrors draft_skill.py: API key if set, else Entra RBAC.
+Azure OpenAI is used only with an explicit API key; otherwise this module uses
+the local Ollama fallback.
 """
 
 import os
@@ -32,8 +33,7 @@ _OLLAMA_URL = "http://localhost:11434/api/chat"
 _OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
 
 # Use Azure only when we have an endpoint, a deployment, and an API key.
-# Otherwise fall back to Ollama. (The Entra/RBAC path needs azure-identity,
-# which isn't installed for local ARM dev.)
+# Otherwise fall back to Ollama.
 _USE_AZURE = bool(_ENDPOINT) and bool(_DEPLOYMENT) and bool(_KEY)
 
 
@@ -46,22 +46,9 @@ _MAX_RETRIES = int(os.environ.get("AZURE_OPENAI_MAX_RETRIES", "1"))
 
 
 def _make_client() -> AsyncAzureOpenAI:
-    if _KEY:
-        return AsyncAzureOpenAI(
-            azure_endpoint=_ENDPOINT,
-            api_key=_KEY,
-            api_version=_API_VERSION,
-            timeout=_REQUEST_TIMEOUT,
-            max_retries=_MAX_RETRIES,
-        )
-    from azure.identity import DefaultAzureCredential, get_bearer_token_provider
-
-    token_provider = get_bearer_token_provider(
-        DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
-    )
     return AsyncAzureOpenAI(
         azure_endpoint=_ENDPOINT,
-        azure_ad_token_provider=token_provider,
+    api_key=_KEY,
         api_version=_API_VERSION,
         timeout=_REQUEST_TIMEOUT,
         max_retries=_MAX_RETRIES,

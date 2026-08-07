@@ -1,8 +1,7 @@
 """Single source of the Cosmos DB container client.
 
 Reads config from environment (loaded from matching/.env). Uses key auth if
-COSMOS_KEY is set, otherwise falls back to Entra RBAC via DefaultAzureCredential
-(your `az login` locally, Managed Identity in production).
+COSMOS_KEY is set. Local development does not call this module's client helpers.
 """
 
 import os
@@ -27,11 +26,10 @@ _KEY = os.environ.get("COSMOS_KEY") or None
 
 @lru_cache(maxsize=1)
 def _client() -> CosmosClient:
-    """Build the Cosmos client once (key auth if COSMOS_KEY is set, else RBAC)."""
-    if _KEY:
-        return CosmosClient(_ENDPOINT, credential=_KEY)
-    from azure.identity import DefaultAzureCredential
-    return CosmosClient(_ENDPOINT, credential=DefaultAzureCredential())
+    """Build the Cosmos client once using an explicit endpoint and key."""
+    if not _ENDPOINT or not _KEY:
+        raise RuntimeError("COSMOS_ENDPOINT and COSMOS_KEY are required for Cosmos")
+    return CosmosClient(_ENDPOINT, credential=_KEY)
 
 
 @lru_cache(maxsize=1)

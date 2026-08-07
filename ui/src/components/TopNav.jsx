@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useMsal } from "@azure/msal-react";
 import {
   ThreeBarsIcon,
   XIcon,
@@ -16,9 +15,7 @@ import { getRecentlyViewed } from "../recentlyViewed";
 import { getAchievements, getAchievementSummary } from "../achievements";
 import "./TopNav.css";
 
-function TopNav({ onMenuClick, sidebarOpen, currentPage, streak, email, nickname, username, onHome, onOpenProfile, onOpenSettings, onOpenAppearance, onOpenUpdates, onOpenAccessibility, onOpenSkill }) {
-  // The MSAL engine — used to sign the user out.
-  const { instance } = useMsal();
+function TopNav({ onMenuClick, sidebarOpen, currentPage, streak, nickname, username, onHome, onOpenProfile, onOpenSettings, onOpenAppearance, onOpenUpdates, onOpenAccessibility, onOpenSkill, onSignOut }) {
   // Whether the profile dropdown is open.
   const [menuOpen, setMenuOpen] = useState(false);
   // Whether the streak/achievements popup is open.
@@ -82,14 +79,9 @@ function TopNav({ onMenuClick, sidebarOpen, currentPage, streak, email, nickname
     onOpenAppearance();
   };
 
-  // Sign the user out. logoutRedirect clears the MSAL session and sends the
-  // browser back to our app URL, where the auth gate in App.jsx swaps the whole
-  // UI back to the login landing page (the "Sign in with Microsoft" screen).
   const handleSignOut = () => {
     setMenuOpen(false);
-    instance
-      .logoutRedirect({ postLogoutRedirectUri: window.location.origin })
-      .catch((error) => console.error("Sign-out failed:", error));
+    onSignOut();
   };
 
   return (
@@ -237,7 +229,7 @@ function TopNav({ onMenuClick, sidebarOpen, currentPage, streak, email, nickname
                   <PersonIcon size={20} />
                 </div>
                 <div className="topnav__menu-account-details">
-                  <span className="topnav__menu-account-email">{email || "Signed in"}</span>
+                  <span className="topnav__menu-account-email">Local session</span>
                   <span className="topnav__menu-account-username">
                     {username ? `@${username}` : "Choose a username"}
                   </span>

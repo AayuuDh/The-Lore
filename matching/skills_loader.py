@@ -21,7 +21,6 @@ SKILLS_DIR = Path(__file__).parent.parent / "data" / "skills"
 _ID_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
 # Use Cosmos only when a key is configured. Otherwise fall back to local files.
-# (The Entra/RBAC path needs azure-identity, which isn't installed for local dev.)
 _USE_COSMOS = bool(os.environ.get("COSMOS_KEY"))
 
 

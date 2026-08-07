@@ -56,8 +56,8 @@ npm.cmd install                    # first time only
 npm.cmd run dev
 ```
 
-Before signing in, copy `ui/.env.example` to `ui/.env` and fill in the two
-GUIDs needed for Microsoft sign-in.
+The first page is a local welcome screen. Click **Continue**; no account,
+tenant, or token configuration is required.
 
 Notes: use `npm.cmd` (not `npm`). "Port 5173 already in use" means the frontend is already running — just open the browser. Ctrl+C stops a server.
 

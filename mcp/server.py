@@ -4,9 +4,8 @@ Exposes The Lore's skill library to any MCP-compatible agent (Claude Desktop,
 GitHub Copilot CLI, Cursor, ...) so people can find and pull skills straight
 from their editor/CLI instead of opening the website.
 
-It calls the deployed, authenticated Lore API using a token from a one-time
-device-code sign-in (run `python login.py` once). stdout is reserved for the MCP
-protocol, so this file never prints - auth prompts live in login.py.
+It calls the local Lore API directly. stdout is reserved for the MCP protocol,
+so this file never prints.
 
 Tools:
   search_skills(query, top_k)  - semantic search over the catalog
@@ -23,27 +22,15 @@ import asyncio
 import httpx
 from mcp.server import MCPServer
 
-from auth import get_token_silent
-
 LORE_API_BASE = os.environ.get(
     "LORE_API_BASE",
-    "https://the-lore-api-e3dghcgkfnfvcxed.westus-01.azurewebsites.net",
+    "http://localhost:8000",
 ).rstrip("/")
 
 mcp = MCPServer("the-lore")
 
 _TIMEOUT = 30.0
-_NEEDS_LOGIN = (
-    "Not signed in to The Lore. In the mcp/ folder run `python login.py` once to "
-    "sign in with Microsoft, then try again."
-)
-
-
 async def _request(method: str, path: str, json: dict | None = None):
-    token = get_token_silent()
-    if not token:
-        raise RuntimeError(_NEEDS_LOGIN)
-    headers = {"Authorization": f"Bearer {token}"}
     url = f"{LORE_API_BASE}{path}"
     # The API runs on a Free App Service tier that spins down when idle, so the
     # first request after a lull can fail to connect while it cold-starts. Retry
@@ -52,9 +39,7 @@ async def _request(method: str, path: str, json: dict | None = None):
     for attempt in range(3):
         try:
             async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-                resp = await client.request(method, url, json=json, headers=headers)
-            if resp.status_code == 401:
-                raise RuntimeError(_NEEDS_LOGIN)
+                resp = await client.request(method, url, json=json)
             resp.raise_for_status()
             return resp.json()
         except httpx.TransportError as exc:  # connect/read errors — likely a cold start

@@ -30,9 +30,7 @@ import time
 from collections import defaultdict, deque
 
 from dotenv import load_dotenv
-from fastapi import Depends, HTTPException, Request
-
-import auth
+from fastapi import HTTPException, Request
 
 load_dotenv()
 
@@ -57,21 +55,14 @@ _hits: dict[str, deque] = defaultdict(deque)
 _last_sweep = 0.0
 
 
-def _caller_key(request: Request, principal: dict | None) -> str:
-    """Identify the caller: their verified id if we have one, else their address.
+def _caller_key(request: Request) -> str:
+    """Identify the caller by address.
 
-    A token subject is far better than an IP — it survives NAT (where a whole
-    office shares one address and would otherwise share one bucket) and cannot
-    be rotated by picking a new source address.
-
-    Falling back to IP: App Service appends the real client address to
+    App Service appends the real client address to
     X-Forwarded-For, so the LAST entry is the one the platform observed. A
     client can spoof *earlier* entries by sending its own header, which is
     exactly why we don't read the first one.
     """
-    if principal:
-        return f"oid:{principal['oid']}"
-
     forwarded = request.headers.get("x-forwarded-for", "")
     if forwarded:
         # strip the ":port" App Service includes, and any spoofed prefix
@@ -96,7 +87,7 @@ def _sweep(now: float) -> None:
         del _hits[key]
 
 
-def check(request: Request, principal: dict | None = None) -> None:
+def check(request: Request) -> None:
     """Record one hit and raise 429 if the caller is over their limit."""
     if _LIMIT <= 0:  # explicitly disabled
         return
@@ -104,7 +95,7 @@ def check(request: Request, principal: dict | None = None) -> None:
     now = time.monotonic()  # monotonic: immune to clock adjustments
     _sweep(now)
 
-    bucket = _hits[_caller_key(request, principal)]
+    bucket = _hits[_caller_key(request)]
 
     # Drop everything that has aged out of the window, so the deque only ever
     # holds the hits that still count against this caller.
@@ -123,14 +114,11 @@ def check(request: Request, principal: dict | None = None) -> None:
     bucket.append(now)
 
 
-def llm_limit(
-    request: Request,
-    principal: dict | None = Depends(auth.current_principal),
-) -> None:
+def llm_limit(request: Request) -> None:
     """Dependency form, for `@app.post(..., dependencies=[Depends(llm_limit)])`.
 
     Declaring the throttle in the decorator rather than calling it in the
     handler body keeps it visible on the route and consistent with how auth is
     wired — and means a new paid endpoint can't quietly ship unthrottled.
     """
-    check(request, principal)
+    check(request)

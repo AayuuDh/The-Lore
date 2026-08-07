@@ -1,6 +1,5 @@
 import "./Footer.css";
 import logo from "../assets/New_logo_Key_lore.png"
-import { TEAMS_CHAT_URL } from "../config";
 import { Link } from "react-router-dom";
 
 // Each link needs a real destination in `href`. Links still pointing at the
@@ -12,7 +11,6 @@ const LINKS = [
   { label: "Security", href: "#" },
   { label: "Status", href: "#" },
   { label: "GitHub", href: "https://github.com/x3-design/the-lore" },
-  { label: "Contact Us", href: TEAMS_CHAT_URL },
   { label: "Manage cookies", href: "#" },
   { label: "Do not share my personal information", href: "#" },
 ];
@@ -57,7 +55,7 @@ function Footer() {
             alt="Logo"
           />
           
-          <span className = "footer__copyright">&copy; 2026 Microsoft Corporation</span>
+          <span className = "footer__copyright">&copy; 2026 The Lore</span>
         </div>
 
       </div>

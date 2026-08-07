@@ -9,8 +9,8 @@ Good enough for a prototype on a single backend instance. If the backend
 restarts or runs multiple instances, in-flight sessions are lost -- move
 _sessions into Cosmos/Redis if that ever matters.
 
-Auth: uses the API key if AZURE_OPENAI_API_KEY is set, otherwise Entra RBAC via
-DefaultAzureCredential (your `az login` locally, Managed Identity in production).
+Azure OpenAI is used only when an explicit API key is configured. Otherwise the
+feature uses the local Ollama fallback.
 """
 
 import os
@@ -35,24 +35,13 @@ _OLLAMA_URL = "http://localhost:11434/api/chat"
 _OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
 
 # Use Azure only when we have an endpoint, a deployment, and an API key.
-# Otherwise fall back to Ollama. (The Entra/RBAC path needs azure-identity,
-# which isn't installed for local ARM dev.)
+# Otherwise fall back to Ollama.
 _USE_AZURE = bool(_ENDPOINT) and bool(_DEPLOYMENT) and bool(_KEY)
 
 
 def _make_client() -> AsyncAzureOpenAI:
-    if _KEY:
-        return AsyncAzureOpenAI(
-            azure_endpoint=_ENDPOINT, api_key=_KEY, api_version=_API_VERSION
-        )
-    from azure.identity import DefaultAzureCredential, get_bearer_token_provider
-    token_provider = get_bearer_token_provider(
-        DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
-    )
     return AsyncAzureOpenAI(
-        azure_endpoint=_ENDPOINT,
-        azure_ad_token_provider=token_provider,
-        api_version=_API_VERSION,
+        azure_endpoint=_ENDPOINT, api_key=_KEY, api_version=_API_VERSION
     )
 
 

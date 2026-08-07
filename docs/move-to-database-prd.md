@@ -25,8 +25,8 @@ for the future accounts layer.
 
 ## 3. Non-goals (explicitly out of scope)
 
-- **NOT** building accounts / login in this pass. Identity already exists via
-  MSAL; wiring per-user "My Skills" is a later layer on top of this one.
+- **NOT** building secure accounts / login in this pass. The local browser ID is
+  sufficient for the prototype's per-user "My Skills" behavior.
 - **NOT** moving search into the database. Matching stays in memory
   (model2vec embeddings); Cosmos only replaces *where skills come from*.
 - **NOT** storing the embedding vectors in Cosmos. Vectors are recomputed in

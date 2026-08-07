@@ -28,15 +28,14 @@ const THEMES = [
   },
   {
     id: "m365",
-    name: "Microsoft 365",
-    description: "A Copilot-inspired spectrum with Microsoft color cubes.",
+    name: "Spectrum",
+    description: "A bright spectrum with colorful cubes.",
   },
 ];
 
 function SettingsPage({
   profile,
   userId,
-  email,
   onSaved,
   initialSection = "general",
   onSectionChange,
@@ -115,14 +114,14 @@ function SettingsPage({
           {activeSection === "general" && <section className="settings-page__section" id="settings-general">
             <div className="settings-page__section-heading">
               <h2>General</h2>
-              <p>Your signed-in account and Lore identity.</p>
+              <p>Your local Lore profile.</p>
             </div>
             <div className="settings-page__row">
-              <div><h3>Microsoft account</h3><p>{email || "No account email available"}</p></div>
-              <span className="settings-page__status">Connected</span>
+              <div><h3>Local session</h3><p>No external account is connected.</p></div>
+              <span className="settings-page__status">Active</span>
             </div>
             <div className="settings-page__row">
-              <div><h3>Anonymous alias</h3><p>Used internally to keep your sign-in identity private.</p></div>
+              <div><h3>Local alias</h3><p>Used to identify this browser profile.</p></div>
               <code>{profile?.nickname || "Loading..."}</code>
             </div>
           </section>}

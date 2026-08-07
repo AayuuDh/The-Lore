@@ -1,45 +1,10 @@
 // Small client for the Matching API backend (FastAPI).
 // Override the base URL by creating ui/.env with: VITE_API_BASE_URL=http://localhost:8000
-import { apiRequest } from "./authConfig";
-import { msalInstance } from "./msalInstance";
-
 const BASE_URL =
   import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:8000";
 
-// Return the Authorization header for the signed-in user, or {} if we can't get
-// one. Every backend call goes through request() below, so attaching it here
-// covers the whole API surface — there is no second place to remember.
-//
-// acquireTokenSilent is cheap after the first call: MSAL serves a cached token
-// until it nears expiry, then refreshes in the background.
-//
-// This function NEVER starts an interactive redirect, deliberately. Several
-// requests fire concurrently on mount, MSAL supports one interaction at a time,
-// and racing redirects corrupt the temporary cache that holds the request
-// params — which surfaces on return as no_token_request_cache_error and leaves
-// the user unable to sign in. Consent is handled once at sign-in instead, by
-// including API_SCOPE in loginRequest. If a token still can't be obtained here,
-// the call goes out unauthenticated and the backend's 401 surfaces through the
-// normal error path, which is recoverable; a wedged auth cache is not.
-async function authHeaders() {
-  const account = msalInstance.getActiveAccount();
-  if (!account) return {}; // not signed in yet (the app gates on this anyway)
-
-  try {
-    const { accessToken } = await msalInstance.acquireTokenSilent({
-      ...apiRequest,
-      account,
-    });
-    return { Authorization: `Bearer ${accessToken}` };
-  } catch (err) {
-    console.warn("[auth] could not acquire an API token silently:", err);
-    return {};
-  }
-}
-
 async function request(path, options) {
-  const headers = { ...(options?.headers ?? {}), ...(await authHeaders()) };
-  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  const res = await fetch(`${BASE_URL}${path}`, options);
   if (!res.ok) {
     // Try to surface the backend's human-readable "detail" message; fall back
     // to a generic one. We attach the HTTP status so callers can branch on it

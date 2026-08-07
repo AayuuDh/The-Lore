@@ -18,6 +18,9 @@ env/
 .python_packages/
 backend.zip
 
+# Local profile store
+data/users.json
+
 # Env / secrets
 .env
 .env.local

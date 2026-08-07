@@ -26,7 +26,7 @@ function computeStats(mySkills, history, favorites) {
   };
 }
 
-function ProfilePage({ profile, userId, email, onSaved, onSkip, isOnboarding, reason }) {
+function ProfilePage({ profile, userId, onSaved, onSkip, isOnboarding, reason }) {
   const [editing, setEditing] = useState(isOnboarding);
   const [username, setUsername] = useState(profile?.username ?? "");
   const [contactable, setContactable] = useState(profile?.contactable ?? null);
@@ -90,7 +90,7 @@ function ProfilePage({ profile, userId, email, onSaved, onSkip, isOnboarding, re
         <aside className="profile-page__sidebar">
           <div className="profile-page__avatar" aria-label="Profile photo placeholder" />
           <h1>@{profile?.username || "username"}</h1>
-          <p className="profile-page__email">{email || "No account email available"}</p>
+          <p className="profile-page__email">Browser-local profile</p>
           <button className="profile-page__edit-button" type="button" onClick={() => setEditing(true)}>
             <PencilIcon size={15} /> Edit profile
           </button>

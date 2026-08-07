@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from "react";
-import { useIsAuthenticated, useMsal } from "@azure/msal-react";
 import { ThemeProvider, BaseStyles } from "@primer/react";
 import { Navigate, Route, Routes, matchPath, useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
@@ -15,7 +14,6 @@ import SettingsPage from "./components/SettingsPage";
 import AboutPage from "./components/AboutPage";
 import Footer from "./components/Footer";
 import Login from "./components/Login";
-import FeedbackWidget from "./components/FeedbackWidget";
 import { LeaveGuardContext, useLeaveGuardController } from "./components/LeaveGuard";
 import "./App.css";
 import PurpleCubeBackground from "./components/PurpleCubeBackground";
@@ -23,6 +21,7 @@ import { recordVisit } from "./streaks";
 import { ensureProfile } from "./api";
 import { ensureDefaultFavorite } from "./favorites";
 import { loadAppearance, saveAppearance } from "./appearance";
+import { endLocalSession, getLocalSession, startLocalSession } from "./localSession";
 
 // ---------------------------------------------------------------------------
 // DEV-ONLY click-to-source inspector.
@@ -79,19 +78,10 @@ function App() {
     : pathname === "/favorites" ? "Favorited"
     : pathname.startsWith("/create") ? "Add Skill"
     : "";
-  // useIsAuthenticated() is an MSAL hook that returns true whenever there's a
-  // signed-in account, false otherwise. We DON'T track this ourselves with
-  // useState anymore: MSAL owns the truth about auth, and this hook makes our
-  // component re-render automatically the moment that truth changes (e.g. right
-  // after login completes). That re-render is what swaps the login screen out
-  // for the real app below.
-  const isAuthenticated = useIsAuthenticated();
-
-  // The signed-in account. localAccountId is a stable per-user GUID we use as
-  // the profile key; it is NOT the person's email/alias, so it stays private.
-  const { accounts } = useMsal();
-  const userId = accounts[0]?.localAccountId ?? null;
-  const accountEmail = accounts[0]?.username ?? "";
+  // This is a local welcome gate, not authentication. The stable random ID
+  // keeps this browser's profile and authored skills associated across visits.
+  const [userId, setUserId] = useState(getLocalSession);
+  const isAuthenticated = Boolean(userId);
 
   // The user's profile (anonymous username + optional contact info). null until
   // we've fetched/created it.
@@ -206,10 +196,7 @@ function App() {
     ? appearancePreview
     : appearance;
 
-  // THE AUTH GATE. If nobody is signed in, render ONLY the login screen and
-  // stop here (return exits the function early). Because isAuthenticated comes
-  // from MSAL, the instant the user signs in this becomes true, App re-renders,
-  // skips this block, and falls through to the real app below.
+  // Keep the welcome page as the first screen without requiring credentials.
   if (!isAuthenticated) {
     return (
       <ThemeProvider colorMode={appearance.mode}>
@@ -222,10 +209,8 @@ function App() {
             <DevInspector />
             {/* The animated background behind the login card. */}
             <PurpleCubeBackground theme={appearance.theme} mode={appearance.mode} />
-            {/* No props needed: Login triggers MSAL itself, and this component
-                re-renders automatically when auth state flips. */}
             <Routes>
-              <Route path="/login" element={<Login />} />
+              <Route path="/login" element={<Login onLogin={() => setUserId(startLocalSession())} />} />
               <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
           </div>
@@ -275,9 +260,12 @@ function App() {
               sidebarOpen={sidebarOpen}
               currentPage={pageTitle}
               streak={streak}
-              email={accountEmail}
               nickname={profile?.nickname}
               username={profile?.username}
+              onSignOut={() => {
+                endLocalSession();
+                setUserId(null);
+              }}
               onHome={() => handleNavSelect("Home")}
               onOpenProfile={() => handleNavSelect("Profile")}
               onOpenSettings={() => openSettings("general")}
@@ -360,7 +348,6 @@ function App() {
                     <ProfilePage
                       profile={profile}
                       userId={userId}
-                      email={accountEmail}
                       isOnboarding={isOnboarding}
                       reason={location.state?.profileReason ?? null}
                       onSaved={(updated) => {
@@ -386,7 +373,6 @@ function App() {
           </div>
 
           {leaveGuardModal}
-          <FeedbackWidget />
         </div>
        </LeaveGuardContext.Provider>
       </BaseStyles>
@@ -399,7 +385,6 @@ function App() {
         key={`${profile?.id ?? "loading-profile"}-${settingsSection}`}
         profile={profile}
         userId={userId}
-        email={accountEmail}
         onSaved={setProfile}
         initialSection={settingsSection}
         onSectionChange={openSettings}

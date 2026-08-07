@@ -1,25 +1,16 @@
 // ============================================================================
 // Login.jsx
 // ----------------------------------------------------------------------------
-// The screen shown when nobody is signed in. Its core job is a single button
-// that kicks off the Microsoft sign-in. It does NOT collect a username or
-// password itself (that's the whole point of OAuth: the user types their
-// credentials on Microsoft's page, never on ours).
+// The screen shown before a visitor starts a local session. It intentionally
+// collects no credentials: the button simply continues into the app.
 //
 // Around that button we wrap a small landing page: a hero that explains what
 // The Lore is, what a "skill" is, the kinds of skills you'll find, and a few
 // fun stats — so the first thing people see isn't just a bare button.
 // ============================================================================
 
-import { useState } from "react";
-// useMsal is a React hook that gives us the shared MSAL engine (from the
-// MsalProvider in main.jsx) so we can trigger login from this component.
-import { useMsal } from "@azure/msal-react";
 // The logo image. Vite turns this import into a usable URL at build time.
 import logo from "../assets/New_logo_Key_lore.png";
-// The scopes/permissions object we defined in authConfig.js.
-import { loginRequest } from "../authConfig";
-import { TEAMS_CHAT_URL } from "../config";
 import "./Login.css";
 
 // The categories of skills people can discover, shown as playful chips so the
@@ -60,29 +51,7 @@ const STATS = [
   { value: "∞", label: "Ideas to share" },
 ];
 
-function Login() {
-  // Pull `instance` (the MSAL engine) out of the hook. The { } is object
-  // destructuring: useMsal() returns an object and we grab just that field.
-  const { instance } = useMsal();
-  const [isSigningIn, setIsSigningIn] = useState(false);
-
-  // Runs when the user clicks the sign-in button.
-  const handleSignIn = () => {
-    if (isSigningIn) return;
-    setIsSigningIn(true);
-    // loginRedirect navigates THIS SAME TAB to Microsoft, then Microsoft sends
-    // the user back to our redirectUri. We chose redirect over popup because a
-    // popup relies on window.opener messaging, which browsers (COOP) sever when
-    // the popup visits Microsoft's domain, leaving it stuck open. Redirect has
-    // no second window, so nothing to sever. The result is read automatically
-    // by MsalProvider on return, which flips useIsAuthenticated() to true.
-    // .catch handles the rare case the redirect call itself throws.
-    instance.loginRedirect(loginRequest).catch((error) => {
-      console.error("Sign-in failed:", error);
-      setIsSigningIn(false);
-    });
-  };
-
+function Login({ onLogin }) {
   return (
     <div className="login">
       <div className="login__grid">
@@ -143,53 +112,23 @@ function Login() {
 
           <h2 className="login__card-title">Ready to dive in?</h2>
           <p className="login__card-subtitle">
-            Sign in with your Microsoft account to start exploring skills.
+            Continue to start exploring skills. No account is required.
           </p>
 
           <button
             type="button"
             className="login__button"
-            onClick={handleSignIn}
-            disabled={isSigningIn}
+            onClick={onLogin}
           >
-            <MicrosoftLogo />
-            {isSigningIn ? "Redirecting…" : "Sign in with Microsoft"}
+            Continue
           </button>
 
           <p className="login__fineprint">
-            Want to know more before signing into the lore?
-            <br />
-            <a
-              href={TEAMS_CHAT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Join our Teams chat
-            </a>
-            .
+            Your profile is stored locally for this browser.
           </p>
         </section>
       </div>
     </div>
-  );
-}
-
-// Tiny inline Microsoft 4-square logo so the button reads as an official
-// sign-in without pulling in an image asset.
-function MicrosoftLogo() {
-  return (
-    <svg
-      className="login__ms-logo"
-      width="18"
-      height="18"
-      viewBox="0 0 21 21"
-      aria-hidden="true"
-    >
-      <rect x="1" y="1" width="9" height="9" fill="#f25022" />
-      <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
-      <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
-      <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
-    </svg>
   );
 }
 
